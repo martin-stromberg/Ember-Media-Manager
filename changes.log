@@ -1,0 +1,10 @@
+# Änderungsprotokoll
+
+## 2026-09-19 — Solution kompilierbar machen (.NET Framework 4.8)
+
+- Die fehlende externe Projektreferenz `TVDB` wurde als Vendored-Quelle unter `TheTVDBApi/src/TVDB/` ins Repository aufgenommen (GPL-3.0, `DanCooper/TheTVDBApi`); Solution und beide TVDB-Scraper-Projekte verweisen nun auf den repo-internen Pfad. Die Solution ist damit nach einem frischen `git clone` self-contained baubar.
+- Alle Projekte wurden einheitlich auf .NET Framework 4.8 angehoben; die 4.8-Referenzassemblys werden per NuGet (`Microsoft.NETFramework.ReferenceAssemblies.net48` + `Directory.Build.props`/`FrameworkPathOverride`) bereitgestellt — ein Developer Pack ist nicht erforderlich.
+- `.nuget/NuGet.exe` wurde auf 6.14.0 aktualisiert, wodurch der Paket-Restore (`nuget restore`) wieder funktioniert.
+- Bestehende Kompilierfehler im Quellcode wurden minimalinvasiv behoben (u. a. fehlende `Enums.ScraperEventType`-Definition, fehlende Datenbankmethoden `Delete_Tag`/`Save_Tag_Movie` aus Upstream 1.11.1 portiert, veralteter `APIXML.CacheXMLs`-Aufruf, `if exist`-Guard im `EmberAPI`-PostBuildEvent, ungültige `Prefer32Bit`-Einstellungen in Addon-Bibliotheken).
+- Die Solution baut in den Konfigurationen `Release|x64`, `Release|x86` und `Debug|Any CPU` fehlerfrei; Build-Anleitung in `README.md` und `docs/help/build/` dokumentiert.
+- Ein Startabsturz beim ersten Lauf wurde behoben: `Settings.Load()` in `EmberAPI/clsAPISettings.vb` öffnete die `Settings.xml` vor der Existenzprüfung (`FileNotFoundException` bei frischem Profil). Der Reader wird nun wie in Upstream 1.11.1 erst innerhalb der `File.Exists`-Prüfung geöffnet; fehlende `Settings.xml` führt zu Standardeinstellungen statt zum Absturz.

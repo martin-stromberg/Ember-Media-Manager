@@ -15,6 +15,31 @@ To continue development of EmberMM, because its a great product, that in my opin
 - Main discussion : http://forum.xbmc.org/forumdisplay.php?fid=195
 - GitHub : https://github.com/DanCooper/Ember-MM-Newscraper (DanCooper is mainaining the most aligned version)
 
+## Building
+
+Requirements: Windows, Visual Studio (MSBuild), .NET Framework 4.8 runtime.
+A .NET Framework 4.8 Developer Pack is **not** required — the reference
+assemblies are restored via NuGet (`Microsoft.NETFramework.ReferenceAssemblies.net48`)
+and wired in through `Directory.Build.props`.
+
+1. Restore NuGet packages (packages.config based):
+
+   ```
+   .nuget\NuGet.exe restore "Ember Media Manager.sln"
+   ```
+
+2. Build the solution (supported platforms: x86 and x64; `Any CPU` also compiles,
+   but does not ship the native per-platform dependencies):
+
+   ```
+   msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
+   ```
+
+   Output lands in `EmberMM - Release - x64` (resp. `... - x86` / `... - AnyCPU`).
+
+All projects target .NET Framework 4.8. The `TVDB` library sources are vendored
+under `TheTVDBApi/` (GPL-3.0, originally from `DanCooper/TheTVDBApi`).
+
 ## Helping the development
 Any help is more than welcome. We do suggest everyone to participate in the forum to be aligned and updated.
 

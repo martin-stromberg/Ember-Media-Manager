@@ -1116,18 +1116,22 @@ Public Class Settings
 
     Public Sub Load()
         Dim configpath As String = Path.Combine(Master.SettingsPath, "Settings.xml")
-        Dim xmlReader As New StreamReader(configpath)
 
         Try
             If File.Exists(configpath) Then
                 Dim xXMLSettings As New XmlSerializer(GetType(Settings))
-                Master.eSettings = CType(xXMLSettings.Deserialize(xmlReader), Settings)
+                Using xmlReader As New StreamReader(configpath)
+                    Master.eSettings = CType(xXMLSettings.Deserialize(xmlReader), Settings)
+                End Using
             End If
         Catch ex As Exception
             _Logger.Error(ex, New StackFrame().GetMethod().Name)
             _Logger.Info("An attempt is made to repair the Settings.xml")
             Try
-                Dim sSettings As String = xmlReader.ReadToEnd
+                Dim sSettings As String
+                Using xmlReader As New StreamReader(configpath)
+                    sSettings = xmlReader.ReadToEnd
+                End Using
                 'old Fanart/Poster sizes
                 sSettings = Regex.Replace(sSettings, "PrefSize>Xlrg<", "PrefSize>Any<")
                 sSettings = Regex.Replace(sSettings, "PrefSize>Lrg<", "PrefSize>Any<")
@@ -1152,7 +1156,6 @@ Public Class Settings
                 _Logger.Warn("Attempt to repair the Settings.xml has failed. The file has been backed up and the default settings has been loaded.")
             End Try
         End Try
-        xmlReader.Close()
 
         SetDefaultsForLists(Enums.DefaultType.All, False)
 
