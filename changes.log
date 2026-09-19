@@ -8,3 +8,43 @@
 - Bestehende Kompilierfehler im Quellcode wurden minimalinvasiv behoben (u. a. fehlende `Enums.ScraperEventType`-Definition, fehlende Datenbankmethoden `Delete_Tag`/`Save_Tag_Movie` aus Upstream 1.11.1 portiert, veralteter `APIXML.CacheXMLs`-Aufruf, `if exist`-Guard im `EmberAPI`-PostBuildEvent, ungültige `Prefer32Bit`-Einstellungen in Addon-Bibliotheken).
 - Die Solution baut in den Konfigurationen `Release|x64`, `Release|x86` und `Debug|Any CPU` fehlerfrei; Build-Anleitung in `README.md` und `docs/help/build/` dokumentiert.
 - Ein Startabsturz beim ersten Lauf wurde behoben: `Settings.Load()` in `EmberAPI/clsAPISettings.vb` öffnete die `Settings.xml` vor der Existenzprüfung (`FileNotFoundException` bei frischem Profil). Der Reader wird nun wie in Upstream 1.11.1 erst innerhalb der `File.Exists`-Prüfung geöffnet; fehlende `Settings.xml` führt zu Standardeinstellungen statt zum Absturz.
+
+## 2020-05-11 — Mapping-Editor (retroaktiv dokumentiert)
+
+- Neues generisches Modul `generic.EmberCore.Mapping`: Dialoge zur Pflege der Genre-, Regex- und Simple-Mapping-Listen (`dlgGenreMapping`, `dlgRegexMapping`, `dlgSimpleMapping`).
+
+## 2018-03-13 — Trakt.tv-Interface (retroaktiv dokumentiert)
+
+- Neues Interface-Modul `generic.Interface.Trakttv`: Autorisierung des Trakt-Kontos (`frmAuthorize`), Sync-Manager (`dlgTrakttvManager`) für Watched-Status/Playcounts in beide Richtungen sowie Kontextmenü-Einträge je Inhaltstyp.
+
+## 2015-07-07 — Kodi-Integration (retroaktiv dokumentiert)
+
+- Neue C#-Bibliothek `KodiAPI` (`XBMCRPC`): generierter JSON-RPC-Client mit Methodengruppen `VideoLibrary`, `Files`, `Textures`, `Player` u. a. sowie WebSocket-Notifications.
+- Neues Interface-Modul `generic.Interface.Kodi`: Multi-Host-Verwaltung (`dlgHost`), Pfad-Zuordnung lokaler Ember-Pfade zu Kodi-Quellen und Echtzeit-Synchronisation auf `ModuleEventType`-Ereignisse (Edit/Scrape/Remove/Scan/Clean).
+
+## 2015-06-15 — TheTVDB-Datenscraper (retroaktiv dokumentiert)
+
+- Neues Scraper-Modul `scraper.Data.TVDB` für Serien-Metadaten von TheTVDB (nutzt die TVDB-Clientbibliothek).
+
+## 2015-03-08 — Medienlisten-Editor (retroaktiv dokumentiert)
+
+- Neues generisches Modul `generic.EmberCore.FilterEditor` (Modulklasse `genericMediaListEditor`): Editor für benutzerdefinierte Filter und Medienlisten.
+
+## 2015-03-05 — Tag-Manager (retroaktiv dokumentiert)
+
+- Neues generisches Modul `generic.EmberCore.TagManager`: Verwaltung von Tags/Schlagworten mit eigenem Dialog (`dlgTagManager`).
+
+## 2014-04-03 — BuildSetup / Installer (retroaktiv dokumentiert)
+
+- `BuildSetup/` eingeführt: NSIS-Installerskript (`1.4_InstallerScript.nsi`), Build-Batch-Dateien für x86/x64 sowie Hilfswerkzeuge (`BRC32`, `tx`, `txDownload`).
+
+## 2013-09-29 — Trakt.tv-API-Bibliothek (retroaktiv dokumentiert)
+
+- Neue C#-Bibliothek `Trakttv`: Trakt-API-v2-Client mit Sync-Endpunkten (History, Ratings, Watchlist, Collection, Listen, Kommentare), Datenmodellen und Fehlertypen.
+
+## 2013-05-17 — Initialer Projektimport 1.4.x (retroaktiv dokumentiert)
+
+- Kern der Anwendung: `EmberMediaManager` (WinForms-Hauptanwendung mit `frmMain` und Edit-/Quell-/Settings-Dialogen) und `EmberAPI` (SQLite-Datenbank `MyVideos`, Scanner, NFO, Bilder, MediaInfo/FFmpeg, Settings, Modulsystem `ModulesManager` mit `GenericModule`- und Scraper-Interfaces).
+- Scraper-Module: Daten (IMDb, TMDb, OMDb, OFDb, Moviepilot), Bilder (TMDb, Fanart.tv, TVDB), Trailer (YouTube, TMDb, Apple, hd-trailers.net, Videobuster), Themes (YouTube, TelevisionTunes).
+- Generische Module: Bulk Renamer, Movie Exporter, Media File Manager, Kontextmenü, Metadaten-Editor, Video Source Mapping.
+- Scraper-Design getrennt nach Gruppen (Daten, Bilder, Trailer, Themes) mit Scrape-Reihenfolge und zentraler Bildauswahl.
