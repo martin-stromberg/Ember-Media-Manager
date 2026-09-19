@@ -17,9 +17,9 @@ To continue development of EmberMM, because its a great product, that in my opin
 
 ## Building
 
-Requirements: Windows, Visual Studio (MSBuild), .NET Framework 4.8.1 runtime.
-A .NET Framework 4.8.1 Developer Pack is **not** required — the reference
-assemblies are restored via NuGet (`Microsoft.NETFramework.ReferenceAssemblies.net481`)
+Requirements: Windows, Visual Studio (MSBuild), .NET Framework 4.8 runtime.
+A .NET Framework 4.8 Developer Pack is **not** required — the reference
+assemblies are restored via NuGet (`Microsoft.NETFramework.ReferenceAssemblies.net48`)
 and wired in through `Directory.Build.props`.
 
 1. Restore NuGet packages (packages.config based):
@@ -37,7 +37,7 @@ and wired in through `Directory.Build.props`.
 
    Output lands in `EmberMM - Release - x64` (resp. `... - x86` / `... - AnyCPU`).
 
-All projects target .NET Framework 4.8.1. The `TVDB` library sources are vendored
+All projects target .NET Framework 4.8. The `TVDB` library sources are vendored
 under `TheTVDBApi/` (GPL-3.0, originally from `DanCooper/TheTVDBApi`).
 
 ## Helping the development

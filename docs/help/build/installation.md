@@ -6,7 +6,7 @@
 
 - Windows
 - Visual Studio mit MSBuild (bzw. „Build Tools für Visual Studio")
-- .NET Framework 4.8.1 **Runtime** — ein Developer Pack ist **nicht** erforderlich
+- .NET Framework 4.8 **Runtime** — ein Developer Pack ist **nicht** erforderlich
 
 ## Restore
 
@@ -16,11 +16,11 @@ Die Solution verwendet klassisches `packages.config`-NuGet. Der Restore erfolgt 
 .nuget\NuGet.exe restore "Ember Media Manager.sln"
 ```
 
-Dadurch werden alle Pakete in `packages/` abgelegt — einschließlich `Microsoft.NETFramework.ReferenceAssemblies.net481`, das die .NET Framework 4.8.1 Referenzassemblys enthält.
+Dadurch werden alle Pakete in `packages/` abgelegt — einschließlich `Microsoft.NETFramework.ReferenceAssemblies.net48`, das die .NET Framework 4.8 Referenzassemblys enthält.
 
 ## Referenzassemblys
 
-`Directory.Build.props` im Repository-Stamm setzt `FrameworkPathOverride` auf das Paketverzeichnis `packages\Microsoft.NETFramework.ReferenceAssemblies.net481.1.0.3\build\.NETFramework\v4.8.1\` (nur wenn das Verzeichnis existiert). Dadurch kompiliert MSBuild gegen die Paket-Referenzassemblys statt gegen ein installiertes Developer Pack.
+`Directory.Build.props` im Repository-Stamm setzt `FrameworkPathOverride` auf das Paketverzeichnis `packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.3\build\.NETFramework\v4.8\` (nur wenn das Verzeichnis existiert). Dadurch kompiliert MSBuild gegen die Paket-Referenzassemblys statt gegen ein installiertes Developer Pack.
 
 ## Build
 
