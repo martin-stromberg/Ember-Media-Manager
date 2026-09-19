@@ -1,0 +1,31 @@
+# Release Notes
+
+## Important Notes Before Update
+
+- The solution now targets .NET Framework 4.8.1 — the .NET Framework 4.8.1 runtime is required to run the application.
+- The TVDB library is vendored inside the repository (`TheTVDBApi/`); a separate checkout next to the repository is no longer needed.
+- NuGet restore is required before building (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); no .NET 4.8.1 Developer Pack is needed.
+
+## What's New
+
+- Solution builds self-contained again after a fresh clone (previously failed on the missing external `TheTVDBApi` project).
+- All projects retargeted to .NET Framework 4.8.1 (previously mixed 3.5 / 4.5 / 4.8 targets).
+- NuGet tooling updated to 6.14.0; package restore works again.
+- Compile errors fixed (missing tag database methods, renamed XML cache call, invalid `Prefer32Bit` flags, conditional post-build copy).
+- Build instructions added to `README.md` and `docs/help/build/`.
+
+
+
+## Wichtige Hinweise vor dem Update
+
+- Die Solution zielt nun auf .NET Framework 4.8.1 — zum Ausführen der Anwendung ist die .NET Framework 4.8.1 Runtime erforderlich.
+- Die TVDB-Bibliothek ist im Repository vendored (`TheTVDBApi/`); ein separater Checkout neben dem Repository ist nicht mehr nötig.
+- Vor dem Bauen ist ein NuGet-Restore erforderlich (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); ein .NET 4.8.1 Developer Pack wird nicht benötigt.
+
+## Neuerungen
+
+- Die Solution ist nach einem frischen Clone wieder eigenständig baubar (zuvor scheiterte der Build am fehlenden externen `TheTVDBApi`-Projekt).
+- Alle Projekte wurden auf .NET Framework 4.8.1 angehoben (zuvor gemischte Targets 3.5 / 4.5 / 4.8).
+- NuGet-Werkzeuge auf 6.14.0 aktualisiert; der Paket-Restore funktioniert wieder.
+- Kompilierfehler behoben (fehlende Tag-Datenbankmethoden, umbenannter XML-Cache-Aufruf, ungültige `Prefer32Bit`-Einstellungen, abgesichertes Post-Build-Kopieren).
+- Build-Anleitung in `README.md` und `docs/help/build/` ergänzt.

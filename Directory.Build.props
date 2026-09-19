@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!--
+    .NET Framework 4.8.1 Referenzassemblys werden ueber das NuGet-Paket
+    Microsoft.NETFramework.ReferenceAssemblies.net481 bereitgestellt
+    (Restore: msbuild -t:restore). Dadurch ist kein installiertes
+    .NET Framework 4.8.1 Developer Pack erforderlich.
+  -->
+  <PropertyGroup>
+    <_Net481RefAssemblies>$(MSBuildThisFileDirectory)packages\Microsoft.NETFramework.ReferenceAssemblies.net481.1.0.3\build\.NETFramework\v4.8.1\</_Net481RefAssemblies>
+    <FrameworkPathOverride Condition="Exists('$(_Net481RefAssemblies)')">$(_Net481RefAssemblies)</FrameworkPathOverride>
+  </PropertyGroup>
+</Project>
