@@ -1,0 +1,66 @@
+#!/usr/bin/env sh
+# Spiegelt den "Security scan"-Schritt (Gate 2) aus .github/workflows/pr-staging-ci.yml
+# lokal, damit NuGet-Vulnerability-Befunde (NU190x) vor dem Push auffallen statt erst
+# in der PR-CI. Ein Befund bricht den Push ab (Exit 1) - wie das blockierende CI-Gate.
+# Aktivierung (einmalig pro Klon): git config core.hooksPath .githooks
+
+echo "pre-push: NuGet-Security-Scan laeuft (wie in .github/workflows/pr-staging-ci.yml)..."
+
+NUGET=.nuget/NuGet.exe
+
+# Plattform-Check (analog zum Python-Fallback in pre-commit): NuGet.exe ist ein
+# Windows-PE-Binary - unter Windows (Git Bash/MSYS/Cygwin) direkt ausfuehrbar,
+# unter Linux/macOS nur via Mono. Ist keine lauffaehige Toolchain vorhanden, wird
+# der lokale Scan mit Warnung uebersprungen (Exit 0) statt den Push zu blockieren:
+# ein harter Push-Blocker auf einer von der README unterstuetzten Plattform ohne
+# funktionierende Toolchain waere ein Defekt - das blockierende NU190x-Gate bleibt
+# serverseitig in der CI wirksam.
+NUGET_RUN=
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    NUGET_RUN=direct
+    ;;
+  *)
+    if command -v mono >/dev/null 2>&1; then
+      NUGET_RUN=mono
+    fi
+    ;;
+esac
+
+if [ ! -f "$NUGET" ]; then
+  echo "pre-push: $NUGET nicht gefunden - Security-Scan wird lokal uebersprungen; die CI prueft NU190x serverseitig." >&2
+  exit 0
+fi
+
+if [ -z "$NUGET_RUN" ]; then
+  echo "pre-push: $NUGET ist auf dieser Plattform nicht ausfuehrbar (kein Windows, kein 'mono' im PATH)." >&2
+  echo "pre-push: Security-Scan wird lokal uebersprungen; die CI prueft NU190x serverseitig." >&2
+  exit 0
+fi
+
+RESTORE_LOG=$(mktemp)
+if [ "$NUGET_RUN" = "mono" ]; then
+  mono "$NUGET" restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+else
+  "$NUGET" restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+fi
+RESTORE_EXIT=$?
+cat "$RESTORE_LOG"
+
+if [ "$RESTORE_EXIT" -ne 0 ]; then
+  echo "pre-push: nuget restore fehlgeschlagen (Exit $RESTORE_EXIT) - Push wird abgebrochen." >&2
+  rm -f "$RESTORE_LOG"
+  exit 1
+fi
+
+# NU190[1-4] only: NU1900 ("audit source unreachable") and NU1905+ are infrastructure
+# warnings - a transient NuGet-source error must not block the push without a real
+# vulnerability finding.
+if grep -qE "NU190[1-4]" "$RESTORE_LOG"; then
+  echo "pre-push: Vulnerable NuGet-Pakete gefunden (NU190x-Warnung im Restore-Output) - Push wird abgebrochen." >&2
+  rm -f "$RESTORE_LOG"
+  exit 1
+fi
+
+rm -f "$RESTORE_LOG"
+echo "pre-push: Security-Scan bestanden - keine NU190x-Befunde."

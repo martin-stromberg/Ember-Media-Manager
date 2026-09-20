@@ -8,6 +8,7 @@
 
 ## What's New
 
+- `Newtonsoft.Json` updated uniformly to 13.0.3 across all projects — fixes a high-severity denial-of-service vulnerability (GHSA-5crp-9r3c-p9vr).
 - Complete feature documentation added under `docs/help/` (media library, movies, TV shows, movie sets, scrapers, Kodi, Trakt.tv, tools, settings, module system, database, build).
 - `changes.log` backfilled with retroactive entries for all major development steps (2013–2020).
 - `README.md` updated: feature overview, project structure, test status, license and documentation references.
@@ -26,6 +27,7 @@
 
 ## Neuerungen
 
+- `Newtonsoft.Json` in allen Projekten einheitlich auf 13.0.3 aktualisiert — behebt eine hochkritische Denial-of-Service-Schwachstelle (GHSA-5crp-9r3c-p9vr).
 - Vollständige Featuredokumentation unter `docs/help/` ergänzt (Medienbibliothek, Filme, Serien, Filmsammlungen, Scraper, Kodi, Trakt.tv, Werkzeuge, Einstellungen, Modulsystem, Datenbank, Build).
 - `changes.log` um retroaktive Einträge für alle wesentlichen Entwicklungsschritte (2013–2020) ergänzt.
 - `README.md` aktualisiert: Feature-Übersicht, Projektstruktur, Teststatus, Lizenz und Dokumentationsverweise.

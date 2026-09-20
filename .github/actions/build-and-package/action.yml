@@ -1,0 +1,126 @@
+name: Build and package
+description: >
+  Provisions MSBuild, restores "Ember Media Manager.sln" via the repo-pinned NuGet CLI
+  (.nuget\NuGet.exe - the legacy packages.config model is not supported by dotnet restore),
+  builds it in Release|x64 mode, copies the "EmberMM - Release - x64" output to publish/,
+  packages the result as release.zip, and generates the update manifest (update.json:
+  SHA-256/size/URL per asset). Used by both the "prerelease" job in staging-ci.yml
+  ("Pre-Release") and the "release" job in release.yml, so these build/package/zip/manifest
+  steps only exist once instead of being duplicated between them. The NSIS installer
+  (BuildSetup/) is deliberately not part of this pipeline - it would require Transifex
+  credentials (tx.exe) and makensis on the runner.
+
+inputs:
+  release-version:
+    description: Version without a leading v, written into version.json and update.json.
+    required: false
+    default: ''
+  release-tag:
+    description: Release tag (e.g. v1.2.3 or v1.2.3-rc.1), written into version.json and update.json, and used to build the asset download URL.
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore dependencies
+      run: .\.nuget\NuGet.exe restore "Ember Media Manager.sln"
+      shell: pwsh
+
+    - name: Build (Release x64)
+      run: msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
+      shell: pwsh
+
+    - name: Copy build output to publish
+      # Ember Media Manager is not a dotnet-publish-capable app (legacy .NET Framework 4.8
+      # vbproj); the documented MSBuild output directory "EmberMM - <Config> - <Platform>"
+      # is the release payload instead.
+      run: |
+        # publish/ must exist as a directory first: copying a wildcard onto a
+        # non-existent destination makes Copy-Item create "publish" from the first
+        # enumerated item, and a container then fails with
+        # "Container cannot be copied onto existing leaf item".
+        if (Test-Path 'publish' -PathType Leaf) { Remove-Item 'publish' -Force }
+        New-Item -ItemType Directory -Path 'publish' -Force | Out-Null
+        Copy-Item -Path 'EmberMM - Release - x64\*' -Destination 'publish' -Recurse -Force
+      shell: pwsh
+
+    - name: Write version manifest
+      env:
+        RELEASE_VERSION: ${{ inputs.release-version }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+      run: |
+        $version = $env:RELEASE_VERSION
+        $tagName = $env:RELEASE_TAG
+        if (-not $tagName) {
+          $tagName = "v0.0.0"
+        }
+        if (-not $version) {
+          $version = $tagName -replace '^v', ''
+        }
+        $version = $version -replace '^v', ''
+        $manifest = [ordered]@{
+          version = $version
+          tagName = $tagName
+          commit = $env:GITHUB_SHA
+          createdAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+        }
+        $manifest | ConvertTo-Json -Depth 3 | Set-Content -Path 'publish/version.json' -Encoding UTF8
+      shell: pwsh
+
+    - name: Verify publish output
+      run: |
+        if (-not (Test-Path 'publish/Ember Media Manager.exe')) {
+          throw "publish/ is incomplete: Ember Media Manager.exe is missing."
+        }
+        if (-not (Test-Path 'publish/version.json')) {
+          throw "publish/ is incomplete: version.json is missing."
+        }
+      shell: pwsh
+
+    - name: Create Release ZIP
+      run: Compress-Archive -Path publish/* -DestinationPath release.zip -Force
+      shell: pwsh
+
+    - name: Create update manifest
+      # Update manifest (SHA-256, size, download URL per asset). This is a separate GitHub
+      # release asset alongside release.zip.
+      env:
+        RELEASE_VERSION: ${{ inputs.release-version }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+      run: |
+        $version = $env:RELEASE_VERSION
+        $tag = $env:RELEASE_TAG
+        if (-not $tag) {
+          $tag = "v0.0.0"
+        }
+        if (-not $version) {
+          $version = $tag -replace '^v', ''
+        }
+        $version = $version -replace '^v', ''
+
+        $zipPath = 'release.zip'
+        $hash = (Get-FileHash -Path $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        $size = (Get-Item $zipPath).Length
+        $assetUrl = "https://github.com/${{ github.repository }}/releases/download/$tag/release.zip"
+
+        $manifest = [ordered]@{
+          version      = $version
+          releaseNotes = "Ember Media Manager release $tag"
+          publishedAt  = (Get-Date).ToUniversalTime().ToString('o')
+          assets       = @(
+            [ordered]@{
+              platform          = "windows"
+              runtimeIdentifier = "win-x64"
+              assetName         = "release.zip"
+              assetUrl          = $assetUrl
+              sha256            = $hash
+              sizeBytes         = $size
+            }
+          )
+        }
+        $manifest | ConvertTo-Json -Depth 5 | Set-Content -Path 'update.json' -Encoding UTF8
+      shell: pwsh
