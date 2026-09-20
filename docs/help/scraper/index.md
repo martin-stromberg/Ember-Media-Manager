@@ -8,3 +8,4 @@ Scrapers fetch metadata, images, trailers and themes from online sources. Ember 
 - [Technical Flow](ablauf-technisch.md)
 - [Setup for Users](einrichtung-anwender.md)
 - [Business Rules](business-rules.md)
+- [Troubleshooting](troubleshooting.md)

@@ -22,6 +22,8 @@ Ember Media Manager is a Windows media manager for movies, TV shows and movie se
 - Multi-profile support, advanced settings, offline media (stub) management
 - Extensible module system: add-on assemblies loaded from the `Modules` directory
 
+> **Known issue:** The IMDb data scraper's title search currently returns no results — IMDb no longer serves the HTML endpoints it parses (AWS WAF challenge / rebuilt frontend), so the *Search Results* dialog always shows *No Matches Found*. Manual IMDb ID entry still works. The TMDb data scraper may also fail to deliver search hits. Details and workarounds: [Scraper troubleshooting](docs/help/scraper/troubleshooting.md).
+
 ## Documentation
 
 Feature documentation lives under [`docs/help/`](docs/help/index.md). The change history is tracked in [`changes.log`](changes.log); release notes are in [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
