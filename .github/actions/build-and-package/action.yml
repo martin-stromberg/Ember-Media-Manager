@@ -38,7 +38,14 @@ runs:
       # Ember Media Manager is not a dotnet-publish-capable app (legacy .NET Framework 4.8
       # vbproj); the documented MSBuild output directory "EmberMM - <Config> - <Platform>"
       # is the release payload instead.
-      run: Copy-Item -Path 'EmberMM - Release - x64\*' -Destination 'publish/' -Recurse -Force
+      run: |
+        # publish/ must exist as a directory first: copying a wildcard onto a
+        # non-existent destination makes Copy-Item create "publish" from the first
+        # enumerated item, and a container then fails with
+        # "Container cannot be copied onto existing leaf item".
+        if (Test-Path 'publish' -PathType Leaf) { Remove-Item 'publish' -Force }
+        New-Item -ItemType Directory -Path 'publish' -Force | Out-Null
+        Copy-Item -Path 'EmberMM - Release - x64\*' -Destination 'publish' -Recurse -Force
       shell: pwsh
 
     - name: Write version manifest
