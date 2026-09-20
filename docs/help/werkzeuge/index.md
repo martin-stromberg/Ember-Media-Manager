@@ -1,8 +1,8 @@
-# Werkzeuge
+# Tools
 
-Die generischen EmberCore-Module erweitern die Anwendung um Werkzeuge: Stapel-Umbenennung, Export, Dateioperationen, Tag- und Filterverwaltung, Mapping-Editoren und mehr. Alle Werkzeuge lassen sich einzeln aktivieren und erscheinen in Menüs bzw. Kontextmenüs der Medienlisten.
+The generic EmberCore modules extend the application with tools: batch renaming, export, file operations, tag and filter management, mapping editors and more. All tools can be enabled individually and appear in menus and context menus of the media lists.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Ablauf für Anwender](ablauf-anwender.md)
+- [Description](beschreibung.md)
+- [User Walkthrough](ablauf-anwender.md)

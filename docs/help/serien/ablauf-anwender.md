@@ -1,31 +1,31 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Serien — Ablauf für Anwender
+# TV Shows — User Walkthrough
 
-## Voraussetzungen
+## Prerequisites
 
-Mindestens eine Serien-Quelle ist eingerichtet und die Bibliothek wurde gescannt.
+At least one TV show source is configured and the library has been scanned.
 
-## Schritt-für-Schritt-Anleitung
+## Step-by-step guide
 
-### 1. Serie scrapen
+### 1. Scrape a show
 
-1. Serie in der Liste *TV Shows* wählen.
-2. Kontextmenü → *(Re)Scrape Show*; für gezielte Auswahl *Custom Scraper...*.
-3. Im Suchdialog die richtige Serie bestätigen (bei „Ask"-Modus).
-4. Staffeln und Episoden anschließend je Bedarf über *(Re)Scrape Season* / *(Re)Scrape Episode* nachladen.
+1. Select the show in the *TV Shows* list.
+2. Context menu → *(Re)Scrape Show*; use *Custom Scraper...* for a targeted selection.
+3. Confirm the correct show in the search dialog (in "Ask" mode).
+4. Afterwards load seasons and episodes as needed via *(Re)Scrape Season* / *(Re)Scrape Episode*.
 
-### 2. Serie/Staffel/Episode bearbeiten
+### 2. Edit show/season/episode
 
-1. Eintrag der gewünschten Ebene wählen → *Edit TV Show* / *Edit Season* / *Edit Episode*.
-2. Metadaten, Besetzung, Bilder und Dateiinfos bearbeiten.
-3. Bei Episoden: Staffel-/Episodennummer, Titel, Erstausstrahlung und Thumb pflegen; über *TV Change Episode* lassen sich Episoden umsortieren.
-4. Speichern — NFO und Datenbank werden geschrieben.
+1. Select the entry of the desired level → *Edit TV Show* / *Edit Season* / *Edit Episode*.
+2. Edit metadata, cast, images and file info.
+3. For episodes: maintain season/episode number, title, air date and thumb; *TV Change Episode* allows reordering episodes.
+4. Save — NFO and database are written.
 
-### 3. Fehlende Episoden prüfen
+### 3. Check for missing episodes
 
-- In der Episodenliste werden als fehlend erkannte Episoden (aus den Scraper-Daten) angezeigt, sofern die Option aktiv ist.
+- The episode list shows episodes detected as missing (from the scraper data), if the option is enabled.
 
-## Ergebnis
+## Result
 
-Die Serie ist mit allen Staffeln und Episoden samt Artwork und Metadaten im Kodi-kompatiblen Schema abgelegt.
+The show is stored with all seasons and episodes including artwork and metadata in the Kodi-compatible schema.

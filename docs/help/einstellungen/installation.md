@@ -1,33 +1,33 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Einstellungen — Installation und Konfiguration
+# Settings — Installation and Configuration
 
-## Voraussetzungen
+## Prerequisites
 
-Installierte Ember Media Manager Instanz (siehe [Build](../build/index.md) bzw. NSIS-Installer aus `BuildSetup/`).
+An installed Ember Media Manager instance (see [Build](../build/index.md) or the NSIS installer from `BuildSetup/`).
 
-## Ablage der Konfiguration
+## Configuration storage
 
-| Datei / Verzeichnis | Inhalt |
-|---------------------|--------|
-| `Settings.xml` (im Profilverzeichnis) | Gesamte Anwendungs- und Modul-Einstellungen |
-| `AdvancedSettings.xml` | Erweiterte Schlüssel-Wert-Optionen (Regex, Ausschlüsse, Formatkonvertierung) |
-| `MyVideos*.emm` | SQLite-Datenbank des Profils |
-| `Modules/` | Addon-Assemblys, werden beim Start geladen |
-| `Defaults/` (Programmverzeichnis) | Werksvorgaben: `DefaultAdvancedSettings - AudioFormatConverts.xml`, `DefaultAdvancedSettings - VideoFormatConverts.xml`, `DefaultAdvancedSettings - VideoSourceMapping.xml`, `DefaultRatings.xml`, `Core.Languages.Scrapers.xml`, `Core.Mapping.Editions.xml` |
-| `Translations/` | Sprachressourcen (`en-US.xml`, `db-DB.xml`) |
-| `NLog.config` | Logging-Konfiguration |
+| File / directory | Content |
+|------------------|---------|
+| `Settings.xml` (in the profile directory) | Entire application and module settings |
+| `AdvancedSettings.xml` | Advanced key-value options (regex, exclusions, format conversion) |
+| `MyVideos*.emm` | SQLite database of the profile |
+| `Modules/` | Add-on assemblies, loaded at startup |
+| `Defaults/` (program directory) | Factory defaults: `DefaultAdvancedSettings - AudioFormatConverts.xml`, `DefaultAdvancedSettings - VideoFormatConverts.xml`, `DefaultAdvancedSettings - VideoSourceMapping.xml`, `DefaultRatings.xml`, `Core.Languages.Scrapers.xml`, `Core.Mapping.Editions.xml` |
+| `Translations/` | Language resources (`en-US.xml`, `db-DB.xml`) |
+| `NLog.config` | Logging configuration |
 
-## Konfiguration
+## Configuration
 
-| Parameter | Typ | Standardwert | Beschreibung |
-|-----------|-----|--------------|--------------|
-| `Settings.xml` | Datei | wird beim ersten Start erzeugt | Fehlt die Datei, werden Standardeinstellungen verwendet (kein Absturz) |
-| `AdvancedSettings.xml` | Datei | wird aus `Defaults/` übernommen | Erweiterte Optionen außerhalb der Dialoge |
-| Kommandozeile `-profile` | String | — | Startet Ember mit benanntem Profil |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `Settings.xml` | File | created on first start | If the file is missing, default settings are used (no crash) |
+| `AdvancedSettings.xml` | File | taken from `Defaults/` | Advanced options outside the dialogs |
+| Command line `-profile` | String | — | Starts Ember with a named profile |
 
-## Überprüfung
+## Verification
 
-- Nach dem ersten Start muss `Settings.xml` im Profilverzeichnis existieren.
-- Im Einstellungsdialog muss links der Einstellungsbaum mit den Modul-Panels erscheinen; fehlende Panels deuten auf nicht geladene Module in `Modules/` hin.
-- Das Fehlerprotokoll (*Error Viewer*) zeigt Probleme beim Laden von Einstellungen oder Modulen.
+- After the first start `Settings.xml` must exist in the profile directory.
+- In the settings dialog the settings tree with the module panels must appear on the left; missing panels indicate modules not loaded from `Modules/`.
+- The error log (*Error Viewer*) shows problems loading settings or modules.

@@ -1,8 +1,8 @@
-# Datenbank
+# Database
 
-Ember Media Manager speichert die Medienbibliothek in einer lokalen SQLite-Datenbank (`MyVideos*.emm`) im Kodi-Schema. Dieser Bereich dokumentiert Aufbau, Tabellen und Versionierung — technische Referenz für Entwickler und Administratoren.
+Ember Media Manager stores the media library in a local SQLite database (`MyVideos*.emm`) using the Kodi schema. This section documents structure, tables and versioning — a technical reference for developers and administrators.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Datenmodell](datenmodell.md)
+- [Description](beschreibung.md)
+- [Data Model](datenmodell.md)

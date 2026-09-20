@@ -1,41 +1,41 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Werkzeuge — Ablauf für Anwender
+# Tools — User Walkthrough
 
-## Voraussetzungen
+## Prerequisites
 
-Das gewünschte Modul ist in den Einstellungen aktiviert; die Bibliothek ist gescannt.
+The desired module is enabled in the settings; the library has been scanned.
 
-## Schritt-für-Schritt-Anleitung
+## Step-by-step guide
 
-### 1. Stapel-Umbenennung (Bulk Renamer)
+### 1. Batch renaming (Bulk Renamer)
 
-1. *Tools → Bulk Renamer* (Filme) bzw. *TV Bulk Renamer* (Serien) öffnen.
-2. Umbenennungsmuster wählen/anpassen (Platzhalter-Hilfe im Dialog beachten).
-3. *Display Only Movies That Will Be Renamed* aktivieren, um die Vorschau zu prüfen.
-4. Umbenennung ausführen; bei *Unable to Rename*-Meldungen Dateizugriffe (Explorer, Player) beenden und wiederholen.
+1. Open *Tools → Bulk Renamer* (movies) or *TV Bulk Renamer* (TV shows).
+2. Choose/adjust the rename pattern (mind the placeholder help in the dialog).
+3. Enable *Display Only Movies That Will Be Renamed* to check the preview.
+4. Run the rename; on *Unable to Rename* messages close file accesses (Explorer, player) and retry.
 
-### 2. Bibliothek exportieren (Movie List Exporter)
+### 2. Export the library (Movie List Exporter)
 
-1. *Tools → Export → Movies* bzw. *Export Movies* wählen.
-2. Im *Movie List Exporter* Template und Zieldatei festlegen.
-3. Export starten — die Vorlage wird mit den Bibliotheksdaten gefüllt.
+1. Choose *Tools → Export → Movies* or *Export Movies*.
+2. In the *Movie List Exporter* set template and target file.
+3. Start the export — the template is filled with the library data.
 
-### 3. Tags verwalten (Tag Manager)
+### 3. Manage tags (Tag Manager)
 
-1. *Tag Manager* öffnen.
-2. Tags anlegen/bearbeiten und den Einträgen zuweisen; Änderungen wirken auf Filter und Exporte.
+1. Open the *Tag Manager*.
+2. Create/edit tags and assign them to entries; changes affect filters and exports.
 
-### 4. Filter pflegen (Medienlisten-Editor)
+### 4. Maintain filters (Media List Editor)
 
-1. Den Filter-Editor aus den Modul-Einstellungen oder dem Menü öffnen.
-2. Filterkriterien definieren und speichern — der Filter steht anschließend in der Filterleiste.
+1. Open the filter editor from the module settings or the menu.
+2. Define filter criteria and save — the filter then appears in the filter bar.
 
-### 5. Dateien kopieren/verschieben (Media File Manager)
+### 5. Copy/move files (Media File Manager)
 
-1. Einträge markieren → Media-File-Manager-Dialog (*Copy Files*) öffnen.
-2. Zielverzeichnis und Modus (kopieren/verschieben, ggf. TeraCopy) wählen und ausführen.
+1. Mark entries → open the media file manager dialog (*Copy Files*).
+2. Choose target directory and mode (copy/move, optionally TeraCopy) and run.
 
-## Ergebnis
+## Result
 
-Die jeweilige Operation ist auf den markierten bzw. gefilterten Bestand angewendet; Ergebnisse (neue Dateinamen, Exportdatei, Tags, Filter) stehen sofort in der Bibliothek bzw. am Zielort bereit.
+The respective operation has been applied to the marked or filtered collection; results (new filenames, export file, tags, filters) are immediately available in the library or at the target location.

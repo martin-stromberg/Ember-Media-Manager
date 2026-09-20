@@ -1,34 +1,34 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Filme — Ablauf für Anwender
+# Movies — User Walkthrough
 
-## Voraussetzungen
+## Prerequisites
 
-Mindestens eine Film-Quelle ist eingerichtet und die Bibliothek wurde gescannt (siehe [Medienbibliothek](../medienbibliothek/ablauf-anwender.md)).
+At least one movie source is configured and the library has been scanned (see [Media Library](../medienbibliothek/ablauf-anwender.md)).
 
-## Schritt-für-Schritt-Anleitung
+## Step-by-step guide
 
-### 1. Film scrapen
+### 1. Scrape a movie
 
-1. Film in der Liste *Movies* markieren (oder mehrere über *Mark*).
-2. Kontextmenü → *(Re)Scrape Movie* bzw. *Edit → Custom Scraper...* für eine Auswahl der Felder/Bilder.
-3. Bei „Ask"-Modus die gewünschten Suchergebnisse im Auswahldialog bestätigen.
-4. Ergebnis prüfen: Metadaten, Poster/Fanart und Trailer werden im Detailbereich angezeigt.
+1. Select the movie in the *Movies* list (or several via *Mark*).
+2. Context menu → *(Re)Scrape Movie* or *Edit → Custom Scraper...* to select fields/images.
+3. In "Ask" mode confirm the desired search results in the selection dialog.
+4. Check the result: metadata, poster/fanart and trailer are shown in the detail area.
 
-### 2. Film bearbeiten
+### 2. Edit a movie
 
-1. Film wählen → Kontextmenü *Edit Movie* (oder Doppelklick auf Edit).
-2. Felder in den Registern bearbeiten (Details, Besetzung, Bilder, Streams, Dateiinformationen).
-3. Optional Bilder austauschen, Trailer zuweisen, Movie Set im *Set*-Feld wählen.
-4. Mit *OK* speichern — NFO-Datei und Datenbank werden aktualisiert.
+1. Select a movie → context menu *Edit Movie* (or double-click on Edit).
+2. Edit the fields across the tabs (details, cast, images, streams, file information).
+3. Optionally swap images, assign a trailer, choose a movie set in the *Set* field.
+4. Save with *OK* — the NFO file and database are updated.
 
-### 3. Film organisieren
+### 3. Organize movies
 
-- *Mark*: für Batch-Aktionen (Scrapen, Umbenennen, Export).
-- *Lock*: gegen automatische Änderungen sperren.
-- *Delete Movie*: Eintrag aus der Datenbank (optional Dateien) entfernen — *Delete Confirm*-Dialog beachten.
-- *Open Containing Folder*: Datei im Explorer anzeigen.
+- *Mark*: for batch actions (scraping, renaming, export).
+- *Lock*: protect against automatic changes.
+- *Delete Movie*: remove the entry from the database (optionally the files) — mind the *Delete Confirm* dialog.
+- *Open Containing Folder*: show the file in Explorer.
 
-## Ergebnis
+## Result
 
-Der Film trägt vollständige Metadaten und Artwork im Kodi-kompatiblen Ablageschema und ist für Media-Center-Export und Bibliotheksansichten nutzbar.
+The movie carries complete metadata and artwork in the Kodi-compatible file layout and is ready for media-center export and library views.

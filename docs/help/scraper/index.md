@@ -1,10 +1,10 @@
-# Scraper
+# Scrapers
 
-Scraper laden Metadaten, Bilder, Trailer und Themes aus Online-Quellen. Ember Media Manager trennt bewusst vier Scraper-Gruppen — Daten, Bilder, Trailer und Themes — die jeweils als eigene Module aktiviert, sortiert und konfiguriert werden.
+Scrapers fetch metadata, images, trailers and themes from online sources. Ember Media Manager deliberately separates four scraper groups — data, images, trailers and themes — each enabled, ordered and configured as individual modules.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Technischer Ablauf](ablauf-technisch.md)
-- [Einrichtung für Anwender](einrichtung-anwender.md)
+- [Description](beschreibung.md)
+- [Technical Flow](ablauf-technisch.md)
+- [Setup for Users](einrichtung-anwender.md)
 - [Business Rules](business-rules.md)

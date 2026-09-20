@@ -1,9 +1,9 @@
-# Modulsystem
+# Module System
 
-Entwickler-Dokumentation des Addon-Systems: Ember Media Manager lädt Module als Assemblys zur Laufzeit; sie implementieren `GenericModule` bzw. Scraper-Interfaces und reagieren auf `ModuleEventType`-Ereignisse.
+Developer documentation of the add-on system: Ember Media Manager loads modules as assemblies at runtime; they implement `GenericModule` or the scraper interfaces and react to `ModuleEventType` events.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Architektur](architektur.md)
+- [Description](beschreibung.md)
+- [Architecture](architektur.md)
 - [API](api.md)

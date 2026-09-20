@@ -1,71 +1,71 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Kodi-Schnittstelle — API
+# Kodi Interface — API
 
-## Übersicht
+## Overview
 
-Die Schnittstelle besteht aus zwei Ebenen: der generierten C#-Clientbibliothek `XBMCRPC` (`KodiAPI/KodiAPI.csproj`, Namespace `XBMCRPC`) und dem VB-Modul `generic.Interface.Kodi`, das den Client für die Ember-Synchronisation nutzt. Die Kommunikation läuft über Kodi JSON-RPC (HTTP) plus WebSocket für Notifications.
+The interface consists of two layers: the generated C# client library `XBMCRPC` (`KodiAPI/KodiAPI.csproj`, namespace `XBMCRPC`) and the VB module `generic.Interface.Kodi`, which uses the client for Ember synchronization. Communication runs over Kodi JSON-RPC (HTTP) plus WebSocket for notifications.
 
-## Authentifizierung
+## Authentication
 
-HTTP-Basic-Auth mit den in Kodi hinterlegten Zugangsdaten (`ConnectionSettings`: Host, Port, UserName, Password).
+HTTP Basic Auth with the credentials configured in Kodi (`ConnectionSettings`: host, port, UserName, Password).
 
-## Genutzte RPC-Methodengruppen (`XBMCRPC/Methods/*`)
+## Used RPC method groups (`XBMCRPC/Methods/*`)
 
-### `VideoLibrary` (Bibliothek)
+### `VideoLibrary` (library)
 
-| Methode | Zweck |
-|---------|-------|
-| `GetMovies` / `GetMovieDetails` / `SetMovieDetails` / `RemoveMovie` | Filme lesen/schreiben/entfernen |
-| `GetMovieSets` / `GetMovieSetDetails` / `SetMovieSetDetails` | Filmsammlungen |
-| `GetTVShows` / `GetTVShowDetails` / `SetTVShowDetails` / `RemoveTVShow` | Serien |
-| `GetSeasons` / `GetSeasonDetails` / `SetSeasonDetails` | Staffeln |
-| `GetEpisodes` / `GetEpisodeDetails` / `SetEpisodeDetails` / `RemoveEpisode` | Episoden |
-| `Scan` / `Clean` | Bibliotheks-Scan/-Bereinigung anstoßen |
+| Method | Purpose |
+|--------|---------|
+| `GetMovies` / `GetMovieDetails` / `SetMovieDetails` / `RemoveMovie` | read/write/remove movies |
+| `GetMovieSets` / `GetMovieSetDetails` / `SetMovieSetDetails` | movie sets |
+| `GetTVShows` / `GetTVShowDetails` / `SetTVShowDetails` / `RemoveTVShow` | TV shows |
+| `GetSeasons` / `GetSeasonDetails` / `SetSeasonDetails` | seasons |
+| `GetEpisodes` / `GetEpisodeDetails` / `SetEpisodeDetails` / `RemoveEpisode` | episodes |
+| `Scan` / `Clean` | trigger library scan/cleanup |
 
-### `Files` (Dateisystem/Quellen)
+### `Files` (file system/sources)
 
-| Methode | Zweck |
-|---------|-------|
-| `GetSources` | Kodi-Quellen abrufen (Pfad-Mapping) |
-| `GetDirectory` | Verzeichnisinhalte lesen |
-| `PrepareDownload` | Download-URL für Artwork erzeugen |
-| `AllFields` | Feldselektion |
+| Method | Purpose |
+|--------|---------|
+| `GetSources` | fetch Kodi sources (path mapping) |
+| `GetDirectory` | read directory contents |
+| `PrepareDownload` | create download URL for artwork |
+| `AllFields` | field selection |
 
-### `Textures` (Artwork-Cache)
+### `Textures` (artwork cache)
 
-| Methode | Zweck |
-|---------|-------|
-| `GetTextures` / `RemoveTexture` | Artwork-Cache lesen/bereinigen |
-| `url` | Texture-URL |
+| Method | Purpose |
+|--------|---------|
+| `GetTextures` / `RemoveTexture` | read/clean artwork cache |
+| `url` | texture URL |
 
-### `Player` (Wiedergabe)
+### `Player` (playback)
 
-| Methode | Zweck |
-|---------|-------|
-| `GetActivePlayers` | aktive Wiedergabe ermitteln |
+| Method | Purpose |
+|--------|---------|
+| `GetActivePlayers` | determine active playback |
 
-### Weitere verfügbare Gruppen (generiert, nicht zwingend genutzt)
+### Additional available groups (generated, not necessarily used)
 
 `Addons`, `Application`, `AudioLibrary`, `Favourites`, `GUI`, `Input`, `JSONRPC`, `PVR`, `Playlist`, `Profiles`, `Settings`, `System`, `XBMC`
 
-## Eigene Client-Erweiterungen (`KodiAPI/Client.cs`)
+## Custom client extensions (`KodiAPI/Client.cs`)
 
-| Methode | Zweck |
-|---------|-------|
-| `GetImageStream(thumbnailUri)` | Thumbnail als Stream laden |
-| `GetImageUri(thumbnailUri)` | Download-URI auflösen (`image:`-Referenzen) |
+| Method | Purpose |
+|--------|---------|
+| `GetImageStream(thumbnailUri)` | load thumbnail as stream |
+| `GetImageUri(thumbnailUri)` | resolve download URI (`image:` references) |
 
 ## Notifications (WebSocket)
 
-| Event | Verarbeitung |
-|-------|--------------|
-| `VideoLibrary.OnScanFinished` | `VideoLibrary_OnScanFinished` — Nachlauf nach Kodi-Scan |
-| `VideoLibrary.OnCleanFinished` | `VideoLibrary_OnCleanFinished` — Nachlauf nach Kodi-Clean |
+| Event | Handling |
+|-------|----------|
+| `VideoLibrary.OnScanFinished` | `VideoLibrary_OnScanFinished` — follow-up after Kodi scan |
+| `VideoLibrary.OnCleanFinished` | `VideoLibrary_OnCleanFinished` — follow-up after Kodi clean |
 
-## Fehler
+## Errors
 
-| Code / Exception | Ursache |
-|------------------|---------|
-| RPC-Fehler/Timeout | Host nicht erreichbar, falsche Credentials |
-| Element ohne Kodi-ID | Eintrag existiert in Kodi-Bibliothek nicht → Bibliotheks-Scan erforderlich („Please Scrape In Ember First!") |
+| Code / Exception | Cause |
+|------------------|-------|
+| RPC error/timeout | host unreachable, wrong credentials |
+| Item without Kodi ID | entry does not exist in the Kodi library → library scan required ("Please Scrape In Ember First!") |

@@ -1,55 +1,55 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Modulsystem — API
+# Module System — API
 
-## Übersicht
+## Overview
 
-Alle Verträge liegen in `Interfaces` (`EmberAPI/clsAPIInterfaces.vb`). Module werden als .NET-Assemblys (VB.NET) implementiert und von `ModulesManager` per `Assembly.LoadFrom` geladen.
+All contracts live in `Interfaces` (`EmberAPI/clsAPIInterfaces.vb`). Modules are implemented as .NET assemblies (VB.NET) and loaded by `ModulesManager` via `Assembly.LoadFrom`.
 
-## `GenericModule` (Basisvertrag)
+## `GenericModule` (base contract)
 
-| Member | Art | Signatur | Zweck |
-|--------|-----|----------|-------|
-| `Init` | Methode | `Init(sAssemblyName, sExecutable)` | Initialisierung beim Laden |
-| `RunGeneric` | Methode | `RunGeneric(mType, _params, _singleobjekt, _dbelement) As ModuleResult` | Ereignis-Entry-Point |
-| `InjectSetup` | Methode | `InjectSetup() As Containers.SettingsPanel` | Einstellungspanel liefern |
-| `ModuleName` | Property | `String` | Anzeigename |
-| `ModuleVersion` | Property | `String` | Versionsstring |
-| `ModuleType` | Property | `List(Of Enums.ModuleEventType)` | abonnierte Ereignisse |
-| `Enabled` | Property | `Boolean` | Aktivstatus |
-| `IsBusy` | Property | `Boolean` | Laufstatus |
-| `GenericEvent` | Event | `(mType, _params)` | Rückmeldung an Host |
-| `ModuleEnabledChanged` | Event | `(Name, State, diffOrder)` | Aktivierung geändert |
-| `ModuleSettingsChanged` | Event | — | Einstellungen geändert |
-| `SetupNeedsRestart` | Event | — | Neustart erforderlich |
-| `AddToolStripItem*` / `SetToolsStripItem*` / `RemoveToolStripItem*` | Methoden | je Inhaltstyp-Variante | Toolstrip-Integration |
+| Member | Kind | Signature | Purpose |
+|--------|------|-----------|---------|
+| `Init` | Method | `Init(sAssemblyName, sExecutable)` | initialization on load |
+| `RunGeneric` | Method | `RunGeneric(mType, _params, _singleobjekt, _dbelement) As ModuleResult` | event entry point |
+| `InjectSetup` | Method | `InjectSetup() As Containers.SettingsPanel` | provide settings panel |
+| `ModuleName` | Property | `String` | display name |
+| `ModuleVersion` | Property | `String` | version string |
+| `ModuleType` | Property | `List(Of Enums.ModuleEventType)` | subscribed events |
+| `Enabled` | Property | `Boolean` | active state |
+| `IsBusy` | Property | `Boolean` | running state |
+| `GenericEvent` | Event | `(mType, _params)` | feedback to host |
+| `ModuleEnabledChanged` | Event | `(Name, State, diffOrder)` | activation changed |
+| `ModuleSettingsChanged` | Event | — | settings changed |
+| `SetupNeedsRestart` | Event | — | restart required |
+| `AddToolStripItem*` / `SetToolsStripItem*` / `RemoveToolStripItem*` | Methods | per content-type variant | toolstrip integration |
 
-## Scraper-Interfaces
+## Scraper interfaces
 
-| Interface | Erweitert | Zweck |
-|-----------|-----------|-------|
-| `ScraperModule_Data_Movie` / `…_MovieSet` / `…_TV` | `GenericModule` | Metadaten-Scraping |
-| `ScraperModule_Image_Movie` / `…_MovieSet` / `…_TV` | `GenericModule` | Bilder-Scraping |
-| `ScraperModule_Theme_Movie` / `…_TV` | `GenericModule` | Theme-Scraping |
-| `ScraperModule_Trailer_Movie` | `GenericModule` | Trailer-Scraping |
+| Interface | Extends | Purpose |
+|-----------|---------|---------|
+| `ScraperModule_Data_Movie` / `…_MovieSet` / `…_TV` | `GenericModule` | metadata scraping |
+| `ScraperModule_Image_Movie` / `…_MovieSet` / `…_TV` | `GenericModule` | image scraping |
+| `ScraperModule_Theme_Movie` / `…_TV` | `GenericModule` | theme scraping |
+| `ScraperModule_Trailer_Movie` | `GenericModule` | trailer scraping |
 
-## `ModuleEventType` (Auswahl)
+## `ModuleEventType` (selection)
 
-| Wert | Auslöser |
-|------|----------|
-| `AfterEdit_Movie/MovieSet/TVEpisode/TVSeason/TVShow` | Nach Bearbeiten |
-| `BeforeEdit_Movie` (u. a.) | Vor Bearbeiten/NFO-Einlesen |
-| `AfterUpdateDB_Movie` / `AfterUpdateDB_TV` | Nach Bibliotheks-Update |
-| `ScraperSingle_*` / `ScraperMulti_*` | Einzel-/Batch-Scraping |
-| `Remove_Movie` / `Remove_TVEpisode` / `Remove_TVShow` | Löschungen |
-| `Task`, `Notification`, `Sync*` | Aufgaben, Hinweise, Sync |
+| Value | Trigger |
+|-------|---------|
+| `AfterEdit_Movie/MovieSet/TVEpisode/TVSeason/TVShow` | after editing |
+| `BeforeEdit_Movie` (among others) | before editing/NFO reading |
+| `AfterUpdateDB_Movie` / `AfterUpdateDB_TV` | after library update |
+| `ScraperSingle_*` / `ScraperMulti_*` | single/batch scraping |
+| `Remove_Movie` / `Remove_TVEpisode` / `Remove_TVShow` | deletions |
+| `Task`, `Notification`, `Sync*` | tasks, notices, sync |
 
-## Rückgabe-/Hilfstypen
+## Return/helper types
 
-| Typ | Zweck |
-|-----|-------|
-| `Interfaces.ModuleResult` | Ergebnis von `RunGeneric`/`Scraper` (Erfolg, Abbruch, Auswahl) |
-| `Containers.SettingsPanel` | Eingebettetes Panel (`Panel` + Ordnungs-/Titeldaten) |
-| `Structures.ScanOrClean` | Scan-/Clean-Auftrag |
-| `Database.DBElement` | Übergabeobjekt des betroffenen Mediums |
-| `SearchResultsContainer` / `PreferredImagesContainer` | Scraper-Ergebnisbehälter |
+| Type | Purpose |
+|------|---------|
+| `Interfaces.ModuleResult` | result of `RunGeneric`/`Scraper` (success, abort, selection) |
+| `Containers.SettingsPanel` | embedded panel (`Panel` + ordering/title data) |
+| `Structures.ScanOrClean` | scan/clean job |
+| `Database.DBElement` | transfer object of the affected media item |
+| `SearchResultsContainer` / `PreferredImagesContainer` | scraper result containers |

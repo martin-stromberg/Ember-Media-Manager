@@ -1,9 +1,9 @@
-# Serien
+# TV Shows
 
-Verwaltung von TV-Serien mit Staffeln und Episoden: Scannen über Serienquellen, Episodenzuordnung per Dateimuster, Metadaten und Artwork auf Serien-, Staffel- und Episodenebene.
+Managing TV shows with seasons and episodes: scanning via TV show sources, episode assignment by filename patterns, metadata and artwork on show, season and episode level.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Ablauf für Anwender](ablauf-anwender.md)
+- [Description](beschreibung.md)
+- [User Walkthrough](ablauf-anwender.md)
 - [Business Rules](business-rules.md)

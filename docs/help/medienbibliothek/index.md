@@ -1,10 +1,10 @@
-# Medienbibliothek
+# Media Library
 
-Die Medienbibliothek ist der Kern von Ember Media Manager: Quellverzeichnisse für Filme und Serien werden definiert, regelmäßig nach neuen Inhalten durchsucht und in einer lokalen Datenbank verwaltet. Filter, Markierungen und Offline-Medien helfen bei großen Beständen.
+The media library is the core of Ember Media Manager: source directories for movies and TV shows are defined, regularly scanned for new content and managed in a local database. Filters, markers and offline media help with large collections.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Technischer Ablauf](ablauf-technisch.md)
-- [Ablauf für Anwender](ablauf-anwender.md)
+- [Description](beschreibung.md)
+- [Technical Flow](ablauf-technisch.md)
+- [User Walkthrough](ablauf-anwender.md)
 - [Business Rules](business-rules.md)

@@ -1,21 +1,21 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Datenbank — Beschreibung
+# Database — Description
 
-## Zweck
+## Purpose
 
-Die lokale SQLite-Datenbank hält den kompletten Bibliotheksstand: Filme, Filmsammlungen, Serien, Staffeln, Episoden samt allen verknüpften Daten (Personen, Genres, Studios, Länder, Bewertungen, Artwork, Tags, externe IDs, Datei- und Stream-Informationen, Quellverzeichnisse). Die Tabellen folgen der Kodi-Namenskonvention (`MyVideos`), damit bleibt die Bibliothek zu Kodi-kompatiblen Strukturen abbildbar.
+The local SQLite database holds the entire library state: movies, movie sets, TV shows, seasons, episodes and all related data (persons, genres, studios, countries, ratings, artwork, tags, external IDs, file and stream information, source directories). The tables follow the Kodi naming convention (`MyVideos`), keeping the library mappable to Kodi-compatible structures.
 
-## Funktionsweise
+## How it works
 
-- **Datei:** `MyVideos{Profil}.emm` im Profilverzeichnis; Zugriff ausschließlich über die Klasse `Database` (`System.Data.SQLite`).
-- **Schema:** Initialschema in `MyVideosDBSQL.txt`; Weiterentwicklung über nummerierte Patch-Dateien (`MyVideosDBSQL_v2` … `v47`), die beim Öffnen der Datenbank angewendet werden.
-- **Transaktionen:** Batch-Operationen (Scan, Multi-Scrape) laufen transaktional (`CommandsTransaction`), Einzelaktionen direkt (`CommandsNoTransaction`).
-- **Flags:** Einträge tragen Status wie New, Marked, Lock sowie Quell- und Dateiverweise.
-- **Bereinigung:** Aufräumfunktionen entfernen verwaiste Einträge (fehlende Dateien, leere Staffeln, ungenutzte Genres/Studios/Länder).
+- **File:** `MyVideos{Profile}.emm` in the profile directory; all access goes through the `Database` class (`System.Data.SQLite`).
+- **Schema:** Initial schema in `MyVideosDBSQL.txt`; evolution via numbered patch files (`MyVideosDBSQL_v2` … `v47`) applied when the database is opened.
+- **Transactions:** Batch operations (scan, multi-scrape) run transactionally (`CommandsTransaction`); single actions run directly (`CommandsNoTransaction`).
+- **Flags:** Entries carry status such as New, Marked, Lock as well as source and file references.
+- **Cleanup:** Cleanup functions remove orphaned entries (missing files, empty seasons, unused genres/studios/countries).
 
-## Einschränkungen
+## Limitations
 
-- Die Datenbank ist nicht für direkten externen Schreibzugriff vorgesehen; Änderungen gehören über die Anwendung.
-- Ein Schema-Upgrade ist unidirektional — Backups der `.emm`-Datei vor Versionswechseln sind sinnvoll.
-- Bei beschädigter Datenbank hilft nur Backup-Rücksicherung oder Neuaufbau per Scan.
+- The database is not intended for direct external write access; changes belong in the application.
+- A schema upgrade is one-directional — backing up the `.emm` file before version changes is advisable.
+- A corrupted database can only be recovered from a backup or rebuilt via a fresh scan.

@@ -1,54 +1,54 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Modulsystem — Architektur
+# Module System — Architecture
 
-## Beteiligte Komponenten
+## Components involved
 
-| Komponente | Typ | Rolle |
-|------------|-----|-------|
-| `ModulesManager` (`clsAPIModules.vb`) | Singleton, EmberAPI | Lädt Module, hält Modullisten, verteilt Aufrufe |
-| `Interfaces.GenericModule` | Interface | Basisvertrag aller Module |
-| `Interfaces.ScraperModule_*` | Interfaces | Scraper-Verträge je Gruppe/Inhaltstyp |
-| `Enums.ModuleEventType` | Enum | Ereigniskatalog (Edit/Update/Scrape/Remove/Sync/Task/Notification) |
-| `Containers.SettingsPanel` | Typ | Modul-Einstellungspanel für `dlgSettings` |
-| `Structures.ModuleResult` | Typ | Rückgabe der Modulaufrufe |
-| `frmMain` / `dlgSettings` | UI | Auslöser von Ereignissen, Einbettung der Panels und Toolstrips |
-| `Modules/` | Verzeichnis | Ablage der Addon-Assemblys |
+| Component | Type | Role |
+|-----------|------|------|
+| `ModulesManager` (`clsAPIModules.vb`) | Singleton, EmberAPI | Loads modules, holds module lists, dispatches calls |
+| `Interfaces.GenericModule` | Interface | Base contract of all modules |
+| `Interfaces.ScraperModule_*` | Interfaces | Scraper contracts per group/content type |
+| `Enums.ModuleEventType` | Enum | Event catalog (Edit/Update/Scrape/Remove/Sync/Task/Notification) |
+| `Containers.SettingsPanel` | Type | Module settings panel for `dlgSettings` |
+| `Structures.ModuleResult` | Type | Return value of module calls |
+| `frmMain` / `dlgSettings` | UI | Event triggers, embedding of panels and toolstrips |
+| `Modules/` | Directory | Location of the add-on assemblies |
 
-## Abhängigkeiten
+## Dependencies
 
-- Module hängen von `EmberAPI` ab (Interfaces, Enums, Containers, Settings) — `EmberAPI.dll` ist der Vertrags-Anchor.
-- Interface-Module hängen zusätzlich von C#-Bibliotheken ab: Kodi → `KodiAPI` (`XBMCRPC`), Trakt → `Trakttv` + TraktApiSharp, TVDB-Scraper → vendored `TVDB`.
-- Laufzeit-Abhängigkeit: `Modules`-Verzeichnis neben der Exe; `ModulesManager.moduleLocation = Path.Combine(Functions.AppPath, "Modules")`.
+- Modules depend on `EmberAPI` (interfaces, enums, containers, settings) — `EmberAPI.dll` is the contract anchor.
+- Interface modules additionally depend on C# libraries: Kodi → `KodiAPI` (`XBMCRPC`), Trakt → `Trakttv` + TraktApiSharp, TVDB scraper → vendored `TVDB`.
+- Runtime dependency: `Modules` directory next to the exe; `ModulesManager.moduleLocation = Path.Combine(Functions.AppPath, "Modules")`.
 
-## Datenfluss
+## Data flow
 
-1. `frmMain` (Scan/Edit/Scrape/Menüaktion) erzeugt Ereignis.
-2. `ModulesManager`/`frmMain` iterieren die interessierten Module (`ModuleType` enthält den `ModuleEventType`) und rufen `RunGeneric(mType, params, singleobjekt, dbelement)` bzw. die `Scraper`-Methode.
-3. Module lesen/schreiben über `Database.DBElement`, `Master.DB`, `Master.eSettings`; UI-Rückmeldung über `GenericEvent`/`Notifications`.
-4. Scraper liefern `SearchResultsContainer`/Bildlisten; `frmMain` übernimmt und persistiert.
+1. `frmMain` (scan/edit/scrape/menu action) raises an event.
+2. `ModulesManager`/`frmMain` iterate the interested modules (`ModuleType` contains the `ModuleEventType`) and call `RunGeneric(mType, params, singleobjekt, dbelement)` or the `Scraper` method.
+3. Modules read/write via `Database.DBElement`, `Master.DB`, `Master.eSettings`; UI feedback via `GenericEvent`/`Notifications`.
+4. Scrapers return `SearchResultsContainer`/image lists; `frmMain` adopts and persists them.
 
-## Diagramm
+## Diagram
 
 ```mermaid
 graph TD
     A[frmMain] --> B[ModulesManager]
-    B --> C[Modules/-Verzeichnis]
-    C --> D[generic.* Module]
-    C --> E[scraper.* Module]
-    C --> F[interface.* Module]
+    B --> C[Modules/ directory]
+    C --> D[generic.* modules]
+    C --> E[scraper.* modules]
+    C --> F[interface.* modules]
     D --> G[EmberAPI: Interfaces/Enums/DB]
     E --> G
     F --> G
     F --> H[KodiAPI / Trakttv / TVDB]
-    A --> I[dlgSettings: InjectSetup-Panels]
-    B --> J[RunGeneric/Scraper-Aufrufe]
+    A --> I[dlgSettings: InjectSetup panels]
+    B --> J[RunGeneric/Scraper calls]
     J --> K[GenericEvent/Notifications]
     K --> A
 ```
 
-## Skalierung und Zuverlässigkeit
+## Scaling and reliability
 
-- Laden erfolgt im `bwLoadModules`-BackgroundWorker; einzelne defekte Module verhindern nicht den Start der übrigen.
-- `SetupNeedsRestart`-Event erzwingt Neustart bei bestimmten Konfigurationsänderungen.
-- `IsBusy` verhindert parallele konkurrierende Aufrufe desselben Moduls.
+- Loading happens in the `bwLoadModules` BackgroundWorker; a single broken module does not prevent the others from starting.
+- The `SetupNeedsRestart` event forces a restart on certain configuration changes.
+- `IsBusy` prevents competing parallel calls into the same module.

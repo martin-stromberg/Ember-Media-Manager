@@ -1,29 +1,29 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Einstellungen — Beschreibung
+# Settings — Description
 
-## Zweck
+## Purpose
 
-Über *Edit → Settings...* wird die gesamte Anwendung konfiguriert: Film- und Serienquellen, Datei- und Ordnerbenennung (NFO-/Artwork-Schema), Scraper-Auswahl und -Reihenfolge, Modul-Aktivierung, Filter- und Anzeigeoptionen. Jedes Modul bringt dabei sein eigenes Einstellungspanel mit und bettet es in den Dialog ein.
+Via *Edit → Settings...* the entire application is configured: movie and TV show sources, file and folder naming (NFO/artwork schema), scraper selection and order, module activation, filter and display options. Each module brings its own settings panel and embeds it into the dialog.
 
-## Funktionsweise
+## How it works
 
-- **Einstellungsdialog:** Baumansicht links, Einstellungspanel rechts; Änderungen werden mit *Apply* übernommen.
-- **Quellen:** Film-/Serienquellen mit *Add Source* verwalten (siehe [Medienbibliothek](../medienbibliothek/index.md)).
-- **Dateibenennung:** Pro Inhaltstyp konfigurierbare Dateinamen-Schemata (z. B. `<movie>.nfo`, `<movie>-fanart.jpg`, `/extrathumbs/`) — Kodi-kompatible Vorgaben sind vorbelegt.
-- **Scraper:** Aktivierung, Reihenfolge und Feld-/Bildauswahl je Scraper-Gruppe.
-- **Module:** Aktivierung und Modul-spezifische Panels; manche Änderungen erfordern einen Neustart.
-- **Profile:** Über *Select Profile...* / Kommandozeilenparameter werden getrennte Konfigurationen mit eigener Datenbank verwaltet — beim ersten Start wird das Profil abgefragt.
-- **Erweiterte Einstellungen:** Zusätzliche Schlüssel-Wert-Optionen außerhalb der sichtbaren Dialoge (Advanced Settings), u. a. Regex-Filter, Ausschlussverzeichnisse, Formatkonvertierungen.
+- **Settings dialog:** tree view on the left, settings panel on the right; changes are applied with *Apply*.
+- **Sources:** manage movie/TV show sources with *Add Source* (see [Media Library](../medienbibliothek/index.md)).
+- **File naming:** configurable filename schemas per content type (e.g. `<movie>.nfo`, `<movie>-fanart.jpg`, `/extrathumbs/`) — Kodi-compatible defaults are preset.
+- **Scrapers:** activation, order and field/image selection per scraper group.
+- **Modules:** activation and module-specific panels; some changes require a restart.
+- **Profiles:** via *Select Profile...* / command-line parameter, separate configurations with their own database are managed — the profile is asked on first start.
+- **Advanced settings:** additional key-value options outside the visible dialogs (Advanced Settings), including regex filters, excluded directories, format conversions.
 
-## Beispiele
+## Examples
 
-- Dateinamen-Konvention ändern: Settings → Movies → File Naming → Schema wählen.
-- Nur Poster ab einer Mindestgröße: Settings → Images → Größenfilter setzen.
-- Zweite Konfiguration (z. B. Kind/Eltern): Neues Profil anlegen und beim Start wählen.
+- Change the filename convention: Settings → Movies → File Naming → choose schema.
+- Only posters above a minimum size: Settings → Images → set size filter.
+- Second configuration (e.g. child/parent): create a new profile and choose it at startup.
 
-## Einschränkungen
+## Limitations
 
-- Die UI ist englisch; Übersetzungsressourcen sind auf das gelieferte Sprachpaket beschränkt.
-- Ungültige `Settings.xml` führt zu Standardeinstellungen statt zum Absturz; die Datei wird dann neu geschrieben.
-- Modul-Einstellungen gehören zum Modul — deaktivierte Module zeigen keine Panels.
+- The UI is English; translation resources are limited to the shipped language pack.
+- An invalid `Settings.xml` leads to default settings instead of a crash; the file is then rewritten.
+- Module settings belong to the module — disabled modules show no panels.

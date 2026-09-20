@@ -1,28 +1,28 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Trakt.tv — Beschreibung
+# Trakt.tv — Description
 
-## Zweck
+## Purpose
 
-Das Modul *Trakt.tv* synchronisiert die lokale Medienbibliothek mit dem Trakt.tv-Konto des Anwenders — „Sync lists and playcount with your trakt.tv account." Damit lassen sich der Gesehen-Status zwischen Geräten und Ember abgleichen, Trakt-Listen pflegen und Trakt als Metadatenquelle nutzen.
+The *Trakt.tv* module synchronizes the local media library with the user's Trakt.tv account — "Sync lists and playcount with your trakt.tv account." It allows syncing watched state between devices and Ember, maintaining Trakt lists and using Trakt as a metadata source.
 
-## Funktionsweise
+## How it works
 
-- **Autorisierung:** Einmalige Konto-Verknüpfung über den Autorisierungsdialog; das Token wird gespeichert und automatisch erneuert.
-- **Watched-Status:** *Get watched movies* / *Get watched episodes* lädt den Trakt-Watched-Status; *Save playcount to database/Nfo* schreibt ihn in die Ember-Datenbank und NFOs. Umgekehrt kann der lokale Status an Trakt gemeldet werden.
-- **Kontextmenüs:** Pro Film/Episode/Staffel/Serie kann der Watched-Status gezielt von Trakt geholt oder gemeldet werden.
-- **Listen:** Trakt-Listen (Watchlist, eigene Listen, Collection) können mit Tags bzw. der Ember-Bibliothek synchronisiert werden.
-- **Ratings & Kommentare:** Bewertungen an Trakt melden, Kommentare lesen/schreiben.
-- **Daten-Scraper:** Ein separater Trakt-Datenscraper liefert Metadaten für Filme und Serien (siehe [Scraper](../scraper/index.md)).
+- **Authorization:** One-time account linking via the authorization dialog; the token is stored and renewed automatically.
+- **Watched state:** *Get watched movies* / *Get watched episodes* loads the Trakt watched state; *Save playcount to database/Nfo* writes it into the Ember database and NFOs. Conversely, the local state can be reported to Trakt.
+- **Context menus:** Per movie/episode/season/show the watched state can be fetched from or reported to Trakt selectively.
+- **Lists:** Trakt lists (watchlist, custom lists, collection) can be synchronized with tags or the Ember library.
+- **Ratings & comments:** report ratings to Trakt, read/write comments.
+- **Data scraper:** A separate Trakt data scraper provides metadata for movies and TV shows (see [Scrapers](../scraper/index.md)).
 
-## Beispiele
+## Examples
 
-- Auf dem Media-Center gesehene Filme in Ember als gesehen markieren: *Get watched movies* → *Save playcount to database/Nfo*.
-- Serienfortschritt: *Get watched episodes* → Episoden-Playcounts in Ember übernehmen; fehlende Folgen sind so sichtbar.
-- Eigene Trakt-Liste als Tag: Liste in Ember als Schlagwort synchronisieren.
+- Mark movies watched on the media center as watched in Ember: *Get watched movies* → *Save playcount to database/Nfo*.
+- Show progress: *Get watched episodes* → take over episode playcounts in Ember; missing episodes become visible.
+- Custom Trakt list as tag: synchronize a list into Ember as a keyword.
 
-## Einschränkungen
+## Limitations
 
-- Erfordert ein Trakt.tv-Konto und eine einmalige Autorisierung der Anwendung.
-- Der Abgleich erfolgt über externe IDs (IMDb/TMDb/TVDb) — Medien ohne solche ID können nicht zugeordnet werden.
-- Die Sync-Funktionen hängen vom Trakt-API-Dienst ab; Änderungen des Diensts wirken direkt auf die Verfügbarkeit.
+- Requires a Trakt.tv account and a one-time authorization of the application.
+- Matching works via external IDs (IMDb/TMDb/TVDb) — media without such an ID cannot be matched.
+- The sync functions depend on the Trakt API service; changes to the service directly affect availability.

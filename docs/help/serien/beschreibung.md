@@ -1,28 +1,28 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Serien — Beschreibung
+# TV Shows — Description
 
-## Zweck
+## Purpose
 
-Die Serienansicht (*TV Shows*) verwaltet Serien in drei Ebenen: Serie (Show), Staffel (Season) und Episode. Ember Media Manager pflegt pro Ebene eigene Metadaten und Artwork — z. B. Serien-Poster/Fanart/Banner, Staffel-Poster und Episoden-Thumbs — sowie Episoden-Besetzung (inkl. Gaststars), Episoden-Reihenfolgen und Mehrfach-Episoden.
+The TV show view (*TV Shows*) manages shows on three levels: show, season and episode. Ember Media Manager maintains separate metadata and artwork per level — e.g. show poster/fanart/banner, season posters and episode thumbs — as well as episode cast (including guest stars), episode orderings and multi-episodes.
 
-## Funktionsweise
+## How it works
 
-- **Hierarchie:** Serienordner → Staffelordner (`Season 01`, `Season 1`, `Staffel 1` u. a.) → Episodendateien; Specials werden als Staffel 0 geführt.
-- **Episodenzuordnung:** Dateimuster wie `S01E02` oder `1x02` ordnen Dateien der Episode zu; Mehrfach-Episoden (`S01E01E02`) werden unterstützt.
-- **Episodenreihenfolge:** Serien können in Aired- oder DVD-Reihenfolge geführt werden (Episode Ordering).
-- **Bearbeiten:** *Edit TV Show*, *Edit Season* und *Edit Episode* öffnen eigene Bearbeitungsdialoge je Ebene; *TV Change Episode* erlaubt das Verschieben von Episoden.
-- **Scraping:** *(Re)Scrape Show*, *(Re)Scrape Season* und *(Re)Scrape Episode* je Ebene; fehlende Episoden können als „Missing Episodes" angezeigt werden.
-- **Bilder/Trailer/Themes:** je Ebene eigene Artwork-Typen inkl. CharacterArt/ClearLogo auf Serienebene.
+- **Hierarchy:** show folder → season folder (`Season 01`, `Season 1`, `Staffel 1` and others) → episode files; specials are kept as season 0.
+- **Episode assignment:** filename patterns like `S01E02` or `1x02` assign files to episodes; multi-episodes (`S01E01E02`) are supported.
+- **Episode ordering:** shows can be kept in aired or DVD order (Episode Ordering).
+- **Editing:** *Edit TV Show*, *Edit Season* and *Edit Episode* open dedicated edit dialogs per level; *TV Change Episode* allows moving episodes.
+- **Scraping:** *(Re)Scrape Show*, *(Re)Scrape Season* and *(Re)Scrape Episode* per level; missing episodes can be shown as "Missing Episodes".
+- **Images/trailers/themes:** separate artwork types per level, including CharacterArt/ClearLogo on show level.
 
-## Beispiele
+## Examples
 
-- Neue Staffel: Staffelordner in die Serienquelle kopieren → *Reload All TV Shows* → Staffel und Episoden erscheinen in der Hierarchie.
-- Falsch zugeordnete Episode: *Edit Episode* öffnen und Staffel-/Episodennummer korrigieren oder *TV Change Episode* nutzen.
-- Staffelposter setzen: Staffel wählen → im Bildbereich Poster aus Scraper-Ergebnis oder Datei setzen.
+- New season: copy the season folder into the TV show source → *Reload All TV Shows* → season and episodes appear in the hierarchy.
+- Misassigned episode: open *Edit Episode* and correct season/episode number, or use *TV Change Episode*.
+- Set a season poster: select the season → set the poster in the image area from a scraper result or file.
 
-## Einschränkungen
+## Limitations
 
-- Episodendateien ohne erkennbares Staffel-/Episodenmuster werden nicht zugeordnet — Dateimuster müssen den konfigurierten Regex-Profilen entsprechen.
-- Staffel-/Episodeninhalte hängen vom gewählten Serien-Scraper ab (TheTVDB/TMDb/IMDb) und dessen Datenlage.
-- Gesperrte Serien/Staffeln/Episoden (*Lock*) werden nicht verändert.
+- Episode files without a recognizable season/episode pattern are not assigned — filename patterns must match the configured regex profiles.
+- Season/episode content depends on the chosen show scraper (TheTVDB/TMDb/IMDb) and its data availability.
+- Locked shows/seasons/episodes (*Lock*) are not modified.

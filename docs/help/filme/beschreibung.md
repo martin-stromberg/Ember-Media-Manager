@@ -1,28 +1,28 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Filme — Beschreibung
+# Movies — Description
 
-## Zweck
+## Purpose
 
-Die Filmliste (*Movies*) zeigt alle gescannten Filme der Medienbibliothek. Ember Media Manager verwaltet pro Film neben den Mediendateien die kompletten Metadaten (Titel, Originaltitel, Jahr, Genre, Handlung, Besetzung, Bewertungen, externe IDs), alle Bildtypen (Poster, Fanart, Banner, ClearArt, ClearLogo, DiscArt, Landscape, Extrathumbs, Extrafanart), Trailer, Themes und Untertitel — kompatibel zum Kodi-Datei- und NFO-Schema.
+The movie list (*Movies*) shows all scanned movies of the media library. For each movie Ember Media Manager manages — alongside the media files — the complete metadata (title, original title, year, genre, plot, cast, ratings, external IDs), all image types (poster, fanart, banner, ClearArt, ClearLogo, DiscArt, landscape, extrathumbs, extrafanart), trailers, themes and subtitles — compatible with the Kodi file and NFO schema.
 
-## Funktionsweise
+## How it works
 
-- **Bearbeiten:** *Edit Movie* öffnet den Bearbeitungsdialog mit allen Metadatenfeldern, Bildauswahl, Besetzung, Streams und Dateiinformationen.
-- **Scraping:** Über Kontextmenü *(Re)Scrape Movie* oder *Custom Scraper...* werden Metadaten/Bilder/Trailer aus den aktivierten Scrapern geladen (siehe [Scraper](../scraper/index.md)).
-- **Bilder:** Bilder können aus Scraper-Ergebnissen, aus lokalen Dateien oder per URL gesetzt werden (*Set As Fanart*, *dlgImageManual*).
-- **Sammlungen:** Filme lassen sich Movie Sets zuordnen (*Set*-Feld, *Sets Manager*).
-- **Status:** *Mark*, *Lock*, *New*-Kennung steuern Batch-Aktionen und Schreibschutz.
-- **DVD-Profiler-Import:** Vorhandene DVD-Profiler-Sammlungen können über den Import-Dialog eingelesen und Film-Einträgen zugeordnet werden.
+- **Editing:** *Edit Movie* opens the edit dialog with all metadata fields, image selection, cast, streams and file information.
+- **Scraping:** Via the context menu *(Re)Scrape Movie* or *Custom Scraper...*, metadata/images/trailers are fetched from the enabled scrapers (see [Scrapers](../scraper/index.md)).
+- **Images:** Images can be set from scraper results, from local files or via URL (*Set As Fanart*, `dlgImageManual`).
+- **Sets:** Movies can be assigned to movie sets (*Set* field, *Sets Manager*).
+- **Status:** *Mark*, *Lock*, *New* flag control batch actions and write protection.
+- **DVD Profiler import:** Existing DVD Profiler collections can be imported via the import dialog and matched to movie entries.
 
-## Beispiele
+## Examples
 
-- Film mit falschem Titel: *Edit Movie* → Titel/Jahr korrigieren → speichern schreibt NFO und Datenbank.
-- Poster ersetzen: Im Detailbereich Poster-Kontextmenü → *Change* → lokale Datei oder Scraper-Ergebnis wählen.
-- Mehrere Filme neu scrapen: Filme *Mark*ieren → *(Re)Scrape Selected Movies* → *Marked Movies - Auto*.
+- Movie with wrong title: *Edit Movie* → correct title/year → saving writes NFO and database.
+- Replace poster: in the detail area poster context menu → *Change* → choose a local file or scraper result.
+- Re-scrape several movies: *Mark* the movies → *(Re)Scrape Selected Movies* → *Marked Movies - Auto*.
 
-## Einschränkungen
+## Limitations
 
-- Gesperrte (*Lock*) Filme werden von Scrape- und Update-Läufen nicht verändert.
-- Die IMDb-ID ist der führende eindeutige Bezeichner für Filme (Designvorgabe des Projekts); fehlt sie, wird sie über die Scraper ermittelt.
-- Änderungen an Dateien außerhalb von Ember erscheinen erst nach dem nächsten Bibliotheks-Scan.
+- Locked (*Lock*) movies are not modified by scrape and update runs.
+- The IMDb ID is the leading unique identifier for movies (project design decision); if missing, it is resolved via the scrapers.
+- File changes made outside Ember only appear after the next library scan.

@@ -1,28 +1,28 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Trakt.tv — Einrichtung
+# Trakt.tv — Setup
 
-## Zweck
+## Purpose
 
-Die Verbindung zum Trakt.tv-Konto wird einmalig autorisiert; danach stehen die Sync-Funktionen im Menü und in den Kontextmenüs zur Verfügung.
+The connection to the Trakt.tv account is authorized once; afterwards the sync functions are available in the menu and the context menus.
 
-## Einstellungen
+## Settings
 
-| Einstellung | Bedeutung |
-|-------------|-----------|
-| Konto-Autorisierung | PIN-/OAuth-Freigabe des Trakt-Kontos |
-| Token | wird nach Autorisierung gespeichert und bei Ablauf erneuert |
-| Sync-Optionen | Welche Daten (Watched, Listen, Ratings) abgeglichen werden |
+| Setting | Meaning |
+|---------|---------|
+| Account authorization | PIN/OAuth approval of the Trakt account |
+| Token | stored after authorization and renewed on expiry |
+| Sync options | Which data (watched, lists, ratings) is synchronized |
 
-## Vorgehen
+## Steps
 
-1. Trakt.tv-Konto auf trakt.tv anlegen (falls noch nicht vorhanden).
-2. In Ember *Edit → Settings...* → Trakt-Modul aktivieren und den Autorisierungsdialog öffnen.
-3. Den angezeigten Code auf trakt.tv eingeben und die Anwendung freigeben.
-4. Zurück in Ember: die Autorisierung wird bestätigt, das Token gespeichert.
-5. Über den *Trakt.tv Manager* (Tools-Menü) die gewünschten Sync-Aktionen ausführen.
+1. Create a Trakt.tv account on trakt.tv (if not already present).
+2. In Ember *Edit → Settings...* → enable the Trakt module and open the authorization dialog.
+3. Enter the displayed code on trakt.tv and approve the application.
+4. Back in Ember: the authorization is confirmed, the token stored.
+5. Run the desired sync actions via the *Trakt.tv Manager* (Tools menu).
 
-## Hinweise
+## Notes
 
-- Nach erfolgreicher Autorisierung erscheinen die Trakt-Kontextmenü-Einträge an Filmen, Serien, Staffeln und Episoden.
-- Bei abgelaufenem Token erneuert das Modul die Anmeldung automatisch; schlägt dies fehl, ist eine erneute Autorisierung nötig.
+- After successful authorization the Trakt context-menu entries appear on movies, shows, seasons and episodes.
+- When the token expires the module renews the sign-in automatically; if that fails, re-authorization is required.

@@ -1,32 +1,32 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Scraper — Einrichtung
+# Scrapers — Setup
 
-## Zweck
+## Purpose
 
-Vor dem ersten Scrape-Lauf werden die Scraper-Module aktiviert, in der gewünschten Reihenfolge sortiert und — falls nötig — mit API-Keys oder Konten versehen.
+Before the first scrape run the scraper modules are enabled, sorted in the desired order and — if needed — provided with API keys or accounts.
 
-## Einstellungen
+## Settings
 
-| Einstellung | Bedeutung |
-|-------------|-----------|
-| Aktivierung (Checkbox je Modul) | Modul wird beim Scrapen berücksichtigt |
-| *Scrape Order* | Reihenfolge der Daten-Scraper; der erste aktive Scraper liefert zuerst |
-| Sprache | Bevorzugte Sprache für Inhalte und Suchergebnisse (z. B. „default language … when scraping TV Show items") |
-| Felder/Bildtypen je Scraper | Welche Metadaten bzw. Artwork-Typen der Scraper liefern darf |
-| Konto/API-Key | Bei Quellen mit Anmeldung (z. B. Trakt.tv: Autorisierung; OMDb: API-Key) |
-| „also use Trailer Scrapers" | Trailer-Scraper zusätzlich zum Daten-Scraping ausführen |
+| Setting | Meaning |
+|---------|---------|
+| Activation (checkbox per module) | Module is considered during scraping |
+| *Scrape Order* | Order of the data scrapers; the first active scraper delivers first |
+| Language | Preferred language for content and search results (e.g. "default language … when scraping TV Show items") |
+| Fields/image types per scraper | Which metadata or artwork types the scraper may provide |
+| Account/API key | For sources with sign-in (e.g. Trakt.tv: authorization; OMDb: API key) |
+| "also use Trailer Scrapers" | Run trailer scrapers in addition to data scraping |
 
-## Vorgehen
+## Steps
 
-1. *Edit → Settings...* öffnen.
-2. Im Bereich *Scrapers* (je Inhaltstyp: Movies / MovieSets / TV Shows) die gewünschten Daten-, Bilder-, Trailer- und Theme-Scraper aktivieren.
-3. Über *Scrape Order* die Reihenfolge festlegen.
-4. Konten/API-Keys in den jeweiligen Modul-Einstellungen hinterlegen (z. B. Trakt-Autorisierung über den Autorisierungsdialog).
-5. Optional je Scraper die erlaubten Felder und Bildtypen einschränken.
+1. Open *Edit → Settings...*.
+2. In the *Scrapers* area (per content type: Movies / MovieSets / TV Shows) enable the desired data, image, trailer and theme scrapers.
+3. Set the order via *Scrape Order*.
+4. Store accounts/API keys in the respective module settings (e.g. Trakt authorization via the authorization dialog).
+5. Optionally restrict the allowed fields and image types per scraper.
 
-## Hinweise
+## Notes
 
-- Nur aktivierte Scraper werden benutzt — ein deaktiviertes Modul bleibt auch bei „All"-Läufen inaktiv.
-- Die Sprachwahl wirkt auf Suchergebnisse und Inhalte; für deutsche Inhalte empfiehlt sich ein deutscher Daten-Scraper weit vorne in der Reihenfolge.
-- Änderungen an den Scraper-Einstellungen können einen Neustart der Anwendung erfordern (das Modul meldet *Setup Needs Restart*).
+- Only enabled scrapers are used — a disabled module stays inactive even on "All" runs.
+- The language choice affects search results and content; for German content a German data scraper should be near the top of the order.
+- Changes to the scraper settings may require an application restart (the module reports *Setup Needs Restart*).

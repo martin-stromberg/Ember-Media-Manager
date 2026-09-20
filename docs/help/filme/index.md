@@ -1,8 +1,8 @@
-# Filme
+# Movies
 
-Verwaltung des Filmbestands: Bearbeiten von Metadaten, Bildern und Trailern, Markieren/Sperren, Zuordnung zu Filmsammlungen sowie Import aus DVD-Profiler.
+Managing the movie collection: editing metadata, images and trailers, marking/locking, assignment to movie sets and import from DVD Profiler.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Ablauf für Anwender](ablauf-anwender.md)
+- [Description](beschreibung.md)
+- [User Walkthrough](ablauf-anwender.md)

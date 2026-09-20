@@ -1,26 +1,26 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Modulsystem — Beschreibung
+# Module System — Description
 
-## Zweck
+## Purpose
 
-Ember Media Manager ist um ein ladbares Modulsystem herum gebaut: Sämtliche Scraper, Werkzeuge und Schnittstellen sind eigenständige Assemblys im `Modules`-Verzeichnis, die beim Start geladen und über klar definierte Interfaces angesprochen werden. Dadurch lassen sich neue Quellen und Werkzeuge ergänzen, ohne die Hauptanwendung zu ändern.
+Ember Media Manager is built around a loadable module system: all scrapers, tools and interfaces are standalone assemblies in the `Modules` directory, loaded at startup and addressed through clearly defined interfaces. This allows adding new sources and tools without changing the main application.
 
-## Funktionsweise
+## How it works
 
-- **Laden:** Der `ModulesManager` (Singleton) lädt alle Assemblys aus `Modules/` und sortiert sie nach implementiertem Interface in getrennte Listen (generische Module, Daten-/Bilder-/Theme-/Trailer-Scraper je Inhaltstyp).
-- **Vertrag:** Jedes Modul implementiert `GenericModule` — mit `Init`, `RunGeneric`, `InjectSetup`, Eigenschaften (`ModuleName`, `ModuleVersion`, `Enabled`, `IsBusy`) und Events (`GenericEvent`, `ModuleEnabledChanged`, `ModuleSettingsChanged`, `SetupNeedsRestart`).
-- **Ereignisse:** Module abonnieren `ModuleEventType`-Ereignisse über `ModuleType`; `frmMain`/`ModulesManager` rufen `RunGeneric` auf, wenn das Ereignis eintritt (z. B. `AfterEdit_Movie`, `AfterUpdateDB_Movie`, `ScraperSingle_*`).
-- **UI-Integration:** Module liefern ihr Einstellungspanel via `InjectSetup()` in den Einstellungsdialog und registrieren Toolstrip-Einträge in der Haupt-UI.
-- **Aktivierung:** Jedes Modul kann aktiviert/deaktiviert werden; Status liegt in den Einstellungen.
+- **Loading:** The `ModulesManager` (singleton) loads all assemblies from `Modules/` and sorts them by implemented interface into separate lists (generic modules, data/image/theme/trailer scrapers per content type).
+- **Contract:** Every module implements `GenericModule` — with `Init`, `RunGeneric`, `InjectSetup`, properties (`ModuleName`, `ModuleVersion`, `Enabled`, `IsBusy`) and events (`GenericEvent`, `ModuleEnabledChanged`, `ModuleSettingsChanged`, `SetupNeedsRestart`).
+- **Events:** Modules subscribe to `ModuleEventType` events via `ModuleType`; `frmMain`/`ModulesManager` call `RunGeneric` when the event occurs (e.g. `AfterEdit_Movie`, `AfterUpdateDB_Movie`, `ScraperSingle_*`).
+- **UI integration:** Modules provide their settings panel via `InjectSetup()` into the settings dialog and register toolstrip entries in the main UI.
+- **Activation:** Each module can be enabled/disabled; the state lives in the settings.
 
-## Beispiele (Modularten)
+## Examples (module kinds)
 
-- Generisches Modul: Bulk Renamer, Media File Manager, Tag Manager
-- Interface-Modul: Kodi-Schnittstelle, Trakt.tv-Schnittstelle
-- Scraper-Modul: `scraper.Data.IMDB`, `scraper.Image.FanartTV`, `scraper.Trailer.YouTube`, `scraper.Theme.TelevisionTunes`
+- Generic module: Bulk Renamer, Media File Manager, Tag Manager
+- Interface module: Kodi interface, Trakt.tv interface
+- Scraper module: `scraper.Data.IMDB`, `scraper.Image.FanartTV`, `scraper.Trailer.YouTube`, `scraper.Theme.TelevisionTunes`
 
-## Einschränkungen
+## Limitations
 
-- Module werden per Reflection aus dem `Modules`-Ordner geladen — nicht auf der Festplatte vorhandene oder nicht dem Vertrag entsprechende Assemblys erscheinen nicht.
-- Zwei Projektverzeichnisse (`scraper.EmberCore.XML`, `scraper.TVDB.Poster`) existieren im Repository, sind aber nicht Teil der Solution und werden nicht gebaut.
+- Modules are loaded via reflection from the `Modules` folder — assemblies not present on disk or not matching the contract do not appear.
+- Two project directories (`scraper.EmberCore.XML`, `scraper.TVDB.Poster`) exist in the repository but are not part of the solution and are not built.

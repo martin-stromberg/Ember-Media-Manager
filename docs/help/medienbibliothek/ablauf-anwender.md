@@ -1,37 +1,37 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Medienbibliothek — Ablauf für Anwender
+# Media Library — User Walkthrough
 
-## Voraussetzungen
+## Prerequisites
 
-Mindestens ein Verzeichnis mit Film- oder Seriendateien auf einem lokalen oder Netzwerklaufwerk.
+At least one directory containing movie or TV show files on a local or network drive.
 
-## Schritt-für-Schritt-Anleitung
+## Step-by-step guide
 
-### 1. Quelle anlegen
+### 1. Add a source
 
-1. Menü *Edit → Settings...* öffnen.
-2. Im Einstellungsbereich *Movies → Sources* (Filme) bzw. *TV Shows → Sources* (Serien) auf *Add* klicken.
-3. *Source Name* vergeben und unter *Source Path* das Verzeichnis auswählen.
-4. *Source Options* nach Bedarf setzen (z. B. Unterordner einbeziehen, Sprache, Sortier-/Erkennungsoptionen) und übernehmen.
+1. Open *Edit → Settings...*.
+2. In the settings area *Movies → Sources* (movies) or *TV Shows → Sources* (TV shows), click *Add*.
+3. Enter a *Source Name* and select the directory under *Source Path*.
+4. Set *Source Options* as needed (e.g. include subfolders, language, ordering/detection options) and confirm.
 
-> **Hinweis:** Unter *Defaults for new Sources* lassen sich Standardoptionen für künftige Quellen vorgeben.
+> **Note:** Under *Defaults for new Sources* you can predefine default options for future sources.
 
-### 2. Bibliothek aktualisieren
+### 2. Update the library
 
-1. Menü *Tools → Update Library* wählen — oder gezielt *Tools → Reload All Movies* / *Reload All TV Shows* / *Reload All MovieSets*.
-2. Den Fortschritt in der Statusleiste beobachten (*Loading Media:* / *Scans sources for new content and cleans database*).
-3. Neue Einträge erscheinen mit „New"-Kennzeichnung in den Listen.
+1. Choose *Tools → Update Library* — or selectively *Tools → Reload All Movies* / *Reload All TV Shows* / *Reload All MovieSets*.
+2. Watch the progress in the status bar (*Loading Media:* / *Scans sources for new content and cleans database*).
+3. New entries appear with a "New" flag in the lists.
 
-### 3. Bestand filtern und bearbeiten
+### 3. Filter and work with the collection
 
-- In der Filterleiste Quelle (*Video Sources*), Genre, Jahr oder Status wählen; *Clear Filters* hebt alle Filter auf.
-- Einträge per Kontextmenü oder *Edit*-Menü *Mark*/*Lock* setzen, *Edit* öffnen oder *Delete* wählen.
+- In the filter bar select source (*Video Sources*), genre, year or status; *Clear Filters* removes all filters.
+- Use the context menu or the *Edit* menu to *Mark*/*Lock* entries, open *Edit* or choose *Delete*.
 
-### 4. Offline-Medien pflegen (optional)
+### 4. Maintain offline media (optional)
 
-- *Tools → Offline Media Manager* öffnen und Einträge für physische Medien (DVD/Blu-ray) mit Standort anlegen.
+- Open *Tools → Offline Media Manager* and create entries for physical media (DVD/Blu-ray) with a location.
 
-## Ergebnis
+## Result
 
-Alle gefundenen Medien stehen in den Listen *Movies*, *TV Shows* und *Movie Sets* zur Verfügung und können gescrapt, bearbeitet und exportiert werden.
+All discovered media are available in the *Movies*, *TV Shows* and *Movie Sets* lists and can be scraped, edited and exported.

@@ -1,29 +1,29 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Kodi-Schnittstelle — Einrichtung
+# Kodi Interface — Setup
 
-## Zweck
+## Purpose
 
-Damit das Modul synchronisieren kann, müssen in Kodi die Fernsteuerung aktiviert und in Ember die Hosts samt Pfad-Zuordnung hinterlegt werden.
+For the module to synchronize, remote control must be enabled in Kodi and the hosts including path mapping must be configured in Ember.
 
-## Einstellungen
+## Settings
 
-| Einstellung | Bedeutung |
-|-------------|-----------|
-| Host-Adresse und -Port | Netzwerkadresse der Kodi-Installation (Standard-Port der Kodi-Weboberfläche) |
-| Benutzername/Passwort | Zugangsdaten der Kodi-Fernsteuerung |
-| Quell-Pfad-Zuordnung | Übersetzung lokaler Ember-Pfade in Kodi-Pfade (z. B. `D:\Filme` → `smb://nas/filme`) |
-| Synchronisationsoptionen | Welche Ereignisse an Kodi gemeldet werden (Bearbeiten, Scrapen, Entfernen) |
+| Setting | Meaning |
+|---------|---------|
+| Host address and port | Network address of the Kodi installation (default port of the Kodi web interface) |
+| Username/password | Credentials of the Kodi remote control |
+| Source path mapping | Translation of local Ember paths into Kodi paths (e.g. `D:\Movies` → `smb://nas/movies`) |
+| Synchronization options | Which events are reported to Kodi (edit, scrape, remove) |
 
-## Vorgehen
+## Steps
 
-1. In Kodi unter *Settings → Services → Control* die Optionen *Allow remote control via HTTP* und *Allow remote control from applications* aktivieren und ggf. Benutzername/Passwort notieren.
-2. In Ember *Edit → Settings...* öffnen und den Bereich des Kodi-Interface-Moduls aufrufen.
-3. Modul aktivieren und über den Host-Dialog (*Host*) Adresse, Port und Zugangsdaten des Kodi-Hosts eintragen.
-4. Die Pfad-Zuordnung für die Quellen hinterlegen, wenn Kodi die Dateien über andere Pfade erreicht als Ember.
-5. Verbindung testen: Änderung an einem Eintrag vornehmen und prüfen, ob sie in Kodi ankommt.
+1. In Kodi under *Settings → Services → Control* enable *Allow remote control via HTTP* and *Allow remote control from applications* and note username/password if set.
+2. In Ember open *Edit → Settings...* and open the Kodi interface module's section.
+3. Enable the module and enter address, port and credentials of the Kodi host via the host dialog (*Host*).
+4. Configure the path mapping for the sources if Kodi reaches the files via different paths than Ember.
+5. Test the connection: change an entry and check whether it arrives in Kodi.
 
-## Hinweise
+## Notes
 
-- Bei mehreren Kodi-Installationen je Gerät einen Host anlegen.
-- Bei Passwort-Fehlern oder nicht erreichbarem Host meldet das Modul Fehler im Fehlerprotokoll; die Ember-Bibliothek bleibt davon unberührt.
+- With multiple Kodi installations create one host per device.
+- On password errors or an unreachable host the module reports errors in the error log; the Ember library is unaffected.

@@ -1,31 +1,31 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Filmsammlungen — Ablauf für Anwender
+# Movie Sets — User Walkthrough
 
-## Voraussetzungen
+## Prerequisites
 
-Filme sind in der Bibliothek vorhanden (siehe [Medienbibliothek](../medienbibliothek/ablauf-anwender.md)).
+Movies exist in the library (see [Media Library](../medienbibliothek/ablauf-anwender.md)).
 
-## Schritt-für-Schritt-Anleitung
+## Step-by-step guide
 
-### 1. Sammlung anlegen
+### 1. Create a set
 
-1. *New Set* über den Sets-Dialog oder das *Set*-Feld im Film-Dialog anlegen.
-2. *Set Name* vergeben und bestätigen.
+1. Create a *New Set* via the sets dialog or the *Set* field in the movie dialog.
+2. Enter a *Set Name* and confirm.
 
-### 2. Filme zuordnen
+### 2. Assign movies
 
-1. Film wählen → *Edit Movie*.
-2. Im *Set*-Feld die Sammlung auswählen → speichern.
-3. Wiederholen für alle Filme der Reihe.
+1. Select a movie → *Edit Movie*.
+2. Choose the set in the *Set* field → save.
+3. Repeat for all movies of the series.
 
-### 3. Sammlung pflegen
+### 3. Maintain a set
 
-1. *Sets Manager* öffnen (bzw. Ansicht *Movie Sets*).
-2. Sammlung wählen → *Edit MovieSet* — Titel, Handlung, Bilder bearbeiten.
-3. Optional über *(Re)Scrape* die Set-Metadaten aus dem Scraper laden.
-4. *Reload All MovieSets* aktualisiert die Set-Ansicht nach Änderungen.
+1. Open the *Sets Manager* (or the *Movie Sets* view).
+2. Select a set → *Edit MovieSet* — edit title, plot, images.
+3. Optionally load the set metadata from the scraper via *(Re)Scrape*.
+4. *Reload All MovieSets* refreshes the set view after changes.
 
-## Ergebnis
+## Result
 
-Die Sammlung erscheint in der Movie-Sets-Ansicht mit eigenem Artwork; zugeordnete Filme zeigen die Set-Zugehörigkeit, die auch in den NFO-Dateien und beim Kodi-Export berücksichtigt wird.
+The set appears in the Movie Sets view with its own artwork; assigned movies show their set membership, which is also written to the NFO files and considered during Kodi export.

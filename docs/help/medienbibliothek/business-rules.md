@@ -1,57 +1,57 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Medienbibliothek — Business Rules
+# Media Library — Business Rules
 
-## Quellzuordnung und Gültigkeit
+## Source assignment and validity
 
-**Beschreibung:** Nur Dateien unterhalb konfigurierter Quellen gelangen in die Bibliothek; Film- und Serienquellen sind strikt getrennt.
+**Description:** Only files beneath configured sources enter the library; movie and TV show sources are strictly separated.
 
-**Bedingungen:**
-- Quelle hat Typ Film (`DBSource` für Movies) oder Serie (`DBSource` für TV)
-- Optionen der Quelle (rekursiv, Ausschlussmuster, Sprache)
+**Conditions:**
+- Source has type Movie (`DBSource` for movies) or TV show (`DBSource` for TV)
+- Source options (recursive, exclusion patterns, language)
 
-**Verhalten:**
-- Verzeichnis erfüllt `IsValidDir` (kein Ausschlussmuster, kein versteckter/systemischer Ordner): wird durchsucht
-- Verzeichnis in `GetAll_ExcludedDirectories`: wird übersprungen
-- Bei Filmen: `SubDirsHaveMovies` entscheidet, ob Unterordner eigene Filme sind oder zum Film gehören (z. B. `VIDEO_TS`, `BDMV`, Extras)
+**Behavior:**
+- Directory satisfies `IsValidDir` (no exclusion pattern, not a hidden/system folder): it is scanned
+- Directory listed in `GetAll_ExcludedDirectories`: it is skipped
+- For movies: `SubDirsHaveMovies` decides whether subfolders are separate movies or belong to the parent movie (e.g. `VIDEO_TS`, `BDMV`, extras)
 
-**Umsetzung:** `Scanner.IsValidDir`, `Scanner.ScanSubDirectory_Movie`, `Scanner.SubDirsHaveMovies` (`clsAPIScanner.vb`)
+**Implementation:** `Scanner.IsValidDir`, `Scanner.ScanSubDirectory_Movie`, `Scanner.SubDirsHaveMovies` (`clsAPIScanner.vb`)
 
-## Episoden-Erkennung
+## Episode detection
 
-**Beschreibung:** Episodendateien werden der Serie über Dateinamen-Muster (z. B. `S01E02`, `1x02`) zugeordnet; die Muster sind konfigurierbar.
+**Description:** Episode files are assigned to a show via filename patterns (e.g. `S01E02`, `1x02`); the patterns are configurable.
 
-**Bedingungen:**
-- Serien-Quelle gescannt, Serien-Ordner erkannt
-- Regex-Profile in den Einstellungen (`dlgTVRegExProfiles`)
+**Conditions:**
+- TV show source scanned, show folder detected
+- Regex profiles in the settings (`dlgTVRegExProfiles`)
 
-**Verhalten:**
-- Dateiname matcht ein Episoden-Muster → `RegexGetTVEpisode` liefert Staffel-/Episodennummer(n) inkl. Mehrfach-Episoden (`S01E01E02`)
-- Kein Match → Datei wird nicht als Episode übernommen
-- `Season Result`-Auswertung entscheidet bei Staffelpaketen
+**Behavior:**
+- Filename matches an episode pattern → `RegexGetTVEpisode` returns season/episode number(s) including multi-episodes (`S01E01E02`)
+- No match → file is not imported as an episode
+- `Season Result` evaluation decides for season packs
 
-**Umsetzung:** `Scanner.RegexGetTVEpisode` (`clsAPIScanner.vb`)
+**Implementation:** `Scanner.RegexGetTVEpisode` (`clsAPIScanner.vb`)
 
-## „New"- und Bereinigungslogik
+## "New" flag and cleanup logic
 
-**Beschreibung:** Neu gefundene Medien werden als `IsNew` markiert; nur die Bereinigung entfernt tatsächlich gelöschte Dateien aus der Datenbank.
+**Description:** Newly found media are marked `IsNew`; only the cleanup actually removes deleted files from the database.
 
-**Bedingungen:**
-- Scan mit Update-/Clean-Auftrag (`Structures.ScanOrClean`)
+**Conditions:**
+- Scan with update/clean task (`Structures.ScanOrClean`)
 
-**Verhalten:**
-- Datei neu → Eintrag mit `IsNew` angelegt (sichtbar als „New")
-- Datei im Scan nicht mehr gefunden → Eintrag bleibt bei reinem Update bestehen; bei *Clean Database*/Clean Files wird er entfernt (`Database.Clean`, `Delete_Invalid_TVEpisodes`, `Delete_Empty_TVSeasons`)
-- `Database.Clear_New` hebt alle New-Markierungen auf
+**Behavior:**
+- New file → entry created with `IsNew` (shown as "New")
+- File no longer found during scan → entry remains on a plain update; with *Clean Database*/Clean Files it is removed (`Database.Clean`, `Delete_Invalid_TVEpisodes`, `Delete_Empty_TVSeasons`)
+- `Database.Clear_New` clears all New flags
 
-**Umsetzung:** `Database.Clean`, `Database.Clear_New` (`clsAPIDatabase.vb`)
+**Implementation:** `Database.Clean`, `Database.Clear_New` (`clsAPIDatabase.vb`)
 
 ## Lock/Mark
 
-**Beschreibung:** `IsLock` schützt ein Element vor Überschreiben durch Scraper/Updates; `IsMarked` ist die Arbeitsauswahl für Batch-Operationen (ScrapeType `Marked*`, Export, Rename).
+**Description:** `IsLock` protects an item from being overwritten by scrapers/updates; `IsMarked` is the working selection for batch operations (ScrapeType `Marked*`, export, rename).
 
-**Verhalten:**
-- `IsLock` gesetzt → Scraper und Feld-Updates verändern das Element nicht
-- `IsMarked` gesetzt → Element gehört zur Markiert-Menge für Bulk-Aktionen
+**Behavior:**
+- `IsLock` set → scrapers and field updates do not modify the item
+- `IsMarked` set → item belongs to the marked set for bulk actions
 
-**Umsetzung:** Flags auf `Database.DBElement`, Auswertung in `frmMain` und den Modulen
+**Implementation:** flags on `Database.DBElement`, evaluated in `frmMain` and the modules

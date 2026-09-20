@@ -1,30 +1,30 @@
-# Dokumentation
+# Documentation
 
-Übersicht über alle dokumentierten Funktionsbereiche von Ember Media Manager.
+Overview of all documented feature areas of Ember Media Manager.
 
-## Bibliothek & Inhalte
+## Library & Content
 
-- [Medienbibliothek](medienbibliothek/index.md) — Quellen, Scans, Filter und Offline-Medien der lokalen Bibliothek.
-- [Filme](filme/index.md) — Verwaltung und Bearbeitung des Filmbestands.
-- [Serien](serien/index.md) — Serien, Staffeln und Episoden mit Episodenzuordnung.
-- [Filmsammlungen](filmsammlungen/index.md) — Movie Sets: Filmreihen bündeln und mit Artwork versehen.
+- [Media Library](medienbibliothek/index.md) — sources, scans, filters and offline media of the local library.
+- [Movies](filme/index.md) — managing and editing the movie collection.
+- [TV Shows](serien/index.md) — shows, seasons and episodes with episode detection.
+- [Movie Sets](filmsammlungen/index.md) — grouping movie series and assigning artwork.
 
-## Metadaten & Medien
+## Metadata & Media
 
-- [Scraper](scraper/index.md) — Daten-, Bilder-, Trailer- und Theme-Scraper aus Online-Quellen.
+- [Scrapers](scraper/index.md) — data, image, trailer and theme scrapers from online sources.
 
-## Integrationen
+## Integrations
 
-- [Kodi-Schnittstelle](kodi/index.md) — Synchronisation zwischen Ember- und Kodi-Bibliotheken.
-- [Trakt.tv](trakt/index.md) — Watched-Status, Listen und Ratings mit dem Trakt-Konto abgleichen.
+- [Kodi Interface](kodi/index.md) — synchronization between Ember and Kodi libraries.
+- [Trakt.tv](trakt/index.md) — syncing watched state, lists and ratings with a Trakt account.
 
-## Werkzeuge & Verwaltung
+## Tools & Administration
 
-- [Werkzeuge](werkzeuge/index.md) — Bulk Renamer, Exporter, Dateioperationen, Tag-/Filter-/Mapping-Verwaltung.
-- [Einstellungen](einstellungen/index.md) — Einstellungsdialog, Profile und Konfigurationsablage.
+- [Tools](werkzeuge/index.md) — Bulk Renamer, Exporter, file operations, tag/filter/mapping management.
+- [Settings](einstellungen/index.md) — settings dialog, profiles and configuration storage.
 
-## System & Entwicklung
+## System & Development
 
-- [Modulsystem](module-system/index.md) — Addon-Architektur, Interfaces und Ereignisse (Entwickler).
-- [Datenbank](datenbank/index.md) — SQLite-Schema, Tabellen und Versionierung (Entwickler/Admin).
-- [Build](build/index.md) — Die Solution ist self-contained baubar; Abhängigkeiten kommen aus dem Repository bzw. per NuGet.
+- [Module System](module-system/index.md) — add-on architecture, interfaces and events (developers).
+- [Database](datenbank/index.md) — SQLite schema, tables and versioning (developers/admins).
+- [Build](build/index.md) — the solution builds self-contained; dependencies come from the repository or via NuGet.

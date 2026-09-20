@@ -1,39 +1,39 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Einstellungen — Einrichtung
+# Settings — Setup
 
-## Zweck
+## Purpose
 
-Grundkonfiguration nach der Installation: Profil wählen, Quellen anlegen, Dateibenennung und Scraper festlegen, Module aktivieren.
+Basic configuration after installation: choose a profile, add sources, set file naming and scrapers, enable modules.
 
-## Vorgehen
+## Steps
 
-### 1. Profil bestimmen
+### 1. Choose a profile
 
-- Beim ersten Start erscheint die Profilauswahl (*Select Profile...*) — das Standardprofil übernehmen oder ein eigenes anlegen.
-- Pro Profil werden Einstellungen und Datenbank getrennt gespeichert.
+- On first start the profile selection appears (*Select Profile...*) — take the default profile or create your own.
+- Per profile, settings and database are stored separately.
 
-### 2. Quellen einrichten
+### 2. Set up sources
 
-1. *Edit → Settings...* öffnen.
-2. Unter *Movies → Sources* / *TV Shows → Sources* mit *Add Source* die Verzeichnisse hinzufügen (siehe [Medienbibliothek — Einrichtung](../medienbibliothek/ablauf-anwender.md)).
+1. Open *Edit → Settings...*.
+2. Under *Movies → Sources* / *TV Shows → Sources* add the directories with *Add Source* (see [Media Library — Setup](../medienbibliothek/ablauf-anwender.md)).
 
-### 3. Dateibenennung und Inhalte festlegen
+### 3. Define file naming and content
 
-- Je Inhaltstyp das NFO-/Artwork-Schema prüfen (Vorgabe: Kodi-Schema).
-- Gewünschte Bildtypen und Felder aktivieren (Poster, Fanart, Extrathumbs, Trailer, Theme …).
+- Check the NFO/artwork schema per content type (default: Kodi schema).
+- Enable the desired image types and fields (poster, fanart, extrathumbs, trailer, theme …).
 
-### 4. Scraper und Module aktivieren
+### 4. Enable scrapers and modules
 
-1. In den Scraper-Bereichen je Inhaltstyp die Daten-, Bilder-, Trailer- und Theme-Scraper aktivieren und *Scrape Order* setzen (siehe [Scraper — Einrichtung](../scraper/einrichtung-anwender.md)).
-2. Generische Module (Werkzeuge, Kodi, Trakt) aktivieren und deren Panels konfigurieren.
-3. *Apply* — bei „Setup Needs Restart" die Anwendung neu starten.
+1. In the scraper areas per content type enable the data, image, trailer and theme scrapers and set the *Scrape Order* (see [Scrapers — Setup](../scraper/einrichtung-anwender.md)).
+2. Enable generic modules (tools, Kodi, Trakt) and configure their panels.
+3. *Apply* — on "Setup Needs Restart" restart the application.
 
-### 5. Bibliothek erstmalig füllen
+### 5. Fill the library for the first time
 
-- *Tools → Update Library* ausführen und danach die neuen Einträge scrapen.
+- Run *Tools → Update Library* and afterwards scrape the new entries.
 
-## Hinweise
+## Notes
 
-- Zertifizierungsland (Certification, z. B. FSK/MPAA-Land) in den Einstellungen passend wählen — beeinflusst Altersfreigaben.
-- Bei Mehrbenutzer-Nutzung empfiehlt sich ein Profil pro Person.
+- Choose the certification country (Certification, e.g. FSK/MPAA country) appropriately in the settings — it affects age ratings.
+- For multi-user usage a profile per person is recommended.

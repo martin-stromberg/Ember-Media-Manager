@@ -1,28 +1,28 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Medienbibliothek — Beschreibung
+# Media Library — Description
 
-## Zweck
+## Purpose
 
-Ember Media Manager verwaltet keine Dateien „on the fly", sondern baut eine eigene Medienbibliothek auf: Der Anwender legt **Quellen** (Source) für Filme und Serien fest, die Anwendung durchsucht diese Verzeichnisse und speichert die gefundenen Medien samt Metadaten, Bildern und Dateiinformationen in einer lokalen Datenbank. Alle Listenansichten, Scraper und Werkzeuge arbeiten auf dieser Datenbank.
+Ember Media Manager does not manage files "on the fly" — it builds its own media library: the user defines **sources** for movies and TV shows, the application scans these directories and stores the discovered media together with metadata, images and file information in a local database. All list views, scrapers and tools operate on this database.
 
-## Funktionsweise
+## How it works
 
-- **Quellen:** Jede Quelle besteht aus einem Namen, einem Pfad und Optionen (z. B. rekursive Suche, Sprache, Sortierung). Film- und Serienquellen werden getrennt verwaltet.
-- **Scan:** Über das Menü *Tools → Update Library* bzw. die Reload-Funktionen (*Reload All Movies*, *Reload All TV Shows*, *Reload All MovieSets*) werden die Quellen nach neuen oder entfernten Dateien durchsucht. Neue Medien erscheinen markiert als „New" in den Listen.
-- **Erkennung:** Aus Datei- und Ordnernamen werden Titel, Jahr, bei Serien Staffel- und Episodennummern sowie Videoquellen-Bezeichner (z. B. Bluray, DVD, HDTV) ermittelt. Vorhandene NFO-Dateien werden eingelesen.
-- **Filter:** Über den Listen lassen sich Einträge nach Quelle (*Video Sources*), Genre, Markierung, Lock-Status, Jahr und weiteren Kriterien filtern; *Clear Filters* setzt alle Filter zurück.
-- **Markieren und Sperren:** Einträge können markiert (*Mark*, *Mark All*) oder gegen Änderungen gesperrt (*Lock*) werden.
-- **Offline-Medien:** Über den *Offline Media Manager* werden Medien verwaltet, die nicht als Datei vorliegen (z. B. DVD/Blu-ray im Regal), inklusive Stub-Dateien für Medien-Center.
+- **Sources:** Each source consists of a name, a path and options (e.g. recursive search, language, ordering). Movie and TV show sources are managed separately.
+- **Scan:** Via *Tools → Update Library* or the reload functions (*Reload All Movies*, *Reload All TV Shows*, *Reload All MovieSets*) the sources are scanned for new or removed files. New media appear flagged as "New" in the lists.
+- **Detection:** Title, year and — for TV shows — season and episode numbers as well as video source identifiers (e.g. Bluray, DVD, HDTV) are derived from file and folder names. Existing NFO files are read in.
+- **Filters:** Above the lists, entries can be filtered by source (*Video Sources*), genre, marker, lock status, year and other criteria; *Clear Filters* resets all filters.
+- **Mark and lock:** Entries can be marked (*Mark*, *Mark All*) or protected against changes (*Lock*).
+- **Offline media:** The *Offline Media Manager* manages media that do not exist as files (e.g. DVD/Blu-ray on a shelf), including stub files for media centers.
 
-## Beispiele
+## Examples
 
-- Ein neuer Film wird ins Filmverzeichnis kopiert → *Update Library* → der Film erscheint mit „New"-Kennung in der Filmliste und kann anschließend gescrapt werden.
-- Nur Filme einer bestimmten Quelle anzeigen: in der Filterleiste unter *Video Sources* die Quelle auswählen.
-- Eine Blu-ray-Sammlung ohne Dateien pflegen: über den *Offline Media Manager* Einträge mit Standort-Hinweis anlegen.
+- A new movie is copied into the movie directory → *Update Library* → the movie appears with a "New" flag in the movie list and can then be scraped.
+- Show only movies from a specific source: select the source under *Video Sources* in the filter bar.
+- Maintain a Blu-ray collection without files: create entries with a location hint via the *Offline Media Manager*.
 
-## Einschränkungen
+## Limitations
 
-- Die Bibliothek spiegelt den Stand des letzten Scans; Dateiänderungen außerhalb von Ember werden erst beim nächsten Scan erkannt.
-- Entfernte Dateien werden erst durch die Bereinigungsfunktion (*Clean Database* / Clean Files) aus der Datenbank gelöscht.
-- Die Anwendung ist englisch lokalisiert; alle sichtbaren Bezeichnungen sind englisch.
+- The library reflects the state of the last scan; file changes made outside Ember are only detected on the next scan.
+- Removed files are only deleted from the database by the cleanup function (*Clean Database* / Clean Files).
+- The application is localized in English; all visible labels are in English.

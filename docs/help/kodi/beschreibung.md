@@ -1,26 +1,26 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Kodi-Schnittstelle — Beschreibung
+# Kodi Interface — Description
 
-## Zweck
+## Purpose
 
-Das Modul *Kodi Interface* hält Ember Media Manager und Kodi-Medienbibliotheken synchron: Nach dem Scannen, Scrapen oder Bearbeiten in Ember können die Änderungen direkt an Kodi-Hosts übertragen werden — Kodi muss seine Bibliothek dafür nicht komplett neu einlesen. Umgekehrt können Informationen aus Kodi (z. B. der Watched-Status) in Ember übernommen werden.
+The *Kodi Interface* module keeps Ember Media Manager and Kodi media libraries in sync: after scanning, scraping or editing in Ember the changes can be pushed directly to Kodi hosts — Kodi does not have to re-read its entire library. Conversely, information from Kodi (e.g. watched state) can be taken back into Ember.
 
-## Funktionsweise
+## How it works
 
-- **Hosts:** Es können mehrere Kodi-Hosts mit Adresse, Port und Zugangsdaten verwaltet werden; jeder Host kann eigene Quellen-Zuordnungen haben (lokaler Ember-Pfad ↔ Kodi-Pfad).
-- **Echtzeit-Abgleich:** Das Modul reagiert auf Bearbeitungs-, Scrape- und Löschvorgänge in Ember und meldet sie an Kodi — z. B. Details aktualisieren, Bibliotheks-Scan oder -Clean anstoßen, Einträge entfernen.
-- **Bidirektional:** Inhalte können von Ember nach Kodi geschrieben und Kodi-Bibliotheksdaten (inkl. Wiedergabestatus) zurückgelesen werden.
-- **Benachrichtigungen:** Kodi sendet Ereignisse (z. B. Scan/Clean abgeschlossen), die das Modul auswertet.
+- **Hosts:** Several Kodi hosts with address, port and credentials can be managed; each host can have its own source mappings (local Ember path ↔ Kodi path).
+- **Real-time sync:** The module reacts to edit, scrape and delete operations in Ember and reports them to Kodi — e.g. update details, trigger library scan or clean, remove entries.
+- **Bidirectional:** Content can be written from Ember to Kodi and Kodi library data (including play state) read back.
+- **Notifications:** Kodi sends events (e.g. scan/clean finished) which the module evaluates.
 
-## Beispiele
+## Examples
 
-- Film in Ember gescrapt → Änderung wird automatisch an den konfigurierten Kodi-Host gemeldet, ohne dass in Kodi manuell aktualisiert werden muss.
-- Auf einem anderen Gerät gesehene Folge → Watched-Status kann von Kodi nach Ember synchronisiert werden.
-- Mehrere Kodi-Clients (Wohnzimmer, Schlafzimmer) → ein Host pro Gerät anlegen und synchron halten.
+- Movie scraped in Ember → the change is automatically reported to the configured Kodi host without a manual update in Kodi.
+- Episode watched on another device → watched state can be synced from Kodi to Ember.
+- Several Kodi clients (living room, bedroom) → create one host per device and keep them in sync.
 
-## Einschränkungen
+## Limitations
 
-- Der Kodi-Host muss per Netzwerk erreichbar sein und die Fernsteuerung (HTTP/WebSocket) muss in Kodi aktiviert sein.
-- Die Pfad-Zuordnung ist erforderlich, wenn Ember und Kodi die Medien über unterschiedliche Pfade sehen (lokal vs. Netzwerkfreigabe).
-- In Ember noch nicht gescrapte Inhalte können nicht sinnvoll an Kodi gemeldet werden — erst scrapen, dann synchronisieren.
+- The Kodi host must be reachable over the network and remote control (HTTP/WebSocket) must be enabled in Kodi.
+- Path mapping is required when Ember and Kodi see the media via different paths (local vs. network share).
+- Content not yet scraped in Ember cannot be meaningfully reported to Kodi — scrape first, then sync.

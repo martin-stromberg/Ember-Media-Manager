@@ -1,106 +1,106 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Datenbank — Datenmodell
+# Database — Data Model
 
-## Entitäten
+## Entities
 
 ### `movie`
 
-Film-Stammsatz (u. a. Titel, Originaltitel, Jahr, Handlung, `MoviePath`, IMDb-ID, Flags `New`/`Mark`/`Lock`, `idSource`).
+Movie master record (title, original title, year, plot, `MoviePath`, IMDb ID, flags `New`/`Mark`/`Lock`, `idSource`, among others).
 
 ### `sets` + `setlinkmovie`
 
-Filmsammlungen (`sets`: Name, Übersicht) und n:m-Zuordnung Film↔Set.
+Movie sets (`sets`: name, overview) and the n:m mapping between movie and set.
 
 ### `tvshow`, `seasons`, `episode`
 
-Serienhierarchie: `tvshow` (Serien-Stammsatz), `seasons` (Staffel je Serie), `episode` (Episode mit Staffel-/Episodennummer, `idShow`-Bezug).
+TV show hierarchy: `tvshow` (show master record), `seasons` (one season per show), `episode` (episode with season/episode numbers, `idShow` reference).
 
 ### `movielinktvshow`
 
-n:m-Verknüpfung Film↔Serie (z. B. Begleit-/Zusatzmaterial).
+n:m link between movies and TV shows (e.g. companion/bonus material).
 
 ### `files`, `moviesource`, `tvshowsource`
 
-Dateinamen-Registry (`files`: `idFile`, `strFilename` — referenziert über `episode.idFile`; Filme speichern ihren Pfad direkt in `movie.MoviePath`) und Quellverzeichnisse — `moviesource` für Filmquellen, `tvshowsource` für Serienquellen (jeweils mit Pfad, Sprache, Sortierungs- und Ausschlussoptionen, letztem Scan-Zeitpunkt).
+Filename registry (`files`: `idFile`, `strFilename` — referenced via `episode.idFile`; movies store their path directly in `movie.MoviePath`) and source directories — `moviesource` for movie sources, `tvshowsource` for TV show sources (each with path, language, ordering and exclusion options, last scan timestamp).
 
 ### `OrigPaths`, `EmberFiles`
 
-Offline-Medien (Stubs): `OrigPaths` bildet Originalpfade auf Ember-Pfade je Plattform ab; `EmberFiles` hält die zugehörigen Dateien inkl. Hash und `UseFile`-Flag.
+Offline media (stubs): `OrigPaths` maps original paths to Ember paths per platform; `EmberFiles` holds the associated files including hash and `UseFile` flag.
 
 ### `ExcludeFiles`, `ExcludeDir`, `ExcludeFilesInFolders`
 
-Scan-Ausschlussregeln: global ausgeschlossene Dateinamen (`ExcludeFiles`), ausgeschlossene Verzeichnisnamen (`ExcludeDir`) sowie ausgeschlossene Dateien innerhalb bestimmter Ordner (`ExcludeFilesInFolders`).
+Scan exclusion rules: globally excluded filenames (`ExcludeFiles`), excluded directory names (`ExcludeDir`) and excluded files within specific folders (`ExcludeFilesInFolders`).
 
 ### `actors` + `actorlinkmovie`, `actorlinkepisode`, `actorlinktvshow`, `gueststarlinkepisode`
 
-Personen und Rollenverknüpfungen inkl. Gaststars je Episode.
+Persons and role links including guest stars per episode.
 
 ### `directorlinkmovie`, `directorlinkepisode`, `directorlinktvshow`, `writerlinkmovie`, `writerlinkepisode`, `creatorlinktvshow`
 
-Crew-Verknüpfungen (Regie, Drehbuch, Creator).
+Crew links (directors, writers, creators).
 
 ### `genre`, `genrelinkmovie`, `genrelinktvshow`
 
-Genres und Zuordnung.
+Genres and their assignment.
 
 ### `country`, `countrylinkmovie`, `countrylinktvshow`
 
-Produktionsländer und Zuordnung.
+Production countries and their assignment.
 
 ### `studio`, `studiolinkmovie`, `studiolinktvshow`
 
-Studios/Netzwerke und Zuordnung.
+Studios/networks and their assignment.
 
 ### `rating`
 
-Bewertungen je Medium und Quelle (Name, Wert, Stimmen, Default-Flag).
+Ratings per media item and source (name, value, votes, default flag).
 
 ### `tag`, `taglinks`
 
-Benutzerdefinierte Schlagworte und Zuordnung zu Medien.
+User-defined tags and their assignment to media items.
 
 ### `art`
 
-Artwork-Zuordnung: Bildtyp (poster, fanart, banner, landscape, clearart, clearlogo, discart, characterart, thumb) je Medium mit URL/Datei.
+Artwork mapping: image type (poster, fanart, banner, landscape, clearart, clearlogo, discart, characterart, thumb) per media item with URL/file.
 
 ### `uniqueid`
 
-Externe IDs je Medium (IMDb, TMDb, TVDb u. a.) mit Default-Markierung.
+External IDs per media item (IMDb, TMDb, TVDb and others) with default marker.
 
 ### `MoviesVStreams`, `MoviesAStreams`, `MoviesSubs`, `TVVStreams`, `TVAStreams`, `TVSubs`
 
-Stream-Details aus der Dateianalyse: Video- (Codec, Auflösung, Seitenverhältnis, Dauer), Audio- (Codec, Kanäle, Sprache) und Untertitel-Spuren (Sprache, Format) für Filme bzw. Episoden.
+Stream details from file analysis: video (codec, resolution, aspect ratio, duration), audio (codec, channels, language) and subtitle tracks (language, format) for movies and episodes respectively.
 
-## Beziehungen
+## Relationships
 
 ```mermaid
 erDiagram
-    moviesource ||--o{ movie : "enthält"
-    tvshowsource ||--o{ episode : "enthält"
-    files ||--o{ episode : "liefert Dateinamen"
-    movie ||--o{ uniqueid : "hat IDs"
-    movie ||--o{ art : "hat Artwork"
-    movie ||--o{ rating : "hat Bewertungen"
+    moviesource ||--o{ movie : "contains"
+    tvshowsource ||--o{ episode : "contains"
+    files ||--o{ episode : "provides filename"
+    movie ||--o{ uniqueid : "has IDs"
+    movie ||--o{ art : "has artwork"
+    movie ||--o{ rating : "has ratings"
     movie }o--o{ sets : "setlinkmovie"
     movie }o--o{ tvshow : "movielinktvshow"
     movie }o--o{ actors : "actorlinkmovie"
     movie }o--o{ genre : "genrelinkmovie"
     movie }o--o{ country : "countrylinkmovie"
     movie }o--o{ studio : "studiolinkmovie"
-    movie ||--o{ MoviesVStreams : "hat"
-    movie ||--o{ MoviesAStreams : "hat"
-    movie ||--o{ MoviesSubs : "hat"
-    tvshow ||--o{ seasons : "hat"
-    seasons ||--o{ episode : "enthält"
-    tvshow ||--o{ art : "hat Artwork"
+    movie ||--o{ MoviesVStreams : "has"
+    movie ||--o{ MoviesAStreams : "has"
+    movie ||--o{ MoviesSubs : "has"
+    tvshow ||--o{ seasons : "has"
+    seasons ||--o{ episode : "contains"
+    tvshow ||--o{ art : "has artwork"
     tvshow }o--o{ actors : "actorlinktvshow"
     tvshow }o--o{ studio : "studiolinktvshow"
     tvshow }o--o{ genre : "genrelinktvshow"
     episode }o--o{ actors : "actorlinkepisode/gueststarlinkepisode"
-    episode ||--o{ TVVStreams : "hat"
-    episode ||--o{ TVAStreams : "hat"
-    episode ||--o{ TVSubs : "hat"
+    episode ||--o{ TVVStreams : "has"
+    episode ||--o{ TVAStreams : "has"
+    episode ||--o{ TVSubs : "has"
     tag }o--o{ movie : "taglinks"
     tag }o--o{ tvshow : "taglinks"
     tag }o--o{ episode : "taglinks"

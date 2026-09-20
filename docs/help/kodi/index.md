@@ -1,10 +1,10 @@
-# Kodi-Schnittstelle
+# Kodi Interface
 
-Das Kodi-Interface synchronisiert die Ember-Medienbibliothek mit einem oder mehreren Kodi-Installationen: Bibliotheks-Scans/-Bereinigungen werden angestoßen, geänderte Inhalte an Kodi gemeldet und Watched-Status zurück nach Ember übernommen.
+The Kodi interface synchronizes the Ember media library with one or more Kodi installations: library scans/cleanups are triggered, changed content is reported to Kodi and watched state is taken back into Ember.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Technischer Ablauf](ablauf-technisch.md)
-- [Einrichtung für Anwender](einrichtung-anwender.md)
+- [Description](beschreibung.md)
+- [Technical Flow](ablauf-technisch.md)
+- [Setup for Users](einrichtung-anwender.md)
 - [API](api.md)

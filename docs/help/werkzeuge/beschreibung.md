@@ -1,49 +1,49 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Werkzeuge — Beschreibung
+# Tools — Description
 
-## Zweck
+## Purpose
 
-Die generischen Module (`generic.EmberCore.*`) stellen Werkzeuge rund um die Medienbibliothek bereit. Sie werden über die Modul-Einstellungen aktiviert und integrieren sich über Menü- und Kontextmenü-Einträge sowie eigene Dialoge.
+The generic modules (`generic.EmberCore.*`) provide tools around the media library. They are enabled via the module settings and integrate through menu and context-menu entries as well as their own dialogs.
 
 ## Bulk Renamer
 
-*Bulk Renamer* benennt Film- und Seriendateien/-ordner nach frei definierbaren Mustern um — stapelweise (*Bulk Rename*, *TV Bulk Renamer*) oder einzeln (*Manual Rename*). Die Muster-Syntax umfasst Platzhalter für Titel, Jahr, Auflösung, Codecs, Staffel-/Episodennummern u. v. m. Optionen wie *Display Only Movies That Will Be Renamed*, *Automatically Rename Files During Multi-/Single-Scraper* steuern Vorschau und Automatik. Fehlgeschlagene Umbenennungen (gesperrte Dateien/Ordner) werden mit Fehlermeldung quittiert.
+*Bulk Renamer* renames movie and TV show files/folders using freely definable patterns — in batches (*Bulk Rename*, *TV Bulk Renamer*) or individually (*Manual Rename*). The pattern syntax covers placeholders for title, year, resolution, codecs, season/episode numbers and more. Options like *Display Only Movies That Will Be Renamed* and *Automatically Rename Files During Multi-/Single-Scraper* control preview and automation. Failed renames (locked files/folders) are reported with an error message.
 
 ## Movie List Exporter
 
-*Export Movies* / *Movie List Exporter* exportiert die Filmbibliothek über Template-Dateien (z. B. HTML-Listen). *Export Movie List* wählt Template und Ziel; die Vorlagen liegen im `Templates`-Ordner des Moduls.
+*Export Movies* / *Movie List Exporter* exports the movie library via template files (e.g. HTML lists). *Export Movie List* selects template and target; the templates live in the module's `Templates` folder.
 
 ## Media File Manager
 
-Dateioperationen für Mediendateien: Kopieren/Verschieben in Zielverzeichnisse (*Copy Files*-Dialog), optional über TeraCopy.
+File operations for media files: copy/move to target directories (*Copy Files* dialog), optionally via TeraCopy.
 
 ## Tag Manager
 
-Verwaltung von Tags/Schlagworten: Tags anlegen, bearbeiten, löschen und den Medien zuordnen. Ergänzend existiert der einfache *Tag Manager*-Dialog der Hauptanwendung für direkte Zuordnung.
+Management of tags/keywords: create, edit, delete tags and assign them to media items. Additionally, the main application's simple *Tag Manager* dialog exists for direct assignment.
 
-## Medienlisten-Editor (Filter Editor)
+## Media List Editor (Filter Editor)
 
-Benutzerdefinierte Filter und Medienlisten bearbeiten — Kriterien für die Listenansichten pflegen, die dann in der Filterleiste zur Verfügung stehen.
+Edit custom filters and media lists — maintain criteria for the list views which then appear in the filter bar.
 
-## Mapping-Editor
+## Mapping Editor
 
-Bearbeitet die Zuordnungslisten der Anwendung: Genre-Mapping, Regex-Mapping und Simple-Mapping (z. B. Übersetzung von Genre-Bezeichnern oder Quell-Bezeichnern in eigene Werte).
+Edits the application's mapping lists: genre mapping, regex mapping and simple mapping (e.g. translating genre identifiers or source identifiers into custom values).
 
-## Metadaten-Editor
+## Metadata Editor
 
-Pflegt die Bezeichner-Tabellen für Codecs und Metadaten (z. B. welche Codec-Strings welchem Flag/Anzeigewert entsprechen).
+Maintains the identifier tables for codecs and metadata (e.g. which codec strings map to which flag/display value).
 
-## Kontextmenü
+## Context Menu
 
-Stellt zusätzliche Kontextmenü-Einträge in den Medienlisten bereit.
+Provides additional context-menu entries in the media lists.
 
 ## Video Source Mapping
 
-Ordnet Videoquellen-Bezeichner zu (z. B. welche Dateinamen-Bestandteile als Blu-ray, DVD, HDTV erkannt werden).
+Maps video source identifiers (e.g. which filename parts are recognized as Blu-ray, DVD, HDTV).
 
-## Einschränkungen
+## Limitations
 
-- Alle Werkzeuge arbeiten auf der Ember-Datenbank — Dateien, die noch nicht gescannt sind, stehen nicht zur Verfügung.
-- Der Bulk Renamer verändert Dateien und Ordner auf dem Datenträger; gesperrte oder geöffnete Dateien führen zu Fehlermeldungen (*Unable to Rename*).
-- Einige Module melden nach Einstellungsänderungen *Setup Needs Restart*.
+- All tools operate on the Ember database — files that have not been scanned yet are not available.
+- The Bulk Renamer modifies files and folders on disk; locked or open files cause error messages (*Unable to Rename*).
+- Some modules report *Setup Needs Restart* after settings changes.

@@ -1,8 +1,8 @@
-# Filmsammlungen
+# Movie Sets
 
-Filmsammlungen (Movie Sets) gruppieren zusammengehörige Filme — etwa Reihen wie „Alien Collection". Ember Media Manager pflegt Sammlungen mit eigenen Metadaten und Artwork und ordnet Filme den Sets zu.
+Movie sets group related movies — for example series like "Alien Collection". Ember Media Manager maintains sets with their own metadata and artwork and assigns movies to them.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Ablauf für Anwender](ablauf-anwender.md)
+- [Description](beschreibung.md)
+- [User Walkthrough](ablauf-anwender.md)

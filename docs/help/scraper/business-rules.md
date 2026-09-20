@@ -1,56 +1,56 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Scraper — Business Rules
+# Scrapers — Business Rules
 
-## Scrape-Umfang und -Modus
+## Scrape scope and mode
 
-**Beschreibung:** Jeder Scrape-Lauf kombiniert einen Umfang (welche Elemente) mit einem Modus (wie entschieden wird) — abgebildet in `ScrapeType`.
+**Description:** Every scrape run combines a scope (which items) with a mode (how decisions are made) — mapped in `ScrapeType`.
 
-**Bedingungen:**
-- Umfang: `All`, `New`, `Marked`, `Filter`, `Missing`
-- Modus: `Auto`, `Ask`, `Skip`
+**Conditions:**
+- Scope: `All`, `New`, `Marked`, `Filter`, `Missing`
+- Mode: `Auto`, `Ask`, `Skip`
 
-**Verhalten:**
-- `…Auto` → erstes Suchergebnis wird ohne Rückfrage übernommen
-- `…Ask` → Such-/Auswahldialog je Element (`dlgSearchResults`, `dlgImgSelect`)
-- `…Skip` → Element wird übersprungen
-- `Missing*` → nur Elemente mit fehlenden Inhalten werden bearbeitet
-- `Marked*`/`Filter*` → nur markierte bzw. gefilterte Elemente
+**Behavior:**
+- `…Auto` → first search result is taken without asking
+- `…Ask` → search/selection dialog per item (`dlgSearchResults`, `dlgImgSelect`)
+- `…Skip` → item is skipped
+- `Missing*` → only items with missing content are processed
+- `Marked*`/`Filter*` → only marked or filtered items
 
-**Umsetzung:** `Enums.ScrapeType` (`clsAPICommon.vb`), Auswertung in `frmMain`
+**Implementation:** `Enums.ScrapeType` (`clsAPICommon.vb`), evaluated in `frmMain`
 
-## Feldübernahme durch Daten-Scraper
+## Field takeover by data scrapers
 
-**Beschreibung:** Daten-Scraper laufen in *Scrape Order* nacheinander; ein Feld wird nur übernommen, wenn es im Lauf ausgewählt ist, noch leer ist und nicht gesperrt.
+**Description:** Data scrapers run sequentially in *Scrape Order*; a field is only taken over when it is selected for the run, still empty and not locked.
 
-**Bedingungen:**
-- Feld in der Custom-Scraper-/Modul-Auswahl aktiviert
-- Feld im Ziel-`DBElement` leer bzw. nicht durch *Lock* geschützt
+**Conditions:**
+- Field enabled in the custom-scraper/module selection
+- Field empty in the target `DBElement` or not protected by *Lock*
 
-**Verhalten:**
-- Früherer Scraper in der Reihenfolge gewinnt: gefüllte Felder werden von späteren Scrapern nicht überschrieben
-- `Lock`-Flag → keine Feldänderung
-- `NFOItem` ausgewählt → NFO wird nach dem Lauf geschrieben
+**Behavior:**
+- The earlier scraper in the order wins: filled fields are not overwritten by later scrapers
+- `Lock` flag → no field changes
+- `NFOItem` selected → NFO is written after the run
 
-**Umsetzung:** Feld-Merge in `frmMain` nach `ScraperModule_Data_*.Scraper`-Aufruf
+**Implementation:** field merge in `frmMain` after `ScraperModule_Data_*.Scraper` call
 
-## Bildauswahl
+## Image selection
 
-**Beschreibung:** Alle aktiven Bild-Scraper liefern Kandidatenlisten je `ScraperEventType`-Bildtyp; die Auswahl erfolgt zentral, nicht im Scraper.
+**Description:** All active image scrapers deliver candidate lists per `ScraperEventType` image type; the selection happens centrally, not inside the scraper.
 
-**Verhalten:**
-- `Auto`-Modus: erstes/erstplatziertes Ergebnis je Bildtyp
-- `Ask`-Modus: `dlgImgSelect` zeigt alle Ergebnisse zusammengeführt; Anwender wählt je Bildtyp
-- Reihenfolge der Bild-Scraper ist nur für automatische Läufe relevant (erster Scraper zuerst)
+**Behavior:**
+- `Auto` mode: first/top-ranked result per image type
+- `Ask` mode: `dlgImgSelect` shows all results merged; the user selects per image type
+- Image scraper order only matters for automatic runs (first scraper first)
 
-**Umsetzung:** `dlgImgSelect`, `Images`/`ImageUtils` (Download/Größenprüfung), `PreferredImagesContainer`
+**Implementation:** `dlgImgSelect`, `Images`/`ImageUtils` (download/size check), `PreferredImagesContainer`
 
-## Trailer- und Theme-Handling
+## Trailer and theme handling
 
-**Beschreibung:** Trailer und Themes werden wie Bilder behandelt: Scraper liefern Quellen, zentrale Komponenten laden und speichern einmal.
+**Description:** Trailers and themes are treated like images: scrapers provide sources, central components download and save once.
 
-**Verhalten:**
-- „also use Trailer Scrapers" aktiv → Trailer-Scraper laufen zusätzlich zu Daten-Scrapern
-- Download über `HTTP`/`YouTube`; Ablage als `{Datei}-trailer.*` bzw. `theme.*`
+**Behavior:**
+- "also use Trailer Scrapers" enabled → trailer scrapers run in addition to data scrapers
+- Download via `HTTP`/`YouTube`; stored as `{file}-trailer.*` or `theme.*`
 
-**Umsetzung:** `ScraperModule_Trailer_Movie`, `ScraperModule_Theme_*`, `clsAPIYouTube`, `clsAPIFFmpeg`
+**Implementation:** `ScraperModule_Trailer_Movie`, `ScraperModule_Theme_*`, `clsAPIYouTube`, `clsAPIFFmpeg`

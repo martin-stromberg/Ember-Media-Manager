@@ -1,10 +1,10 @@
 # Trakt.tv
 
-Die Trakt.tv-Integration verbindet die Ember-Bibliothek mit einem Trakt.tv-Konto: Watched-Status und Playcounts werden in beide Richtungen synchronisiert, zudem gibt es einen Trakt-Datenscraper sowie Listen- und Rating-Funktionen.
+The Trakt.tv integration connects the Ember library with a Trakt.tv account: watched state and playcounts are synchronized in both directions; additionally there is a Trakt data scraper plus list and rating functions.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Technischer Ablauf](ablauf-technisch.md)
-- [Einrichtung für Anwender](einrichtung-anwender.md)
+- [Description](beschreibung.md)
+- [Technical Flow](ablauf-technisch.md)
+- [Setup for Users](einrichtung-anwender.md)
 - [API](api.md)

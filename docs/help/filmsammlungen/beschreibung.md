@@ -1,25 +1,25 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Filmsammlungen — Beschreibung
+# Movie Sets — Description
 
-## Zweck
+## Purpose
 
-Filmsammlungen (Movie Sets) fassen Filmreihen zusammen. Ember Media Manager verwaltet Sammlungen als eigene Einträge mit Titel, Handlung und eigenem Artwork (Poster, Fanart, Banner, ClearArt, ClearLogo, DiscArt, Landscape) und verknüpft Filme über die Set-Zuordnung. Beim Scrapen können Sets automatisch aus den Scraper-Daten (z. B. TMDb-Collections) entstehen.
+Movie sets bundle movie series. Ember Media Manager manages sets as dedicated entries with title, plot and their own artwork (poster, fanart, banner, ClearArt, ClearLogo, DiscArt, landscape) and links movies through the set assignment. When scraping, sets can be created automatically from scraper data (e.g. TMDb collections).
 
-## Funktionsweise
+## How it works
 
-- **Sets Manager:** Zentrale Verwaltung der Sammlungen (Anzeige *Sets & Manager*).
-- **Zuordnung:** Im Film-Bearbeitungsdialog wird im *Set*-Feld eine Sammlung gewählt oder neu angelegt; ein Film kann Sets zugeordnet sein.
-- **Bearbeiten:** *Edit MovieSet* pflegt Set-Metadaten und -Bilder; *New Set* legt eigene Sammlungen an.
-- **Scraping:** MovieSet-Scraper (z. B. TMDb) laden Set-Metadaten und -Bilder; MovieSet-Informationen werden in NFOs und Datenbank gespeichert.
-- **Sortierung:** Sets können nach eigenen Regeln sortiert werden (Sortier-Methoden der Sammlung).
+- **Sets Manager:** Central management of the sets (view *Sets & Manager*).
+- **Assignment:** In the movie edit dialog a set is chosen or created in the *Set* field; a movie can be assigned to sets.
+- **Editing:** *Edit MovieSet* maintains set metadata and images; *New Set* creates custom collections.
+- **Scraping:** Movie-set scrapers (e.g. TMDb) fetch set metadata and images; movie-set information is stored in NFOs and the database.
+- **Ordering:** Sets can be sorted by their own rules (ordering methods of the set).
 
-## Beispiele
+## Examples
 
-- Trilogie bündeln: *New Set* anlegen → Filme per *Edit Movie* dem Set zuweisen → Set mit Poster/Fanart versehen.
-- Automatisch erkannte Sets prüfen: Nach dem Scrapen im *Sets Manager* die Set-Zuordnungen kontrollieren und bei Bedarf ändern.
+- Bundle a trilogy: create a *New Set* → assign movies via *Edit Movie* → add poster/fanart to the set.
+- Review automatically detected sets: after scraping, check the set assignments in the *Sets Manager* and adjust if needed.
 
-## Einschränkungen
+## Limitations
 
-- Eine automatische Set-Erkennung hängt vom Daten-Scraper ab; ohne Collection-Daten werden keine Sets angelegt.
-- Das Löschen eines Films entfernt auch dessen Set-Verknüpfung; leere Sets bleiben bis zur Bereinigung bestehen.
+- Automatic set detection depends on the data scraper; without collection data no sets are created.
+- Deleting a movie also removes its set link; empty sets remain until cleanup.

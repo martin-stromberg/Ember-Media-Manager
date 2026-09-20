@@ -1,50 +1,50 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Serien — Business Rules
+# TV Shows — Business Rules
 
-## Episoden-Dateizuordnung
+## Episode file assignment
 
-**Beschreibung:** Episoden werden ausschließlich über Dateinamen-Muster zugeordnet; das konfigurierbare Regex-Profil entscheidet, welche Dateien als Episode gelten.
+**Description:** Episodes are assigned exclusively via filename patterns; the configurable regex profile decides which files count as episodes.
 
-**Bedingungen:**
-- Datei liegt unterhalb eines erkannten Serienordners
-- Dateiname matcht ein aktives Regex-Profil (`dlgTVRegExProfiles`)
+**Conditions:**
+- File is located beneath a detected show folder
+- Filename matches an active regex profile (`dlgTVRegExProfiles`)
 
-**Verhalten:**
-- `S01E02`-Muster → Staffel 1, Episode 2
-- `1x02`-Muster → Staffel 1, Episode 2
-- `S01E01E02`/Range-Muster → Mehrfach-Episode (eine Datei deckt mehrere Episoden ab)
-- Kein Muster-Match → Datei wird ignoriert (kein Episoden-Eintrag)
+**Behavior:**
+- `S01E02` pattern → season 1, episode 2
+- `1x02` pattern → season 1, episode 2
+- `S01E01E02`/range patterns → multi-episode (one file covers several episodes)
+- No pattern match → file is ignored (no episode entry)
 
-**Umsetzung:** `Scanner.RegexGetTVEpisode` (`clsAPIScanner.vb`)
+**Implementation:** `Scanner.RegexGetTVEpisode` (`clsAPIScanner.vb`)
 
-## Staffel-Logik
+## Season logic
 
-**Beschreibung:** Staffeln entstehen aus Staffelordnern und/oder den Episoden-Metadaten; leere und ungültige Staffeln werden bereinigt.
+**Description:** Seasons are derived from season folders and/or the episode metadata; empty and invalid seasons are cleaned up.
 
-**Bedingungen:**
-- Staffelnummer aus Ordnername bzw. Datei-Erkennung
-- Specials → Staffel 0
+**Conditions:**
+- Season number from folder name or file detection
+- Specials → season 0
 
-**Verhalten:**
-- `Delete_Invalid_TVSeasons`/`Delete_Invalid_TVEpisodes` entfernen Staffeln/Episoden, deren Dateien nicht mehr existieren
-- `Delete_Empty_TVSeasons` entfernt Staffeln ohne Episoden
-- `Season Result`-Auswertung entscheidet bei mehrdeutigen Staffelpaketen
+**Behavior:**
+- `Delete_Invalid_TVSeasons`/`Delete_Invalid_TVEpisodes` remove seasons/episodes whose files no longer exist
+- `Delete_Empty_TVSeasons` removes seasons without episodes
+- `Season Result` evaluation decides for ambiguous season packs
 
-**Umsetzung:** `Database.Delete_Invalid_TVSeasons`, `Database.Delete_Invalid_TVEpisodes`, `Database.Delete_Empty_TVSeasons` (`clsAPIDatabase.vb`)
+**Implementation:** `Database.Delete_Invalid_TVSeasons`, `Database.Delete_Invalid_TVEpisodes`, `Database.Delete_Empty_TVSeasons` (`clsAPIDatabase.vb`)
 
-## Episodenreihenfolge
+## Episode ordering
 
-**Beschreibung:** Pro Serie ist wählbar, ob Episoden in Aired- oder DVD-Reihenfolge sortiert und gespeichert werden (`EpisodeOrdering`).
+**Description:** Per show it can be chosen whether episodes are sorted and stored in aired or DVD order (`EpisodeOrdering`).
 
-**Verhalten:**
-- Aired: Erstausstrahlungsreihenfolge des Scrapers
-- DVD: DVD-Reihenfolge, sofern vom Scraper geliefert
+**Behavior:**
+- Aired: original air-date order from the scraper
+- DVD: DVD order, if provided by the scraper
 
-**Umsetzung:** `Enums.EpisodeOrdering`, `EpisodeDetails`/`SeasonDetails` (`clsAPIMediaContainers.vb`)
+**Implementation:** `Enums.EpisodeOrdering`, `EpisodeDetails`/`SeasonDetails` (`clsAPIMediaContainers.vb`)
 
-## Episoden-Flags
+## Episode flags
 
-**Beschreibung:** Episoden tragen dieselben Status-Flags wie Filme (`IsNew`, `IsMarked`, `IsLock`); Staffel- und Serien-Sperrung wirkt auf untergeordnete Ebenen.
+**Description:** Episodes carry the same status flags as movies (`IsNew`, `IsMarked`, `IsLock`); locking a season or show affects the levels beneath it.
 
-**Umsetzung:** `Database.DBElement`-Flags; Auswertung in `frmMain` und Modulen
+**Implementation:** `Database.DBElement` flags; evaluated in `frmMain` and the modules

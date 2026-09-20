@@ -1,65 +1,65 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Medienbibliothek — Technischer Ablauf
+# Media Library — Technical Flow
 
-## Übersicht
+## Overview
 
-Der Scanlauf wird aus `frmMain` angestoßen und läuft im `Scanner` (`EmberAPI/clsAPIScanner.vb`) als Hintergrundprozess. Er durchläuft die konfigurierten `DBSource`-Quellen, erkennt Medien anhand von Ordner-/Dateistruktur, liest NFO- und Stream-Informationen und persistiert alles über `Database` (`clsAPIDatabase.vb`) in der SQLite-Datenbank. Abschließend werden `ModuleEventType.AfterUpdateDB_*`-Ereignisse an alle interessierten Module verteilt.
+The scan is triggered from `frmMain` and runs in the `Scanner` (`EmberAPI/clsAPIScanner.vb`) as a background process. It walks the configured `DBSource` sources, detects media from folder/file structure, reads NFO and stream information and persists everything via `Database` (`clsAPIDatabase.vb`) into the SQLite database. Finally `ModuleEventType.AfterUpdateDB_*` events are dispatched to all interested modules.
 
-## Ablauf
+## Flow
 
-### 1. Scanauftrag
+### 1. Scan job
 
-`frmMain` ruft `Scanner.Start(Scan As Structures.ScanOrClean, SourceIDs, Folder)` auf — entweder für alle Quellen (*Update Library*, *Reload All*) oder für einzelne Quellen/Ordner.
+`frmMain` calls `Scanner.Start(Scan As Structures.ScanOrClean, SourceIDs, Folder)` — either for all sources (*Update Library*, *Reload All*) or for individual sources/folders.
 
-Beteiligte Komponenten:
-- `frmMain` — Menü-/Toolbar-Auslöser (`mnuMainToolsReloadMovies`, `mnuMainToolsReloadTVShows`, `mnuMainToolsReloadMovieSets`)
-- `Scanner.Start` — Verteiler für Scan- bzw. Clean-Aufträge (`Structures.ScanOrClean`)
+Components involved:
+- `frmMain` — menu/toolbar trigger (`mnuMainToolsReloadMovies`, `mnuMainToolsReloadTVShows`, `mnuMainToolsReloadMovieSets`)
+- `Scanner.Start` — dispatcher for scan and clean jobs (`Structures.ScanOrClean`)
 
-### 2. Verzeichnisse durchsuchen
+### 2. Scanning directories
 
-Je Quelltyp:
+Per source type:
 
-- Filme: `Scanner.ScanSourceDirectory_Movie` → `ScanForFiles_Movie` → `ScanSubDirectory_Movie`/`SubDirsHaveMovies`/`IsValidDir`
-- Serien: `Scanner.ScanSourceDirectory_TV` → `ScanForFiles_TV`; Episoden-Zuordnung über `Scanner.RegexGetTVEpisode` (Regex-Profile aus den Einstellungen)
+- Movies: `Scanner.ScanSourceDirectory_Movie` → `ScanForFiles_Movie` → `ScanSubDirectory_Movie`/`SubDirsHaveMovies`/`IsValidDir`
+- TV shows: `Scanner.ScanSourceDirectory_TV` → `ScanForFiles_TV`; episode assignment via `Scanner.RegexGetTVEpisode` (regex profiles from settings)
 
-`IsValidDir(dInfo, bIsTV)` wertet Ausschlussregeln aus (Auschlussverzeichnisse aus `Database.GetAll_ExcludedDirectories`, Advanced-Settings-Filter).
+`IsValidDir(dInfo, bIsTV)` evaluates exclusion rules (excluded directories from `Database.GetAll_ExcludedDirectories`, advanced-settings filters).
 
-### 3. Medium laden
+### 3. Loading a media item
 
-Je gefundenem Medium wird ein `Database.DBElement` befüllt:
+For each discovered item a `Database.DBElement` is populated:
 
-- `Scanner.GetFolderContents_Movie/MovieSet/TVShow/TVSeason/TVEpisode` — ermittelt alle zum Medium gehörenden Dateien (Video, NFO, Bilder, Trailer, Untertitel)
-- `Scanner.Load_Movie`/`Load_MovieSet`/`Load_TVShow`/`Load_TVEpisode` — liest vorhandene NFO via `NFO` (`clsAPINFO.vb`), extrahiert Stream-Informationen via `MediaInfo` (`clsAPIMediaInfo.vb`, MediaInfo.dll) bzw. `FFmpeg` (`clsAPIFFmpeg.vb`, ffprobe) und setzt Flags (`IsNew`, `IsMarked`, `IsLock`)
+- `Scanner.GetFolderContents_Movie/MovieSet/TVShow/TVSeason/TVEpisode` — collects all files belonging to the item (video, NFO, images, trailer, subtitles)
+- `Scanner.Load_Movie`/`Load_MovieSet`/`Load_TVShow`/`Load_TVEpisode` — reads an existing NFO via `NFO` (`clsAPINFO.vb`), extracts stream information via `MediaInfo` (`clsAPIMediaInfo.vb`, MediaInfo.dll) or `FFmpeg` (`clsAPIFFmpeg.vb`, ffprobe) and sets flags (`IsNew`, `IsMarked`, `IsLock`)
 
-### 4. Persistieren
+### 4. Persisting
 
-`Database.Save_*` schreibt das `DBElement` in die Tabellen `movie`/`tvshow`/`seasons`/`episode` samt Verknüpfungstabellen (Actors, Genres, Art, UniqueIds, Streams). `Database.Connect_MyVideos` öffnet dazu `MyVideos*.emm` (`SQLiteConnection`, `System.Data.SQLite`).
+`Database.Save_*` writes the `DBElement` into the `movie`/`tvshow`/`seasons`/`episode` tables plus the link tables (actors, genres, art, uniqueIds, streams). `Database.Connect_MyVideos` opens `MyVideos*.emm` (`SQLiteConnection`, `System.Data.SQLite`).
 
-### 5. Nachbereitung und Events
+### 5. Post-processing and events
 
-- `Database.Clean`/`Delete_Invalid_TVEpisodes`/`Delete_Invalid_TVSeasons`/`Delete_Empty_TVSeasons` entfernen verwaiste Einträge (bei Clean-Aufträgen)
-- `ModulesManager` verteilt `ModuleEventType.AfterUpdateDB_Movie`/`AfterUpdateDB_TV` an Module (z. B. Kodi-Sync, Bulk Renamer mit „Automatically Rename Files During Multi-Scraper")
+- `Database.Clean`/`Delete_Invalid_TVEpisodes`/`Delete_Invalid_TVSeasons`/`Delete_Empty_TVSeasons` remove orphaned entries (on clean jobs)
+- `ModulesManager` dispatches `ModuleEventType.AfterUpdateDB_Movie`/`AfterUpdateDB_TV` to modules (e.g. Kodi sync, Bulk Renamer with "Automatically Rename Files During Multi-Scraper")
 
-## Diagramm
+## Diagram
 
 ```mermaid
 flowchart TD
     A[frmMain: Update Library] --> B[Scanner.Start]
-    B --> C{Quelltyp}
-    C -- Film --> D[ScanSourceDirectory_Movie]
-    C -- Serie --> E[ScanSourceDirectory_TV]
+    B --> C{Source type}
+    C -- Movie --> D[ScanSourceDirectory_Movie]
+    C -- TV show --> E[ScanSourceDirectory_TV]
     D --> F[GetFolderContents_Movie]
     E --> G[GetFolderContents_TVShow/Season/Episode<br/>RegexGetTVEpisode]
     F --> H[Load_Movie]
     G --> I[Load_TVShow/TVEpisode]
     H --> J[Database.Save_*]
     I --> J
-    J --> K[AfterUpdateDB_* an Module]
+    J --> K[AfterUpdateDB_* to modules]
 ```
 
-## Fehlerbehandlung
+## Error handling
 
-- Nicht lesbare/gesperrte Dateien werden protokolliert (`ErrorLog`, `dlgErrorViewer`) und der Scan läuft weiter.
-- `Scanner.Cancel`/`CancelAndWait` brechen den laufenden Scan kontrolliert ab (*Canceling All Processes...*).
-- Fehlende NFOs sind kein Fehler — das Medium wird mit Datei-/Ordnername + Stream-Daten angelegt und kann anschließend gescrapt werden.
+- Unreadable/locked files are logged (`ErrorLog`, `dlgErrorViewer`) and the scan continues.
+- `Scanner.Cancel`/`CancelAndWait` abort a running scan in a controlled way (*Canceling All Processes...*).
+- Missing NFOs are not an error — the item is created from file/folder name plus stream data and can be scraped afterwards.

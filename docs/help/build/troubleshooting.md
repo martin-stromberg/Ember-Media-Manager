@@ -1,13 +1,13 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Fehlerbehebung
+# Troubleshooting
 
-Bekannte Build-Probleme und ihre Lösungen:
+Known build problems and their solutions:
 
-| Fehlermeldung | Ursache | Lösung |
-|---------------|---------|--------|
-| `MSB3202: Die Projektdatei "..\TheTVDBApi\src\TVDB\TVDB.csproj" wurde nicht gefunden` | Veralteter Verweis auf einen Side-by-side-Checkout | Aktueller Stand: `TVDB.csproj` liegt unter `TheTVDBApi\src\TVDB\` im Repository — Solution und ProjectReferences zeigen dorthin. |
-| `MSB3644: Die Verweisassemblys für ".NETFramework,Version=v4.8" wurden nicht gefunden` | Paket-Referenzassemblys fehlen | `.nuget\NuGet.exe restore "Ember Media Manager.sln"` ausführen; `Directory.Build.props` aktiviert danach `FrameworkPathOverride` automatisch. |
-| „Package restore is disabled" / NuGet-Fehler beim Restore | Veraltete NuGet.exe (2.x) | `.nuget/NuGet.exe` wurde auf 6.14.0 aktualisiert; `nuget restore` statt `msbuild -t:restore` verwenden (Letzteres deckt `packages.config` nicht ab). |
-| `MSB3073 ... xcopy ... AnyCPU` im PostBuildEvent von `EmberAPI` | Plattformverzeichnis für native Deps fehlt | Das PostBuildEvent kopiert nur noch, wenn `$(ProjectDir)$(PlatformName)` existiert — AnyCPU besitzt kein natives Verzeichnis und ist damit unkritisch. |
-| `BC31392: /platform:anycpu32bitpreferred kann nur mit /t:exe ... verwendet werden` | `Prefer32Bit=true` in Bibliotheksprojekten | In den betroffenen Addon-Projekten auf `false` gesetzt (nur bei `*-exe`-Ausgaben zulässig). |
+| Error message | Cause | Solution |
+|---------------|-------|----------|
+| `MSB3202: The project file "..\TheTVDBApi\src\TVDB\TVDB.csproj" was not found` | Outdated reference to a side-by-side checkout | Current state: `TVDB.csproj` lives under `TheTVDBApi\src\TVDB\` in the repository — solution and project references point there. |
+| `MSB3644: The reference assemblies for ".NETFramework,Version=v4.8" were not found` | Package reference assemblies missing | Run `.nuget\NuGet.exe restore "Ember Media Manager.sln"`; `Directory.Build.props` then enables `FrameworkPathOverride` automatically. |
+| "Package restore is disabled" / NuGet errors during restore | Outdated NuGet.exe (2.x) | `.nuget/NuGet.exe` was updated to 6.14.0; use `nuget restore` instead of `msbuild -t:restore` (the latter does not cover `packages.config`). |
+| `MSB3073 ... xcopy ... AnyCPU` in the `EmberAPI` PostBuildEvent | Platform directory for native deps missing | The PostBuildEvent now only copies if `$(ProjectDir)$(PlatformName)` exists — AnyCPU has no native directory and is therefore harmless. |
+| `BC31392: /platform:anycpu32bitpreferred can only be used with /t:exe ...` | `Prefer32Bit=true` in library projects | Set to `false` in the affected add-on projects (only allowed for `*-exe` outputs). |

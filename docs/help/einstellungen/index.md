@@ -1,9 +1,9 @@
-# Einstellungen
+# Settings
 
-Zentrale Konfiguration von Ember Media Manager: Quellen, Dateibenennung, Scraper, Module, Profile und erweiterte Optionen. Einstellungen werden pro Profil in XML-Dateien gehalten und über den Einstellungsdialog verwaltet.
+Central configuration of Ember Media Manager: sources, file naming, scrapers, modules, profiles and advanced options. Settings are kept per profile in XML files and managed via the settings dialog.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Einrichtung für Anwender](einrichtung-anwender.md)
-- [Installation & Konfiguration](installation.md)
+- [Description](beschreibung.md)
+- [Setup for Users](einrichtung-anwender.md)
+- [Installation & Configuration](installation.md)

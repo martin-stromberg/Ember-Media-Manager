@@ -1,51 +1,51 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
 # Trakt.tv — API
 
-## Übersicht
+## Overview
 
-Zugriff auf die Trakt-API-v2 über die im Repository liegende `Trakttv`-Bibliothek (`Trakttv/Trakttv.csproj`: `TraktAPI`, `TraktMethods`, `TraktURIs`, `TraktSettings`, `Model/`, `Exceptions/`) sowie TraktApiSharp-Typen im Interface-Modul. Basis-Endpunkt im Code: `https://api-v2launch.trakt.tv`.
+Access to the Trakt API v2 via the `Trakttv` library in the repository (`Trakttv/Trakttv.csproj`: `TraktAPI`, `TraktMethods`, `TraktURIs`, `TraktSettings`, `Model/`, `Exceptions/`) plus TraktApiSharp types in the interface module. Base endpoint in code: `https://api-v2launch.trakt.tv`.
 
-## Authentifizierung
+## Authentication
 
-OAuth/PIN-Autorisierung über `TraktURIs.Login` (`/auth/login`); resultierendes Token wird in den Moduleinstellungen gehalten (`TraktSettings`, `TraktAuthorization.CreateWith`).
+OAuth/PIN authorization via `TraktURIs.Login` (`/auth/login`); the resulting token is held in the module settings (`TraktSettings`, `TraktAuthorization.CreateWith`).
 
-## Endpunktgruppen (`TraktURIs`)
+## Endpoint groups (`TraktURIs`)
 
-### Sync schreiben
+### Sync write
 
-| Konstante | Endpunkt | Zweck |
-|-----------|----------|-------|
-| `SENDWatchedHistoryAdd` / `…Remove` | `/sync/history` | Watched-History melden/entfernen |
-| `SENDRatingsAdd` / `…Remove` | `/sync/ratings` | Bewertungen melden/entfernen |
-| `SENDWatchlistAdd` / `…Remove` | `/sync/watchlist` | Watchlist pflegen |
-| `SENDCollectionAdd` / `…Remove` | `/sync/collection` | Collection pflegen |
-| `SENDListDelete/Add/Edit/ItemsAdd/ItemsRemove` | `/users/{0}/lists…` | Eigene Listen verwalten |
-| `SENDCommentAdd/Like/Delete/Update/Reply` | `/comments…` | Kommentare |
+| Constant | Endpoint | Purpose |
+|----------|----------|---------|
+| `SENDWatchedHistoryAdd` / `…Remove` | `/sync/history` | report/remove watched history |
+| `SENDRatingsAdd` / `…Remove` | `/sync/ratings` | report/remove ratings |
+| `SENDWatchlistAdd` / `…Remove` | `/sync/watchlist` | maintain watchlist |
+| `SENDCollectionAdd` / `…Remove` | `/sync/collection` | maintain collection |
+| `SENDListDelete/Add/Edit/ItemsAdd/ItemsRemove` | `/users/{0}/lists…` | manage custom lists |
+| `SENDCommentAdd/Like/Delete/Update/Reply` | `/comments…` | comments |
 
-### Sync lesen
+### Sync read
 
-| Konstante | Endpunkt | Zweck |
-|-----------|----------|-------|
-| `GETCollectionMovies` / `GETCollectionEpisodes` | `/sync/collection/movies`, `/sync/collection/shows` | Sammlung |
-| `GETWatchedMovies` / `GETWatchedEpisodes` | `/sync/watched/movies`, `/sync/watched/shows` | Watched-Status |
-| `GETWatchedHistoryMovies` | `/users/{0}/history/movies?extended=full&limit=5000` | Verlauf |
-| `GETRatedMovies` / `GETRatedEpisodes` / `GETRatedShows` / `GETRatedSeasons` | `/sync/ratings/…` | Bewertungen |
-| `GETMovieRating` | `/movies/{0}/ratings` | Einzelrating |
-| `GETProgressShow` | `/shows/{0}/progress/watched` | Serienfortschritt |
+| Constant | Endpoint | Purpose |
+|----------|----------|---------|
+| `GETCollectionMovies` / `GETCollectionEpisodes` | `/sync/collection/movies`, `/sync/collection/shows` | collection |
+| `GETWatchedMovies` / `GETWatchedEpisodes` | `/sync/watched/movies`, `/sync/watched/shows` | watched state |
+| `GETWatchedHistoryMovies` | `/users/{0}/history/movies?extended=full&limit=5000` | history |
+| `GETRatedMovies` / `GETRatedEpisodes` / `GETRatedShows` / `GETRatedSeasons` | `/sync/ratings/…` | ratings |
+| `GETMovieRating` | `/movies/{0}/ratings` | single rating |
+| `GETProgressShow` | `/shows/{0}/progress/watched` | show progress |
 
-## Typen (Auswahl)
+## Types (selection)
 
-| Typ | Zweck |
-|-----|-------|
-| `TraktAPI.Model.TraktMovieWatched` / `TraktEpisodeWatched` / `TraktShowWatchedProgress` / `TraktMovieWatchedRated` | Gelesene Watched-Zustände |
-| `TraktItem.Ids` / `TraktMovie.Ids` | Externe IDs (IMDb/TMDb/TVDb) |
-| `TraktSearchIdType.ImDB/TmDB/TvDB` / `TraktSearchResultType.*` / `TraktSyncItemType.*` / `TraktRatingsItemType.*` | ID-/Typ-Enums |
-| `Exceptions/` | API-Fehlertypen |
+| Type | Purpose |
+|------|---------|
+| `TraktAPI.Model.TraktMovieWatched` / `TraktEpisodeWatched` / `TraktShowWatchedProgress` / `TraktMovieWatchedRated` | read watched states |
+| `TraktItem.Ids` / `TraktMovie.Ids` | external IDs (IMDb/TMDb/TVDb) |
+| `TraktSearchIdType.ImDB/TmDB/TvDB` / `TraktSearchResultType.*` / `TraktSyncItemType.*` / `TraktRatingsItemType.*` | ID/type enums |
+| `Exceptions/` | API error types |
 
-## Fehler
+## Errors
 
-| Code / Exception | Ursache |
-|------------------|---------|
-| Trakt-Exception (`Exceptions/`) | API-Fehler, Rate-Limit, ungültiges Token |
-| Kein Treffer | Element ohne IMDb/TMDb/TVDb-ID nicht zuordenbar |
+| Code / Exception | Cause |
+|------------------|-------|
+| Trakt exception (`Exceptions/`) | API error, rate limit, invalid token |
+| No match | item without IMDb/TMDb/TVDb ID cannot be matched |
