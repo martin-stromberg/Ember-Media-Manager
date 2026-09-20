@@ -1,26 +1,26 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Installation & Konfiguration
+# Installation & Configuration
 
-## Voraussetzungen
+## Prerequisites
 
 - Windows
-- Visual Studio mit MSBuild (bzw. „Build Tools für Visual Studio")
-- .NET Framework 4.8 **Runtime** — ein Developer Pack ist **nicht** erforderlich
+- Visual Studio with MSBuild (or "Build Tools for Visual Studio")
+- .NET Framework 4.8 **Runtime** — a Developer Pack is **not** required
 
 ## Restore
 
-Die Solution verwendet klassisches `packages.config`-NuGet. Der Restore erfolgt über die im Repository enthaltene NuGet-CLI (`.nuget/NuGet.exe`, Version 6.14.0):
+The solution uses classic `packages.config` NuGet. Restore runs via the NuGet CLI shipped in the repository (`.nuget/NuGet.exe`, version 6.14.0):
 
 ```bat
 .nuget\NuGet.exe restore "Ember Media Manager.sln"
 ```
 
-Dadurch werden alle Pakete in `packages/` abgelegt — einschließlich `Microsoft.NETFramework.ReferenceAssemblies.net48`, das die .NET Framework 4.8 Referenzassemblys enthält.
+This places all packages into `packages/` — including `Microsoft.NETFramework.ReferenceAssemblies.net48`, which contains the .NET Framework 4.8 reference assemblies.
 
-## Referenzassemblys
+## Reference assemblies
 
-`Directory.Build.props` im Repository-Stamm setzt `FrameworkPathOverride` auf das Paketverzeichnis `packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.3\build\.NETFramework\v4.8\` (nur wenn das Verzeichnis existiert). Dadurch kompiliert MSBuild gegen die Paket-Referenzassemblys statt gegen ein installiertes Developer Pack.
+`Directory.Build.props` in the repository root sets `FrameworkPathOverride` to the package directory `packages\Microsoft.NETFramework.ReferenceAssemblies.net48.1.0.3\build\.NETFramework\v4.8\` (only if the directory exists). MSBuild therefore compiles against the package reference assemblies instead of an installed Developer Pack.
 
 ## Build
 
@@ -28,12 +28,12 @@ Dadurch werden alle Pakete in `packages/` abgelegt — einschließlich `Microsof
 msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
 ```
 
-| Platform | Ergebnis |
-|----------|----------|
-| `x64` | `EmberMM - Release - x64\` (inkl. nativer x64-Abhängigkeiten) |
-| `x86` | `EmberMM - Release - x86\` (inkl. nativer x86-Abhängigkeiten) |
-| `Any CPU` | `EmberMM - Release - AnyCPU\` (ohne native Abhängigkeiten) |
+| Platform | Result |
+|----------|--------|
+| `x64` | `EmberMM - Release - x64\` (incl. native x64 dependencies) |
+| `x86` | `EmberMM - Release - x86\` (incl. native x86 dependencies) |
+| `Any CPU` | `EmberMM - Release - AnyCPU\` (without native dependencies) |
 
-## Externe Abhängigkeit TVDB
+## External dependency TVDB
 
-Die C#-Bibliothek `TVDB` (`DanCooper/TheTVDBApi`, GPL-3.0) ist als Vendored-Quelle unter `TheTVDBApi/src/TVDB/` im Repository enthalten. Die Solution und die beiden TVDB-Scraper-Projekte verweisen auf diesen repo-internen Pfad — ein Side-by-side-Checkout ist nicht mehr nötig.
+The C# library `TVDB` (`DanCooper/TheTVDBApi`, GPL-3.0) is included as vendored source under `TheTVDBApi/src/TVDB/` in the repository. The solution and both TVDB scraper projects reference this repo-internal path — a side-by-side checkout is no longer needed.

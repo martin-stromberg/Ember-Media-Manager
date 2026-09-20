@@ -1,18 +1,18 @@
-← [Zurück zur Übersicht](index.md)
+← [Back to overview](index.md)
 
-# Beschreibung
+# Description
 
-Ember Media Manager wird als Visual-Studio-Solution (`Ember Media Manager.sln`) gebaut. Alle rund 30 Projekte der Solution — Hauptanwendung, `EmberAPI`, `KodiAPI`, `Trakttv` und alle Addon-Module — zielen einheitlich auf **.NET Framework 4.8**.
+Ember Media Manager is built as a Visual Studio solution (`Ember Media Manager.sln`). All ~30 projects of the solution — main application, `EmberAPI`, `KodiAPI`, `Trakttv` and all add-on modules — uniformly target **.NET Framework 4.8**.
 
-Nach einem frischen `git clone` genügen zwei Schritte, um die vollständige Solution zu kompilieren: NuGet-Pakete wiederherstellen und die Solution mit MSBuild bauen. Es ist weder ein separates .NET Framework 4.8 Developer Pack noch ein externer Checkout der TVDB-Bibliothek erforderlich — beides liegt im Repository bzw. wird per NuGet bezogen.
+After a fresh `git clone`, two steps suffice to compile the complete solution: restore NuGet packages and build the solution with MSBuild. Neither a separate .NET Framework 4.8 Developer Pack nor an external checkout of the TVDB library is required — both ship in the repository or are fetched via NuGet.
 
-Die unterstützten Ausgabe-Plattformen sind **x86** und **x64**; nur diese liefern die plattformspezifischen nativen Abhängigkeiten mit aus. `Any CPU` kompiliert ebenfalls, enthält aber keine nativen Komponenten.
+The supported output platforms are **x86** and **x64**; only these ship the platform-specific native dependencies. `Any CPU` compiles as well but contains no native components.
 
-## Beispiel
+## Example
 
 ```bat
 .nuget\NuGet.exe restore "Ember Media Manager.sln"
 msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
 ```
 
-Das fertige Build-Ergebnis liegt danach unter `EmberMM - Release - x64\`.
+The finished build output then resides under `EmberMM - Release - x64\`.

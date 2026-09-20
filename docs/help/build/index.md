@@ -1,9 +1,9 @@
 # Build
 
-Die Ember Media Manager Solution ist self-contained baubar: alle Abhängigkeiten (inklusive der TVDB-Bibliothek und der .NET Framework 4.8 Referenzassemblys) werden aus dem Repository bzw. per NuGet-Restore bereitgestellt.
+The Ember Media Manager solution builds self-contained: all dependencies (including the TVDB library and the .NET Framework 4.8 reference assemblies) are provided from the repository or via NuGet restore.
 
-## Inhalt
+## Contents
 
-- [Beschreibung](beschreibung.md)
-- [Installation & Konfiguration](installation.md)
-- [Fehlerbehebung](troubleshooting.md)
+- [Description](beschreibung.md)
+- [Installation & Configuration](installation.md)
+- [Troubleshooting](troubleshooting.md)
