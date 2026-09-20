@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-20 — Requirements analysis: restore title-based IMDb search for movies and TV shows (Issue #8)
+
+- New analysis/requirements document `docs/analysis/issue-8-titelsuche-imdb.md` for the responsible development project — no code changes in this branch.
+- Core finding: the title search of the `scraper.Data.IMDB` module (`SearchMovie`/`SearchTVShow` in `clsScrapeIMDB.vb`) is broken because IMDb answers the scraped `/find` and `/search/title` endpoints with an AWS WAF bot challenge (HTTP 202, `x-amzn-waf-action: challenge`, empty body — live-verified) resp. a rebuilt React frontend; the expected markup no longer exists, so the *Search Results* dialog always shows *No Matches Found*. The IMDb detail fetches (`/reference`, `/episodes`, `/releaseinfo`, `/parentalguide`, `/plotsummary`) use the same source and are presumably broken as well.
+- Additional finding: at the affected installation the TMDb data scraper also delivers no search hits although both scrapers are enabled — root cause to be narrowed down by the development project (outdated `TMDbLib` 1.9.1 / possibly invalid embedded fallback API key vs. a scrape-order effect where cancelling the first search dialog aborts the whole scrape chain).
+- Recommendation documented: migrate the title search to the TMDb API (existing `TMDbLib` infrastructure in `scraper.TMDB.Data`, IMDb-ID mapping via `FindAsync(FindExternalSource.Imdb)`), keep the `SearchResults_Movie`/`SearchResults_TVShow` result contract, deprecate the five `Search*Titles` settings, and make source failures distinguishable from "no hits". OMDb API documented as alternative, undocumented IMDb-internal endpoints as fallback only.
+- Help documentation updated: new `docs/help/scraper/troubleshooting.md` describes the defect and the workaround (manual IMDb-ID entry via *Manual IMDB Entry* in the search dialog); `beschreibung.md` gained a "Known defect" limitation note and `index.md` links the new page.
+
 ## 2026-09-20 — CI/CD workflow set and Git hooks (Issue #7)
 
 - New local Git hooks under `.githooks/` (activated once per clone via `install-hooks.cmd`/`install-hooks.sh`, which set `core.hooksPath`): `pre-commit` validates localization files via `translation-check.py` (with a `python`/`python3`/`py -3` fallback), and `pre-push` mirrors the CI security gate by scanning `nuget restore` output for NU190[1-4] vulnerability warnings, blocking the push on findings. `.gitattributes` pins LF endings for `.githooks/*` so the shell hooks work under `core.autocrlf=true`.

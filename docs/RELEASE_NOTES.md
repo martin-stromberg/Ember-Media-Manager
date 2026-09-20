@@ -2,38 +2,22 @@
 
 ## Important Notes Before Update
 
-- The solution now targets .NET Framework 4.8 — the .NET Framework 4.8 runtime is required to run the application.
-- The TVDB library is vendored inside the repository (`TheTVDBApi/`); a separate checkout next to the repository is no longer needed.
-- NuGet restore is required before building (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); no .NET 4.8 Developer Pack is needed.
+- There are no special notices.
 
 ## What's New
 
-- `Newtonsoft.Json` updated uniformly to 13.0.3 across all projects — fixes a high-severity denial-of-service vulnerability (GHSA-5crp-9r3c-p9vr).
-- Complete feature documentation added under `docs/help/` (media library, movies, TV shows, movie sets, scrapers, Kodi, Trakt.tv, tools, settings, module system, database, build).
-- `changes.log` backfilled with retroactive entries for all major development steps (2013–2020).
-- `README.md` updated: feature overview, project structure, test status, license and documentation references.
-- Solution builds self-contained again after a fresh clone (previously failed on the missing external `TheTVDBApi` project).
-- All projects retargeted to .NET Framework 4.8 (previously mixed 3.5 / 4.5 / 4.8 targets).
-- NuGet tooling updated to 6.14.0; package restore works again.
-- Compile errors fixed (missing tag database methods, renamed XML cache call, invalid `Prefer32Bit` flags, conditional post-build copy).
-- Fixed a startup crash on first run: missing `Settings.xml` no longer throws `FileNotFoundException`; default settings are used instead.
-- Build instructions added to `README.md` and `docs/help/build/`.
+- New troubleshooting guide for the known scraper defect (`docs/help/scraper/troubleshooting.md`): explains why the IMDb title search always shows "No Matches Found" (IMDb now answers with an AWS WAF bot challenge) and documents workarounds (manual IMDb ID entry, scraper order, own TMDb API key).
+- Analysis/requirements document for Issue #8 added (`docs/analysis/issue-8-titelsuche-imdb.md`): documents the broken title-based IMDb search for movies and TV shows and specifies the planned migration of the title search to the TMDb API.
+- Startup crash fixed: `SQLite.Interop.dll` is now deployed to the output directory for AnyCPU builds — the previous `DllNotFoundException` followed by a `NullReferenceException` in `Connect_MyVideos` no longer occurs.
+- Fail-fast error handling in `Connect_MyVideos`: a failed database connection is now cleaned up and the real exception is rethrown instead of continuing with an invalid connection.
 
 ## Wichtige Hinweise vor dem Update
 
-- Die Solution zielt nun auf .NET Framework 4.8 — zum Ausführen der Anwendung ist die .NET Framework 4.8 Runtime erforderlich.
-- Die TVDB-Bibliothek ist im Repository vendored (`TheTVDBApi/`); ein separater Checkout neben dem Repository ist nicht mehr nötig.
-- Vor dem Bauen ist ein NuGet-Restore erforderlich (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); ein .NET 4.8 Developer Pack wird nicht benötigt.
+- Es gibt keine besonderen Hinweise.
 
 ## Neuerungen
 
-- `Newtonsoft.Json` in allen Projekten einheitlich auf 13.0.3 aktualisiert — behebt eine hochkritische Denial-of-Service-Schwachstelle (GHSA-5crp-9r3c-p9vr).
-- Vollständige Featuredokumentation unter `docs/help/` ergänzt (Medienbibliothek, Filme, Serien, Filmsammlungen, Scraper, Kodi, Trakt.tv, Werkzeuge, Einstellungen, Modulsystem, Datenbank, Build).
-- `changes.log` um retroaktive Einträge für alle wesentlichen Entwicklungsschritte (2013–2020) ergänzt.
-- `README.md` aktualisiert: Feature-Übersicht, Projektstruktur, Teststatus, Lizenz und Dokumentationsverweise.
-- Die Solution ist nach einem frischen Clone wieder eigenständig baubar (zuvor scheiterte der Build am fehlenden externen `TheTVDBApi`-Projekt).
-- Alle Projekte wurden auf .NET Framework 4.8 angehoben (zuvor gemischte Targets 3.5 / 4.5 / 4.8).
-- NuGet-Werkzeuge auf 6.14.0 aktualisiert; der Paket-Restore funktioniert wieder.
-- Kompilierfehler behoben (fehlende Tag-Datenbankmethoden, umbenannter XML-Cache-Aufruf, ungültige `Prefer32Bit`-Einstellungen, abgesichertes Post-Build-Kopieren).
-- Startabsturz beim ersten Lauf behoben: Eine fehlende `Settings.xml` löst keine `FileNotFoundException` mehr aus; stattdessen werden Standardeinstellungen verwendet.
-- Build-Anleitung in `README.md` und `docs/help/build/` ergänzt.
+- Neue Troubleshooting-Anleitung für den bekannten Scraper-Defekt (`docs/help/scraper/troubleshooting.md`): erklärt, warum die IMDb-Titelsuche immer "No Matches Found" anzeigt (IMDb antwortet inzwischen mit einer AWS-WAF-Bot-Challenge), und dokumentiert Workarounds (manuelle IMDb-ID-Eingabe, Scraper-Reihenfolge, eigener TMDb-API-Key).
+- Analyse-/Anforderungsdokument für Issue #8 ergänzt (`docs/analysis/issue-8-titelsuche-imdb.md`): dokumentiert die defekte titelbasierte IMDb-Suche für Filme und Serien und legt die geplante Umstellung der Titelsuche auf die TMDb-API fest.
+- Startabsturz behoben: `SQLite.Interop.dll` wird nun bei AnyCPU-Builds ins Ausgabeverzeichnis deployed — die bisherige `DllNotFoundException` mit anschließender `NullReferenceException` in `Connect_MyVideos` tritt nicht mehr auf.
+- Fail-fast-Fehlerbehandlung in `Connect_MyVideos`: Bei einer fehlgeschlagenen Datenbankverbindung wird jetzt aufgeräumt und die echte Exception weitergereicht, statt mit einer ungültigen Verbindung weiterzulaufen.
