@@ -1,13 +1,15 @@
-<a href="http://flattr.com/thing/1321788/" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
-
 # Ember Media Manager
+
+> **This is a fork.** This repository is a personal fork of [DanCooper/Ember-MM-Newscraper](https://github.com/DanCooper/Ember-MM-Newscraper), the official home of Ember Media Manager. All credit for the application itself goes to **DanCooper and the Ember team** — this fork is used for individual work (e.g. CI/CD infrastructure) and makes no claim to replace or supersede the original project. If you are looking for Ember Media Manager, please use the upstream repository.
+
+<a href="http://flattr.com/thing/1321788/" target="_blank"><img src="http://api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0" /></a>
 
 [![.NET](https://img.shields.io/badge/.NET-4.8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![License](https://img.shields.io/github/license/martin-stromberg/Ember-Media-Manager)](EmberMediaManager/License.txt)
 [![Release](https://img.shields.io/github/actions/workflow/status/martin-stromberg/Ember-Media-Manager/release.yml?label=Release)](https://github.com/martin-stromberg/Ember-Media-Manager/actions/workflows/release.yml)
 [![Pre-Release](https://img.shields.io/github/actions/workflow/status/martin-stromberg/Ember-Media-Manager/staging-ci.yml?branch=staging&label=Pre-Release)](https://github.com/martin-stromberg/Ember-Media-Manager/actions/workflows/staging-ci.yml)
 
-We decided that was time to give Ember a new home. We've taken it upon ourselves not only to pick up the code where it was left off but to attempt to continue its development.
+The Ember team decided that it was time to give Ember a new home, picking up the code where it was left off and continuing its development (see the [upstream repository](https://github.com/DanCooper/Ember-MM-Newscraper)).
 
 Ember Media Manager is a Windows media manager for movies, TV shows and movie sets. It scans media folders into a local library, scrapes metadata, artwork, trailers and themes from online sources and produces Kodi-compatible NFO and artwork files. Add-ons provide Kodi and Trakt.tv synchronization as well as bulk renaming, exporting and other tools.
 
@@ -26,7 +28,7 @@ Ember Media Manager is a Windows media manager for movies, TV shows and movie se
 
 Feature documentation lives under [`docs/help/`](docs/help/index.md). The change history is tracked in [`changes.log`](changes.log); release notes are in [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md).
 
-If you found our work useful feel free to [donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=VWVJCUV3KAUX2&lc=CH&item_name=Ember%2dTeam%3a%20DanCooper%2c%20m%2esavazzi%20%26%20Cocotus&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted) us a beer!
+If you find Ember Media Manager useful, feel free to [donate](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=VWVJCUV3KAUX2&lc=CH&item_name=Ember%2dTeam%3a%20DanCooper%2c%20m%2esavazzi%20%26%20Cocotus&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted) the **Ember team** (DanCooper, m.savazzi & Cocotus) a beer!
 
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=VWVJCUV3KAUX2&lc=CH&item_name=Ember%2dTeam%3a%20DanCooper%2c%20m%2esavazzi%20%26%20Cocotus&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
 
