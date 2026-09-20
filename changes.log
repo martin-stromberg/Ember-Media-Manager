@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-20 — CI/CD workflow set and Git hooks (Issue #7)
+
+- New local Git hooks under `.githooks/` (activated once per clone via `install-hooks.cmd`/`install-hooks.sh`, which set `core.hooksPath`): `pre-commit` validates localization files via `translation-check.py` (with a `python`/`python3`/`py -3` fallback), and `pre-push` mirrors the CI security gate by scanning `nuget restore` output for NU190[1-4] vulnerability warnings, blocking the push on findings. `.gitattributes` pins LF endings for `.githooks/*` so the shell hooks work under `core.autocrlf=true`.
+- New GitHub Actions workflow set under `.github/workflows/` implementing the `feature branch → staging → master` flow: `PR CI for Staging` (NuGet vulnerability gate + `Debug|x86` and `Release|x64` builds, with back-merge detection), `Pre-Release` on `staging` pushes (same gates plus semantic-release version calculation and automatic `vX.Y.Z-rc.N` pre-releases), `Verify PR Source` (PRs to `master` only from `staging`), automated back-merge and draft promotion PRs, a weekly `Security Scan` (Mondays 04:00 UTC), and `Release` (automatic via semantic-release on `master`, manual `v*.*.*` tags, and asset-repair for interrupted runs).
+- Two shared composite actions under `.github/actions/`: `security-scan` (NuGet restore + NU190x evaluation + log artifact, blocking via `fail-on-vulnerabilities`) and `build-and-package` (`Release|x64` MSBuild → `release.zip` + `update.json` update manifest).
+- semantic-release toolchain added at the repo root (`package.json`, `package-lock.json`, `release.config.js`, `scripts/resolve-release-version.mjs`); versioning follows Conventional Commits, seeded by tag `v1.12.0`. The NSIS installer remains outside the pipeline.
+- `Newtonsoft.Json` updated uniformly to 13.0.3 across nine `packages.config` files plus the matching `<HintPath>`/`<Reference Include>` entries and the two remaining `12.0.0.0` binding redirects — fixes NU1903 (GHSA-5crp-9r3c-p9vr) so the blocking security gate starts green.
+- Test execution, code-coverage and `dotnet format` gates of the reference pipeline are intentionally dropped (no executable test suite; format tooling not applicable to the legacy project format); the omissions are documented in the workflow comments.
+- New README section "Continuous Integration / Git Hooks" and feature documentation under `docs/help/ci-cd/`.
+
 ## 2026-09-19 — Make solution compilable (.NET Framework 4.8)
 
 - The missing external project reference `TVDB` was added to the repository as vendored source under `TheTVDBApi/src/TVDB/` (GPL-3.0, `DanCooper/TheTVDBApi`); the solution and both TVDB scraper projects now point to the repo-internal path. The solution is therefore self-contained buildable after a fresh `git clone`.
