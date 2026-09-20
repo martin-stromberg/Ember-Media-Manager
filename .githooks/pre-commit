@@ -1,0 +1,19 @@
+#!/bin/sh
+# Validate localization keys and resx package consistency before each commit.
+# Note (translation-check.py itself stays verbatim from the Softwareschmiede
+# reference per plan): in this repository only the resx header validation can
+# actually fire - the IStringLocalizer key scan targets .cs/.razor/.cshtml (Ember
+# is VB.NET WinForms) and the package-consistency check needs satellite resx
+# files (Name.<culture>.resx), which do not exist here.
+set -e
+
+# Deviation from the reference (which calls `python` verbatim): fall back to
+# python3 / py -3 so the hook also works on machines without a `python` alias.
+for PY in python python3 "py -3"; do
+  if $PY --version >/dev/null 2>&1; then
+    exec $PY "$(dirname "$0")/translation-check.py"
+  fi
+done
+
+echo "pre-commit: no working Python interpreter found (tried python, python3, py -3)." >&2
+exit 1

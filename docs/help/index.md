@@ -28,3 +28,4 @@ Overview of all documented feature areas of Ember Media Manager.
 - [Module System](module-system/index.md) — add-on architecture, interfaces and events (developers).
 - [Database](datenbank/index.md) — SQLite schema, tables and versioning (developers/admins).
 - [Build](build/index.md) — the solution builds self-contained; dependencies come from the repository or via NuGet.
+- [CI/CD & Git Hooks](ci-cd/index.md) — local Git hooks and the GitHub Actions pipeline: PR checks, pre-releases on staging, and automated releases on master.

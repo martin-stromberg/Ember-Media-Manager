@@ -1,0 +1,40 @@
+name: Security Scan
+
+# Independent, schedule-driven dependency vulnerability scan for all NuGet dependencies.
+# The pull_request trigger that used to live here is gone: the PR-time scan runs as
+# Gate 2 of the "static-checks" job in pr-staging-ci.yml and staging-ci.yml, using the
+# same composite action (see .github/actions/security-scan), so the scan logic itself
+# only exists once instead of being duplicated between the two trigger points.
+on:
+  schedule:
+    # Weekly on Monday 04:00 UTC, so newly disclosed advisories are also caught against
+    # otherwise unchanged dependencies.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: security-scan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Deliberate hardening beyond the Softwareschmiede reference (which sets no explicit
+# permissions here): the job only reads the checkout and uploads an artifact.
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Scan for vulnerable packages
+        # The composite action runs `nuget restore` itself and evaluates NU190x warnings
+        # (packages.config is not supported by `dotnet list package --vulnerable`).
+        uses: ./.github/actions/security-scan
+        with:
+          solution-path: Ember Media Manager.sln
+          artifact-name: vulnerable-packages-scan
+          fail-on-vulnerabilities: 'true'

@@ -1,6 +1,12 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
+###############################################################################
+# Git-Hook-Skripte muessen LF-Zeilenenden behalten, sonst schlaegt die Shebang-
+# Zeile beim Ausfuehren ueber Git Bash (core.autocrlf=true unter Windows) fehl.
+###############################################################################
+.githooks/* text eol=lf
+
 # Custom for Visual Studio
 *.cs     diff=csharp
 *.sln    merge=union
