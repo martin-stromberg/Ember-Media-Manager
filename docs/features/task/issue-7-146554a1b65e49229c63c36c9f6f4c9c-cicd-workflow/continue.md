@@ -10,9 +10,9 @@ Repo-Inhalts — keine Code-Nacharbeit nötig.
 
 ## Offene Planelemente
 
-- [ ] Task 29: Seed-Tag `v1.12.0` auf den aktuellen `master`-Tip (`464fd082`) setzen und zu `origin` pushen — **zeitkritisch vor dem ersten Merge der Workflow-Dateien auf `staging`** (sonst startet semantic-release bei 1.0.0 bzw. löst ein Tag-Push auf einem Commit mit `release.yml` einen manuellen Release-Lauf aus)
-- [ ] Task 30: Branch-Protection für `staging` und `master` einrichten (Required Checks = Gate-Jobs; für `master` zusätzlich „Verify PR Source"); sicherstellen, dass GitHub Actions im Fork erlaubt sind
-- [ ] Task 31: Live-Verifikation der Workflow-Kette (PR gegen `staging`, „Pre-Release"-Lauf, Promotion-PR) — hängt von Task 29 ab
+- [x] Task 29: Seed-Tag `v1.12.0` auf den aktuellen `master`-Tip (`464fd082`) gesetzt und zu `origin` gepusht (erledigt 2026-09-20; der `pre-push`-Hook lief dabei live mit bestandenem NU190x-Scan)
+- [x] Task 30: Branch-Protection eingerichtet — `staging`: Required Checks `static checks` + `build & test` (strict), `master`: Required Check `verify-source`; kein Force-Push/Deletion. Actions-Permissions verifiziert (`enabled: true`, `allowed_actions: all`)
+- [ ] Task 31: Live-Verifikation der Workflow-Kette (PR gegen `staging`, „Pre-Release"-Lauf, Promotion-PR) — wartet auf den Merge dieses Branches
 
 ## Code-Review-Befunde
 
