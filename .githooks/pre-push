@@ -6,8 +6,44 @@
 
 echo "pre-push: NuGet-Security-Scan laeuft (wie in .github/workflows/pr-staging-ci.yml)..."
 
+NUGET=.nuget/NuGet.exe
+
+# Plattform-Check (analog zum Python-Fallback in pre-commit): NuGet.exe ist ein
+# Windows-PE-Binary - unter Windows (Git Bash/MSYS/Cygwin) direkt ausfuehrbar,
+# unter Linux/macOS nur via Mono. Ist keine lauffaehige Toolchain vorhanden, wird
+# der lokale Scan mit Warnung uebersprungen (Exit 0) statt den Push zu blockieren:
+# ein harter Push-Blocker auf einer von der README unterstuetzten Plattform ohne
+# funktionierende Toolchain waere ein Defekt - das blockierende NU190x-Gate bleibt
+# serverseitig in der CI wirksam.
+NUGET_RUN=
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+    NUGET_RUN=direct
+    ;;
+  *)
+    if command -v mono >/dev/null 2>&1; then
+      NUGET_RUN=mono
+    fi
+    ;;
+esac
+
+if [ ! -f "$NUGET" ]; then
+  echo "pre-push: $NUGET nicht gefunden - Security-Scan wird lokal uebersprungen; die CI prueft NU190x serverseitig." >&2
+  exit 0
+fi
+
+if [ -z "$NUGET_RUN" ]; then
+  echo "pre-push: $NUGET ist auf dieser Plattform nicht ausfuehrbar (kein Windows, kein 'mono' im PATH)." >&2
+  echo "pre-push: Security-Scan wird lokal uebersprungen; die CI prueft NU190x serverseitig." >&2
+  exit 0
+fi
+
 RESTORE_LOG=$(mktemp)
-.nuget/NuGet.exe restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+if [ "$NUGET_RUN" = "mono" ]; then
+  mono "$NUGET" restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+else
+  "$NUGET" restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+fi
 RESTORE_EXIT=$?
 cat "$RESTORE_LOG"
 
