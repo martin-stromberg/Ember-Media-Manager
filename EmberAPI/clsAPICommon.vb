@@ -23,6 +23,7 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 Imports System.Xml.Serialization
 Imports System.Drawing
+Imports System.Windows.Forms
 
 Public Class Containers
 
@@ -717,6 +718,22 @@ Public Class Enums
         Refresh_TVShow
         ScannerEnded
         ScannerStarted
+    End Enum
+
+    Public Enum ScraperEventType As Integer
+        BannerItem = 0
+        CharacterArtItem = 1
+        ClearArtItem = 2
+        ClearLogoItem = 3
+        DiscArtItem = 4
+        ExtrafanartsItem = 5
+        ExtrathumbsItem = 6
+        FanartItem = 7
+        LandscapeItem = 8
+        NFOItem = 9
+        PosterItem = 10
+        ThemeItem = 11
+        TrailerItem = 12
     End Enum
     ''' <summary>
     ''' Enum representing which Movies/TVShows should be scraped,

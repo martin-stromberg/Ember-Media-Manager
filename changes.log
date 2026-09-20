@@ -1,0 +1,50 @@
+# Changelog
+
+## 2026-09-19 — Make solution compilable (.NET Framework 4.8)
+
+- The missing external project reference `TVDB` was added to the repository as vendored source under `TheTVDBApi/src/TVDB/` (GPL-3.0, `DanCooper/TheTVDBApi`); the solution and both TVDB scraper projects now point to the repo-internal path. The solution is therefore self-contained buildable after a fresh `git clone`.
+- All projects were uniformly raised to .NET Framework 4.8; the 4.8 reference assemblies are provided via NuGet (`Microsoft.NETFramework.ReferenceAssemblies.net48` + `Directory.Build.props`/`FrameworkPathOverride`) — no Developer Pack required.
+- `.nuget/NuGet.exe` was updated to 6.14.0, restoring the package restore (`nuget restore`) functionality.
+- Existing compile errors in the source code were fixed minimally invasively (among others: missing `Enums.ScraperEventType` definition, missing database methods `Delete_Tag`/`Save_Tag_Movie` ported from upstream 1.11.1, outdated `APIXML.CacheXMLs` call, `if exist` guard in the `EmberAPI` PostBuildEvent, invalid `Prefer32Bit` settings in add-on libraries).
+- The solution builds without errors in the configurations `Release|x64`, `Release|x86` and `Debug|Any CPU`; build instructions documented in `README.md` and `docs/help/build/`.
+- A startup crash on first run was fixed: `Settings.Load()` in `EmberAPI/clsAPISettings.vb` opened `Settings.xml` before the existence check (`FileNotFoundException` on a fresh profile). The reader is now — as in upstream 1.11.1 — only opened inside the `File.Exists` check; a missing `Settings.xml` leads to default settings instead of a crash.
+
+## 2020-05-11 — Mapping Editor (retroactively documented)
+
+- New generic module `generic.EmberCore.Mapping`: dialogs for maintaining the genre, regex and simple mapping lists (`dlgGenreMapping`, `dlgRegexMapping`, `dlgSimpleMapping`).
+
+## 2018-03-13 — Trakt.tv interface (retroactively documented)
+
+- New interface module `generic.Interface.Trakttv`: Trakt account authorization (`frmAuthorize`), sync manager (`dlgTrakttvManager`) for watched state/playcounts in both directions, plus context-menu entries per content type.
+
+## 2015-07-07 — Kodi integration (retroactively documented)
+
+- New C# library `KodiAPI` (`XBMCRPC`): generated JSON-RPC client with method groups `VideoLibrary`, `Files`, `Textures`, `Player` and others, plus WebSocket notifications.
+- New interface module `generic.Interface.Kodi`: multi-host management (`dlgHost`), mapping of local Ember paths to Kodi sources and real-time synchronization on `ModuleEventType` events (Edit/Scrape/Remove/Scan/Clean).
+
+## 2015-06-15 — TheTVDB data scraper (retroactively documented)
+
+- New scraper module `scraper.Data.TVDB` for TV show metadata from TheTVDB (uses the TVDB client library).
+
+## 2015-03-08 — Media list editor (retroactively documented)
+
+- New generic module `generic.EmberCore.FilterEditor` (module class `genericMediaListEditor`): editor for custom filters and media lists.
+
+## 2015-03-05 — Tag Manager (retroactively documented)
+
+- New generic module `generic.EmberCore.TagManager`: management of tags/keywords with its own dialog (`dlgTagManager`).
+
+## 2014-04-03 — BuildSetup / Installer (retroactively documented)
+
+- `BuildSetup/` introduced: NSIS installer script (`1.4_InstallerScript.nsi`), build batch files for x86/x64 and helper tools (`BRC32`, `tx`, `txDownload`).
+
+## 2013-09-29 — Trakt.tv API library (retroactively documented)
+
+- New C# library `Trakttv`: Trakt API v2 client with sync endpoints (history, ratings, watchlist, collection, lists, comments), data models and error types.
+
+## 2013-05-17 — Initial project import 1.4.x (retroactively documented)
+
+- Core of the application: `EmberMediaManager` (WinForms main application with `frmMain` and edit/source/settings dialogs) and `EmberAPI` (SQLite database `MyVideos`, scanner, NFO, images, MediaInfo/FFmpeg, settings, module system `ModulesManager` with `GenericModule` and scraper interfaces).
+- Scraper modules: data (IMDb, TMDb, OMDb, OFDb, Moviepilot), images (TMDb, Fanart.tv, TVDB), trailers (YouTube, TMDb, Apple, hd-trailers.net, Videobuster), themes (YouTube, TelevisionTunes).
+- Generic modules: Bulk Renamer, Movie Exporter, Media File Manager, context menu, metadata editor, video source mapping.
+- Scraper design separated by groups (data, images, trailers, themes) with scrape order and central image selection.
