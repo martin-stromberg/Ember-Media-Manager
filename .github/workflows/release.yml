@@ -1,0 +1,152 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+# Prevents parallel release runs (e.g. a fast merge to master followed shortly after by a
+# manually pushed tag): resolve-release-version.mjs decides on a single target tag/version
+# by querying the GitHub API and existing tags - without serialization, two concurrent runs
+# could race for the same version or fail to create the release.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # Ember Media Manager is a .NET Framework 4.8 WinForms/VB.NET application built with
+    # MSBuild and can only be built on a Windows runner.
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install dependencies
+        run: npm ci
+        shell: pwsh
+
+      - name: Resolve release version
+        # Classifies this run as automatic (branch push to master, version via
+        # semantic-release --dry-run) or manual (a pushed vX.Y.Z tag), then checks
+        # whether a GitHub release for the resolved tag already exists and whether it
+        # already has all expected assets. Missing assets are repaired in place instead
+        # of duplicating the release. See scripts/resolve-release-version.mjs.
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/resolve-release-version.mjs
+        shell: pwsh
+
+      - name: Check out release tag for asset repair
+        # Only relevant for the repair path: a previous run created the tag/release but was
+        # interrupted before all assets were uploaded. This checks out the exact tagged
+        # commit so the rebuilt asset matches the already-published release, instead of
+        # rebuilding from whatever commit triggered this run.
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'upload-existing'
+        env:
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git checkout --detach "$env:RELEASE_TAG"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not check out release tag '$env:RELEASE_TAG'."
+          }
+
+          $expectedCommit = git rev-parse "$env:RELEASE_TAG^{commit}"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not resolve release tag '$env:RELEASE_TAG' to a commit."
+          }
+
+          $checkedOutCommit = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0 -or $checkedOutCommit -ne $expectedCommit) {
+            throw "Release tag checkout did not resolve to the tagged commit."
+          }
+        shell: pwsh
+
+      - name: Restore solution
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create'
+        run: .\.nuget\NuGet.exe restore "Ember Media Manager.sln"
+        shell: pwsh
+
+      - name: Release gate - build (Debug x86)
+        # Replaces the reference's release-gate test runs: Ember has no executable test
+        # suite (EmberAPI_Test is not part of the solution and does not build), so the
+        # safety net here is a clean full-solution build. Safety net now that there is
+        # no dedicated PR-gate workflow against master anymore: PRs against master can
+        # only come from staging, which was already fully validated by
+        # pr-staging-ci.yml/staging-ci.yml, so this re-run mainly guards against a race
+        # between that validation and the actual merge or tag push. Runs for both
+        # automatic and manual-tag releases, but not for the asset-repair path, which
+        # only needs to rebuild an already-validated release.
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create'
+        run: msbuild "Ember Media Manager.sln" -p:Configuration=Debug -p:Platform=x86 -flp:logfile=build.log
+        shell: pwsh
+
+      - name: Upload release-gate build log
+        if: always() && steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create'
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-log-release
+          path: build.log
+          retention-days: 14
+
+      - name: Build and package
+        if: steps.version.outputs.released == 'true'
+        uses: ./.github/actions/build-and-package
+        with:
+          release-version: ${{ steps.version.outputs.version }}
+          release-tag: ${{ steps.version.outputs.tag }}
+
+      - name: Create automatic GitHub release
+        # Goes through semantic-release's own publish pipeline (releasePlugins in
+        # release.config.js: commit-analyzer, release-notes-generator, then
+        # @semantic-release/github, which creates the tag, the GitHub release and uploads
+        # the assets listed below). Manual-tag and asset-repair releases intentionally
+        # stay on gh CLI below: semantic-release only knows about
+        # conventional-commit-driven releases on configured branches, not about a tag
+        # someone pushed manually or a one-off missing-asset repair.
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create' && steps.version.outputs.release_kind == 'automatic'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_ASSET_PATH: release.zip
+          RELEASE_MANIFEST_PATH: update.json
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: npm run release
+        shell: pwsh
+
+      - name: Create manual-tag GitHub release
+        # --generate-notes uses GitHub's own Release Notes API for the release body.
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'create' && steps.version.outputs.release_kind == 'manual'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.version.outputs.tag }}"
+          gh release create $tag release.zip update.json `
+            --title $tag `
+            --generate-notes
+        shell: pwsh
+
+      - name: Upload missing assets to existing release
+        if: steps.version.outputs.released == 'true' && steps.version.outputs.release_action == 'upload-existing'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.version.outputs.tag }}"
+          gh release upload $tag release.zip update.json --clobber
+        shell: pwsh

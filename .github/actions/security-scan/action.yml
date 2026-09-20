@@ -1,0 +1,59 @@
+name: Security scan
+
+description: >
+  Runs `.nuget\NuGet.exe restore` against the given solution and evaluates the output for
+  NU190x vulnerability warnings (NuGet 6.14 already reports vulnerabilities for
+  packages.config projects at restore time - `dotnet list package --vulnerable` is
+  PackageReference-only and cannot be used here). Fails (exit 1) if any are found and
+  `fail-on-vulnerabilities` is 'true', otherwise emits ::warning. Used both as Gate 2 of
+  the "static-checks" job (pr-staging-ci.yml / staging-ci.yml) and by the standalone
+  weekly security-scan.yml workflow, so this logic only exists once instead of being
+  duplicated between them.
+
+inputs:
+  solution-path:
+    description: Path to the solution file to scan.
+    required: false
+    default: Ember Media Manager.sln
+  artifact-name:
+    description: Name of the uploaded scan-log artifact.
+    required: false
+    default: vulnerable-packages-scan
+  fail-on-vulnerabilities:
+    description: "'true' (default) fails the step on NU190x findings; 'false' only warns."
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Restore and scan for vulnerable packages
+      shell: pwsh
+      run: |
+        $restoreOutput = & .\.nuget\NuGet.exe restore "${{ inputs.solution-path }}" 2>&1
+        $restoreExitCode = $LASTEXITCODE
+        $restoreOutput | Tee-Object -FilePath vulnerable-packages-scan.log
+
+        if ($restoreExitCode -ne 0) {
+          Write-Host "::error::nuget restore failed with exit code $restoreExitCode."
+          exit $restoreExitCode
+        }
+
+        if ($restoreOutput | Select-String -Pattern 'NU190\d' -Quiet) {
+          if ('${{ inputs.fail-on-vulnerabilities }}' -eq 'true') {
+            Write-Host "::error::Vulnerable NuGet packages found (NU190x). See the scan output above or artifact '${{ inputs.artifact-name }}'."
+            exit 1
+          }
+          Write-Host "::warning::Vulnerable NuGet packages found (NU190x). See the scan output above or artifact '${{ inputs.artifact-name }}'."
+          exit 0
+        }
+
+        Write-Host "No vulnerable packages found."
+
+    - name: Upload scan log
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: vulnerable-packages-scan.log
+        retention-days: 14

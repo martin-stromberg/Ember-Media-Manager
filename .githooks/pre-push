@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+# Spiegelt den "Security scan"-Schritt (Gate 2) aus .github/workflows/pr-staging-ci.yml
+# lokal, damit NuGet-Vulnerability-Befunde (NU190x) vor dem Push auffallen statt erst
+# in der PR-CI. Ein Befund bricht den Push ab (Exit 1) - wie das blockierende CI-Gate.
+# Aktivierung (einmalig pro Klon): git config core.hooksPath .githooks
+
+echo "pre-push: NuGet-Security-Scan laeuft (wie in .github/workflows/pr-staging-ci.yml)..."
+
+RESTORE_LOG=$(mktemp)
+.nuget/NuGet.exe restore "Ember Media Manager.sln" > "$RESTORE_LOG" 2>&1
+RESTORE_EXIT=$?
+cat "$RESTORE_LOG"
+
+if [ "$RESTORE_EXIT" -ne 0 ]; then
+  echo "pre-push: nuget restore fehlgeschlagen (Exit $RESTORE_EXIT) - Push wird abgebrochen." >&2
+  rm -f "$RESTORE_LOG"
+  exit 1
+fi
+
+if grep -qE "NU190[0-9]" "$RESTORE_LOG"; then
+  echo "pre-push: Vulnerable NuGet-Pakete gefunden (NU190x-Warnung im Restore-Output) - Push wird abgebrochen." >&2
+  rm -f "$RESTORE_LOG"
+  exit 1
+fi
+
+rm -f "$RESTORE_LOG"
+echo "pre-push: Security-Scan bestanden - keine NU190x-Befunde."

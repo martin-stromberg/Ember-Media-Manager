@@ -1,0 +1,224 @@
+name: Pre-Release
+
+# Filename stays staging-ci.yml (only the display name is "Pre-Release").
+# staging-to-main-promotion.yml's workflow_run trigger references this display name, not
+# the filename; both must be updated together so the promotion chain never briefly points
+# at a name that no longer exists.
+
+on:
+  push:
+    branches:
+      - staging
+
+concurrency:
+  group: staging-ci
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  checks: write
+
+jobs:
+  detect-backmerge:
+    # Same thorough check as pr-staging-ci.yml's detect-backmerge: checks both
+    # merge-parent and tree-diff against master. On a push event HEAD is the pushed
+    # commit itself (not a synthetic merge), so this mainly catches the case where the
+    # automated back-merge PR (master -> staging) was merged with "Create a merge
+    # commit", making master's tip a direct parent of the new staging HEAD.
+    runs-on: ubuntu-latest
+    outputs:
+      is_backmerge: ${{ steps.check.outputs.is_backmerge }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check whether this push is a pure back-merge from master
+        id: check
+        run: |
+          git fetch origin master:refs/remotes/origin/master --no-tags
+
+          master_sha="$(git rev-parse origin/master)"
+          is_master_merge_parent=false
+          for parent in $(git show -s --format=%P HEAD); do
+            if [[ "$parent" == "$master_sha" ]]; then
+              is_master_merge_parent=true
+              break
+            fi
+          done
+
+          if [[ "$is_master_merge_parent" == "true" ]]; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Back-merge from master detected - CI checks will be skipped."
+          elif git diff --quiet origin/master HEAD; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pure back-merge from master detected (tree identical) - CI checks will be skipped."
+          else
+            echo "is_backmerge=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  static-checks:
+    name: static checks
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Security scan
+        # Gate 2 - shared composite action, see .github/actions/security-scan. Runs
+        # `nuget restore` internally and blocks on NU190x findings
+        # (fail-on-vulnerabilities: 'true'). Gate 1 of the reference (dotnet format) does
+        # not apply: `dotnet format` is not usable on this legacy .NET Framework 4.8 /
+        # packages.config / VB.NET project format.
+        uses: ./.github/actions/security-scan
+        with:
+          solution-path: Ember Media Manager.sln
+          artifact-name: vulnerable-packages-staging
+          fail-on-vulnerabilities: 'true'
+
+      - name: Static analysis
+        # Gate 3: the solution must compile cleanly. TreatWarningsAsErrors from the
+        # reference is intentionally not enabled - the legacy VB.NET codebase carries
+        # too many pre-existing warnings for the gate to start green.
+        run: msbuild "Ember Media Manager.sln" -p:Configuration=Debug -p:Platform=x86
+        shell: pwsh
+
+  build-and-test:
+    name: build & test
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore dependencies
+        run: .\.nuget\NuGet.exe restore "Ember Media Manager.sln"
+        shell: pwsh
+
+      - name: Build (Release x64)
+        # Gates 4/5 of the reference (test execution + 70% coverage threshold) are
+        # dropped: the only test project (EmberAPI_Test) is not part of the solution and
+        # does not build (missing UnitTests project, MSTest-v1 GAC reference). The
+        # Release x64 build covers the shippable configuration instead; the test gates
+        # can be re-added once EmberAPI_Test is repaired.
+        run: msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64 -flp:logfile=build.log
+        shell: pwsh
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-log-staging
+          path: build.log
+          retention-days: 14
+
+  version:
+    name: version
+    needs: [detect-backmerge, static-checks, build-and-test]
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      changed: ${{ steps.semver.outputs.changed }}
+      version: ${{ steps.semver.outputs.version }}
+      rc_tag: ${{ steps.rc.outputs.rc_tag }}
+      rc_version: ${{ steps.rc.outputs.rc_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm ci
+        shell: pwsh
+
+      - name: Determine next version
+        # release.config.js only lists "master" as a release branch (see that file's own
+        # comment); staging is deliberately not a configured prerelease branch there. The
+        # --branches override below treats "staging" as a plain release branch for this
+        # one dry-run only, so the resulting X.Y.Z carries no prerelease identifier - the
+        # RC suffix is appended manually in the next step instead.
+        id: semver
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $output = & npx semantic-release --dry-run --no-ci --branches staging 2>&1 | Out-String
+          Write-Host "semantic-release output:"
+          Write-Host $output
+
+          $version = $null
+          $changed = $false
+          if ($output -match 'The next release version is ([0-9]+\.[0-9]+\.[0-9]+(?:[-+][^\s]+)?)') {
+            $version = $Matches[1]
+            $changed = $true
+            Write-Host "Next release version: $version"
+          } else {
+            Write-Host "No new release version determined."
+          }
+
+          "version=$version" | Add-Content -Path $env:GITHUB_OUTPUT
+          "changed=$($changed.ToString().ToLowerInvariant())" | Add-Content -Path $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      - name: Determine RC number
+        if: steps.semver.outputs.changed == 'true'
+        id: rc
+        shell: pwsh
+        run: |
+          $version = "${{ steps.semver.outputs.version }}"
+          $existing = @(git tag --list "v$version-rc.*")
+          $rcNumber = $existing.Count + 1
+          "rc_number=$rcNumber" | Add-Content -Path $env:GITHUB_OUTPUT
+          "rc_tag=v$version-rc.$rcNumber" | Add-Content -Path $env:GITHUB_OUTPUT
+          # RC-suffixed version without the leading "v" (e.g. "1.2.3-rc.1"), distinct
+          # from rc_tag ("v1.2.3-rc.1"). Passed as build-and-package's release-version
+          # input so both the packaged asset file names and update.json's own "version"
+          # field carry the RC suffix.
+          "rc_version=$version-rc.$rcNumber" | Add-Content -Path $env:GITHUB_OUTPUT
+
+  prerelease:
+    name: prerelease
+    needs: [detect-backmerge, version]
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true' && needs.version.outputs.changed == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build and package release candidate
+        uses: ./.github/actions/build-and-package
+        with:
+          release-version: ${{ needs.version.outputs.rc_version }}
+          release-tag: ${{ needs.version.outputs.rc_tag }}
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ needs.version.outputs.rc_tag }}"
+          gh release create $tag release.zip update.json `
+            --target $env:GITHUB_SHA `
+            --title $tag `
+            --prerelease `
+            --generate-notes
+        shell: pwsh

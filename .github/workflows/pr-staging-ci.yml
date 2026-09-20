@@ -1,0 +1,136 @@
+name: PR CI for Staging
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: pr-staging-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  detect-backmerge:
+    # Checks both whether master's tip is a merge-parent of this PR's merge commit, and
+    # whether the resulting tree is identical to master. actions/checkout on a
+    # pull_request event checks out the synthetic merge commit (base + head), so
+    # "origin/master is a parent of HEAD" is a direct, reliable signal that this PR's
+    # head branch is exactly master's current tip - i.e. the automated back-merge PR
+    # created by sync-staging-with-main.yml.
+    runs-on: ubuntu-latest
+    outputs:
+      is_backmerge: ${{ steps.check.outputs.is_backmerge }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check whether this PR is a pure back-merge from master
+        id: check
+        run: |
+          git fetch origin master:refs/remotes/origin/master --no-tags
+
+          master_sha="$(git rev-parse origin/master)"
+          is_master_merge_parent=false
+          for parent in $(git show -s --format=%P HEAD); do
+            if [[ "$parent" == "$master_sha" ]]; then
+              is_master_merge_parent=true
+              break
+            fi
+          done
+
+          if [[ "$is_master_merge_parent" == "true" ]]; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Back-merge from master detected - CI checks will be skipped."
+          elif git diff --quiet origin/master HEAD; then
+            echo "is_backmerge=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Pure back-merge from master detected (tree identical) - CI checks will be skipped."
+          else
+            echo "is_backmerge=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  static-checks:
+    name: static checks
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    # Hybrid job model: runs in parallel with build-and-test, with no `needs:` between
+    # them, so a security/lint failure is visible within seconds instead of waiting for
+    # the multi-minute build to finish.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Security scan
+        # Gate 2 - shared composite action, see .github/actions/security-scan. Runs
+        # `nuget restore` internally and blocks on NU190x findings
+        # (fail-on-vulnerabilities: 'true'). Gate 1 of the reference (dotnet format) does
+        # not apply: `dotnet format` is not usable on this legacy .NET Framework 4.8 /
+        # packages.config / VB.NET project format.
+        uses: ./.github/actions/security-scan
+        with:
+          solution-path: Ember Media Manager.sln
+          artifact-name: vulnerable-packages-pr
+          fail-on-vulnerabilities: 'true'
+
+      - name: Static analysis
+        # Gate 3: the solution must compile cleanly. TreatWarningsAsErrors from the
+        # reference is intentionally not enabled - the legacy VB.NET codebase carries
+        # too many pre-existing warnings for the gate to start green.
+        run: msbuild "Ember Media Manager.sln" -p:Configuration=Debug -p:Platform=x86
+        shell: pwsh
+
+  build-and-test:
+    name: build & test
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge != 'true'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore dependencies
+        run: .\.nuget\NuGet.exe restore "Ember Media Manager.sln"
+        shell: pwsh
+
+      - name: Build (Release x64)
+        # Gates 4/5 of the reference (test execution + 70% coverage threshold) are
+        # dropped: the only test project (EmberAPI_Test) is not part of the solution and
+        # does not build (missing UnitTests project, MSTest-v1 GAC reference). The
+        # Release x64 build covers the shippable configuration instead; the test gates
+        # can be re-added once EmberAPI_Test is repaired.
+        run: msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64 -flp:logfile=build.log
+        shell: pwsh
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-log-pr
+          path: build.log
+          retention-days: 14
+
+  back-merge-skip:
+    needs: detect-backmerge
+    if: needs.detect-backmerge.outputs.is_backmerge == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Back-merge detected
+        run: echo "Back-merge PR from master detected. Redundant checks are skipped."

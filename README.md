@@ -73,6 +73,19 @@ under `TheTVDBApi/` (GPL-3.0, originally from `DanCooper/TheTVDBApi`).
 
 The repository contains a legacy MSTest project (`EmberAPI_Test/`). It is currently **not part of the solution** and does not build — it references a `UnitTests` project that is not in the repository. There are no executable automated tests at the moment.
 
+## Continuous Integration / Git Hooks
+
+The repository ships two layers of quality gates:
+
+- **Local Git hooks** (`.githooks/`): a `pre-commit` hook that checks `.resx` localization consistency, and a `pre-push` hook that mirrors the CI security gate (`nuget restore` + NU190x vulnerability check, blocking). Activate them once per clone:
+
+  ```
+  .githooks\install-hooks.cmd    :: Windows
+  ./.githooks/install-hooks.sh   # Linux/macOS (Git Bash)
+  ```
+
+- **GitHub Actions** (`.github/workflows/`): PRs against `staging` run `PR CI for Staging` (NuGet vulnerability gate + `Debug|x86` and `Release|x64` builds). Pushes to `staging` additionally create `vX.Y.Z-rc.N` pre-releases (`Pre-Release`); a successful run opens a draft promotion PR `staging` → `master` (PRs against `master` are only accepted from `staging`). Pushes to `master` trigger a back-merge PR `master` → `staging` and the `Release` workflow (semantic-release; manual `v*.*.*` tags are also supported). A weekly `Security Scan` runs every Monday 04:00 UTC.
+
 ## License
 
 GPL-3.0 — see `EmberMediaManager/License.txt`.
