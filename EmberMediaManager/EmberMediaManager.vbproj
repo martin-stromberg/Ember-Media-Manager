@@ -5310,6 +5310,20 @@
     <None Include="Resources\EmberSplashScreen.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Die native SQLite-Interop-DLL wird zusaetzlich direkt als Content deployt,
+         damit sie auch dann im Ausgabeverzeichnis landet, wenn der NuGet-Import
+         (Stub.System.Data.SQLite.Core.NetFramework.targets) beim ersten Build
+         vor der Paketwiederherstellung noch nicht ausgewertet wurde. -->
+    <Content Include="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net451\x64\SQLite.Interop.dll">
+      <Link>x64\SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.115.5\build\net451\x86\SQLite.Interop.dll">
+      <Link>x86\SQLite.Interop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\EmberAPI\EmberAPI.vbproj">
       <Project>{208AA35E-C6AE-4D2D-A9DD-B6EFD19A4279}</Project>
       <Name>EmberAPI</Name>

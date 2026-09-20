@@ -1156,6 +1156,8 @@ Public Class Database
             _myvideosDBConn.Open()
         Catch ex As Exception
             logger.Error(ex, New StackFrame().GetMethod().Name & Convert.ToChar(Windows.Forms.Keys.Tab) & "Unable to open media database connection.")
+            Close_MyVideos()
+            Throw
         End Try
 
         Try
