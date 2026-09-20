@@ -16,6 +16,11 @@ concurrency:
   group: security-scan-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Deliberate hardening beyond the Softwareschmiede reference (which sets no explicit
+# permissions here): the job only reads the checkout and uploads an artifact.
+permissions:
+  contents: read
+
 jobs:
   security-scan:
     runs-on: windows-latest

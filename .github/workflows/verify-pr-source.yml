@@ -11,9 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Only allow PRs from staging
+        # Deliberate deviation from the Softwareschmiede reference (which interpolates
+        # ${{ github.head_ref }} directly into the script): head_ref is controlled by
+        # the PR author, so it is bound via env instead - script-injection hardening.
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [ "${{ github.head_ref }}" != "staging" ]; then
-            echo "::error::PRs against master are only allowed from staging (source: ${{ github.head_ref }})."
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::PRs against master are only allowed from staging (source: $HEAD_REF)."
             echo "Please create your PR: feature branch -> staging -> master"
             exit 1
           fi

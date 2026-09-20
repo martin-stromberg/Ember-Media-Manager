@@ -3,7 +3,7 @@
 // names/strings removed and replaced with Softwareschmiede's own single-asset
 // (release.zip + update.json) release shape.
 //
-// Classifies the triggering ref (branch push to main = automatic version via
+// Classifies the triggering ref (branch push to master = automatic version via
 // semantic-release; tag push vX.Y.Z = manual version from the tag itself), checks whether
 // a GitHub release for the resolved tag already exists and, if so, whether it already has
 // all expected assets uploaded. Missing assets are repaired in place (release_action
@@ -213,7 +213,7 @@ function releaseVersion(release) {
 // vX.Y.Z releases, never RC/prerelease tags (those are staging-ci.yml's domain). Without this
 // guard, an old, unrelated prerelease that legitimately never got an asset (e.g. one created by
 // a since-replaced version of the pipeline) could be picked up and "repaired" by an unrelated
-// later push to main - checking out its old commit, where current workflow files may not even
+// later push to master - checking out its old commit, where current workflow files may not even
 // exist yet, breaking the run outright. Discovered via a real production incident on
 // msTools.Updater (an ancient v0.5.2-rc.5 prerelease was picked up this way and broke a routine
 // promotion release).

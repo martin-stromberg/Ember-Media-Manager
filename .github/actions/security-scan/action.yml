@@ -39,7 +39,11 @@ runs:
           exit $restoreExitCode
         }
 
-        if ($restoreOutput | Select-String -Pattern 'NU190\d' -Quiet) {
+        # NU1901-NU1904 are the actual vulnerability severities (low/moderate/high/critical).
+        # NU1900 ("error communicating with package source") and NU1905+ are audit
+        # infrastructure warnings - matching them would let a transient NuGet-source
+        # outage trip the gate without any vulnerable package being found.
+        if ($restoreOutput | Select-String -Pattern 'NU190[1-4]' -Quiet) {
           if ('${{ inputs.fail-on-vulnerabilities }}' -eq 'true') {
             Write-Host "::error::Vulnerable NuGet packages found (NU190x). See the scan output above or artifact '${{ inputs.artifact-name }}'."
             exit 1

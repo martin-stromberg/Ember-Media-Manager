@@ -1,5 +1,9 @@
-name: Backmerge Main to Staging
+name: Backmerge Master to Staging
 
+# Filename and concurrency group deliberately keep the reference's "main" naming
+# (reference proximity - they carry no branch-name coupling); the source branch here
+# is "master".
+#
 # Every promotion to master creates a merge commit that exists only on master. Without
 # syncing back, staging immediately falls behind the latest release tag. This
 # workflow creates a PR master -> staging after each push to master to keep tags and

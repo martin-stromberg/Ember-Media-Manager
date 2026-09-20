@@ -17,7 +17,10 @@ if [ "$RESTORE_EXIT" -ne 0 ]; then
   exit 1
 fi
 
-if grep -qE "NU190[0-9]" "$RESTORE_LOG"; then
+# NU190[1-4] only: NU1900 ("audit source unreachable") and NU1905+ are infrastructure
+# warnings - a transient NuGet-source error must not block the push without a real
+# vulnerability finding.
+if grep -qE "NU190[1-4]" "$RESTORE_LOG"; then
   echo "pre-push: Vulnerable NuGet-Pakete gefunden (NU190x-Warnung im Restore-Output) - Push wird abgebrochen." >&2
   rm -f "$RESTORE_LOG"
   exit 1

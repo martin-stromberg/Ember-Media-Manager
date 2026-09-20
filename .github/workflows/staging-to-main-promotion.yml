@@ -1,8 +1,12 @@
-name: Promote staging to main
+name: Promote staging to master
 
 # After a successful "Pre-Release" run on staging, this workflow checks whether master is
 # behind staging. If so, it creates a draft PR staging -> master. The final merge must be
 # approved and completed manually by a maintainer.
+#
+# Filename and concurrency group deliberately keep the reference's "main" naming
+# (reference proximity - they carry no branch-name coupling); the target branch here
+# is "master".
 #
 # Critical: this workflow_run trigger references the *display name* of staging-ci.yml, not
 # its filename. If staging-ci.yml's `name:` field ever changes again, this array must be
