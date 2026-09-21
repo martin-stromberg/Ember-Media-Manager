@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-21 — Assembly version stamping in release builds (Issue #23)
+
+- New "Stamp assembly version" step in the shared composite action `.github/actions/build-and-package/action.yml` (between "Restore dependencies" and "Build (Release x64)"): the `release-version` input is validated against `X.Y.Z`/`X.Y.Z-rc.N` (a leading `v` is tolerated, components are capped at 65534) and regex-stamped into the `AssemblyVersion`/`AssemblyFileVersion`/`AssemblyInformationalVersion` attributes of `EmberMediaManager` and `EmberAPI`. SemVer `X.Y.Z` maps to `X.Y.Z.0`, `X.Y.Z-rc.N` to `X.Y.Z.N`; the full SemVer string goes to `AssemblyInformationalVersion`. Stamping stays in the CI working copy (no commit back); an empty `release-version` skips the step.
+- The "Verify publish output" step now verifies the stamped artifacts whenever `release-version` is set: `FileVersion`, `AssemblyVersion` and `ProductVersion` of `publish/Ember Media Manager.exe` and `FileVersion`/`AssemblyVersion` of `publish/EmberAPI.dll` are compared against the stamp step's outputs — a silently non-matching regex replace now fails the build instead of shipping an unstamped executable.
+- `scripts/resolve-release-version.mjs` rejects manual tags that cannot be mapped onto an assembly version (anything other than `vX.Y.Z`/`vX.Y.Z-rc.N`, or components > 65534) already in the "Resolve release version" step, before the build starts.
+- The checked-in placeholders in both `AssemblyInfo.vb` files were lowered from `1.11.1.0` to `0.0.0.0` plus an empty `AssemblyInformationalVersion`, so unstamped local/non-release builds are recognizable ("Version 0.0.0 x64"). Released executables now display the GitHub release version in About/splash/`mnuVersion`, and `dlgVersions` shows matching "Ember Application"/"Ember API" entries.
+
 ## 2026-09-21 — Title-based search for movies and TV shows migrated to the TMDb API (Issue #16)
 
 - The title search of the `scraper.Data.IMDB` module no longer parses the broken IMDb HTML pages (`imdb.com/find`, `imdb.com/search/title`). `SearchMovie`/`SearchTVShow` in `clsScrapeIMDB.vb` now query the TMDb API via `TMDbLib` (`SearchMovieAsync`/`SearchTvShowAsync`, up to 3 result pages) and resolve the IMDb ID of each hit (`GetMovieExternalIdsAsync`/`GetTvShowExternalIdsAsync`). Hits without a resolvable IMDb ID are logged and skipped.

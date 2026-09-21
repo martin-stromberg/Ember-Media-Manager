@@ -59,6 +59,11 @@ and wired in through `Directory.Build.props`.
 All projects target .NET Framework 4.8. The `TVDB` library sources are vendored
 under `TheTVDBApi/` (GPL-3.0, originally from `DanCooper/TheTVDBApi`).
 
+> **Note:** The `AssemblyVersion`/`AssemblyFileVersion` attributes checked into
+> `My Project/AssemblyInfo.vb` are `0.0.0.0` placeholders — release builds stamp
+> the resolved release version in CI (see below), so local builds report
+> `Version 0.0.0` in the app.
+
 ## Project structure
 
 - `EmberMediaManager/` — main WinForms application
@@ -84,6 +89,8 @@ The repository ships two layers of quality gates:
   ```
 
 - **GitHub Actions** (`.github/workflows/`): PRs against `staging` run `PR CI for Staging` (NuGet vulnerability gate + `Debug|x86` and `Release|x64` builds). Pushes to `staging` additionally create `vX.Y.Z-rc.N` pre-releases (`Pre-Release`); a successful run opens a draft promotion PR `staging` → `master` (PRs against `master` are only accepted from `staging`). Pushes to `master` trigger a back-merge PR `master` → `staging` and the `Release` workflow (semantic-release; manual `v*.*.*` tags are also supported). A weekly `Security Scan` runs every Monday 04:00 UTC.
+
+Release and pre-release builds stamp the resolved SemVer (`X.Y.Z` / `X.Y.Z-rc.N`) into the `AssemblyInfo.vb` attributes of `EmberMediaManager` and `EmberAPI` before compiling — the `Stamp assembly version` step in the shared [build-and-package](.github/actions/build-and-package/action.yml) action maps `X.Y.Z` → `X.Y.Z.0` and `X.Y.Z-rc.N` → `X.Y.Z.N` (`AssemblyVersion`/`AssemblyFileVersion`) and keeps the full SemVer string in `AssemblyInformationalVersion`. The stamp lives only in the CI working copy (nothing is committed back) and is verified against the built artifacts, so published executables display the GitHub release version.
 
 The `pre-commit` hook needs Python 3 on `PATH`; the `pre-push` scan runs out of the box on Windows (on Linux/macOS it requires Mono, otherwise it is skipped with a warning — the server-side CI gate still applies). Full documentation: [CI/CD & Git Hooks](docs/help/ci-cd/index.md).
 

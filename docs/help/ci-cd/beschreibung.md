@@ -20,7 +20,7 @@ The system has two layers:
 - A pull request against `staging` runs a NuGet vulnerability scan and two full builds of the solution. Automated back-merge pull requests are detected and skip these redundant checks.
 - A push to `staging` runs the same checks and additionally calculates the next version from the commit history. If the version changed, a pre-release (`vX.Y.Z-rc.N`) with a downloadable build is published automatically.
 - After a successful staging run, a draft pull request `staging → master` is opened for a maintainer to review and merge. Pull requests that target `master` directly from any other branch are rejected.
-- A push to `master` automatically opens a back-merge pull request `master → staging` and produces the release: the version is derived from the commits, a tagged GitHub release is created and the build artifacts (`release.zip` and `update.json`) are attached. Releases can also be triggered by pushing a `vX.Y.Z` tag manually.
+- A push to `master` automatically opens a back-merge pull request `master → staging` and produces the release: the version is derived from the commits, stamped into the program during the build so the published executable displays exactly the GitHub release version, a tagged GitHub release is created and the build artifacts (`release.zip` and `update.json`) are attached. Releases can also be triggered by pushing a `vX.Y.Z` tag manually.
 - Once a week (Mondays 04:00 UTC) all NuGet dependencies are re-scanned, so newly disclosed vulnerabilities are caught even when nothing changed.
 
 ## Examples
@@ -36,5 +36,7 @@ The system has two layers:
 - The pre-commit check needs a working Python 3 installation on the developer machine. The pre-push dependency scan runs on Windows; on Linux/macOS it is skipped with a warning unless Mono is available — the server-side check still applies.
 - There are no automated test or code-coverage gates: the only test project (`EmberAPI_Test`) is not part of the solution and does not compile. Builds are the release gate until a working test suite exists.
 - No code-formatting gate is enforced — the legacy project format does not support the usual formatting checks.
+- Builds produced outside a release run (local builds, CI runs without a release version) deliberately carry the placeholder version `0.0.0` — the program then shows "Version 0.0.0", which marks the artifact as not produced by a release build.
+- For pre-releases the program displays only the three-part base version (`X.Y.Z`); the RC number is still traceable in the file properties and the versions dialog as the fourth version component (`X.Y.Z.N`).
 - The NSIS installer build is not part of the pipeline; release artifacts contain the portable build output only.
 - Some automations (scheduled scan, promotion trigger) only run once the workflow files are present on the `master` branch.
