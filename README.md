@@ -15,12 +15,17 @@ Ember Media Manager is a Windows media manager for movies, TV shows and movie se
 
 - Media library for movies, TV shows/seasons/episodes and movie sets (local SQLite database, Kodi `MyVideos` naming)
 - Pluggable scrapers — data (IMDb, TMDb, TheTVDB, OMDb, OFDb, Moviepilot, Trakt.tv), images (TMDb, Fanart.tv, TheTVDB), trailers (YouTube, TMDb, Apple, hd-trailers.net, Videobuster) and themes (YouTube, TelevisionTunes)
+  - the IMDb data scraper resolves title searches via the TMDb API and maps each hit to an IMDb ID; hits are grouped into *Exact Matches* and *Partial Matches*
 - Kodi-compatible file layout: NFO files, poster/fanart/banner and other artwork next to the media
 - Kodi interface module: syncs edits and library operations to Kodi hosts via JSON-RPC
 - Trakt.tv module: watched-state/playcount sync, lists and ratings
 - Tools: Bulk Renamer, Movie List Exporter, Media File Manager, Tag Manager, media list/filter editor, mapping editors, video source mapping
 - Multi-profile support, advanced settings, offline media (stub) management
 - Extensible module system: add-on assemblies loaded from the `Modules` directory
+
+> **Note:** The title search of the IMDb data scraper runs via the TMDb API — like the TMDb data scraper it uses the embedded Ember API key by default, and a personal TMDb API key (v3) can be entered in the module settings. Source failures (invalid key, request limit reached, unreachable source) show a distinguishable error in the *Search Results* dialog instead of *No Matches Found*; manual IMDb/TMDb ID entry remains available as fallback.
+>
+> **Known limitation:** The IMDb detail pages are still partially unavailable — if the details of a selected search result cannot be loaded, the entry can still be confirmed and its ID is applied. Details and workarounds: [Scraper troubleshooting](docs/help/scraper/troubleshooting.md).
 
 ## Documentation
 
@@ -54,6 +59,11 @@ and wired in through `Directory.Build.props`.
 All projects target .NET Framework 4.8. The `TVDB` library sources are vendored
 under `TheTVDBApi/` (GPL-3.0, originally from `DanCooper/TheTVDBApi`).
 
+> **Note:** The `AssemblyVersion`/`AssemblyFileVersion` attributes checked into
+> `My Project/AssemblyInfo.vb` are `0.0.0.0` placeholders — release builds stamp
+> the resolved release version in CI (see below), so local builds report
+> `Version 0.0.0` in the app.
+
 ## Project structure
 
 - `EmberMediaManager/` — main WinForms application
@@ -79,6 +89,8 @@ The repository ships two layers of quality gates:
   ```
 
 - **GitHub Actions** (`.github/workflows/`): PRs against `staging` run `PR CI for Staging` (NuGet vulnerability gate + `Debug|x86` and `Release|x64` builds). Pushes to `staging` additionally create `vX.Y.Z-rc.N` pre-releases (`Pre-Release`); a successful run opens a draft promotion PR `staging` → `master` (PRs against `master` are only accepted from `staging`). Pushes to `master` trigger a back-merge PR `master` → `staging` and the `Release` workflow (semantic-release; manual `v*.*.*` tags are also supported). A weekly `Security Scan` runs every Monday 04:00 UTC.
+
+Release and pre-release builds stamp the resolved SemVer (`X.Y.Z` / `X.Y.Z-rc.N`) into the `AssemblyInfo.vb` attributes of `EmberMediaManager` and `EmberAPI` before compiling — the `Stamp assembly version` step in the shared [build-and-package](.github/actions/build-and-package/action.yml) action maps `X.Y.Z` → `X.Y.Z.0` and `X.Y.Z-rc.N` → `X.Y.Z.N` (`AssemblyVersion`/`AssemblyFileVersion`) and keeps the full SemVer string in `AssemblyInformationalVersion`. The stamp lives only in the CI working copy (nothing is committed back) and is verified against the built artifacts, so published executables display the GitHub release version. `release.zip` also ships [Unblock-ReleaseFiles.ps1](scripts/Unblock-ReleaseFiles.ps1) — run it inside the extracted release folder to remove the Windows Mark-of-the-Web block from all files.
 
 The `pre-commit` hook needs Python 3 on `PATH`; the `pre-push` scan runs out of the box on Windows (on Linux/macOS it requires Mono, otherwise it is skipped with a warning — the server-side CI gate still applies). Full documentation: [CI/CD & Git Hooks](docs/help/ci-cd/index.md).
 

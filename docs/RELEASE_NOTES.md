@@ -2,38 +2,34 @@
 
 ## Important Notes Before Update
 
-- The solution now targets .NET Framework 4.8 — the .NET Framework 4.8 runtime is required to run the application.
-- The TVDB library is vendored inside the repository (`TheTVDBApi/`); a separate checkout next to the repository is no longer needed.
-- NuGet restore is required before building (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); no .NET 4.8 Developer Pack is needed.
+- Self-compiled builds now display "Version 0.0.0": the checked-in assembly versions in `AssemblyInfo.vb` are `0.0.0.0` placeholders that are only replaced with the real release version during the CI release build.
+- IMDb title search: the special result categories *Popular Titles*, *TV Movie Titles*, *Video Titles* and *Short Titles* have been removed — search hits are now only grouped into *Exact Matches* and *Partial Matches*.
+- The five `Search*Titles` settings in the IMDb module are deprecated and no longer evaluated; existing entries in `AdvancedSettings.xml` remain inert (no migration required).
 
 ## What's New
 
-- `Newtonsoft.Json` updated uniformly to 13.0.3 across all projects — fixes a high-severity denial-of-service vulnerability (GHSA-5crp-9r3c-p9vr).
-- Complete feature documentation added under `docs/help/` (media library, movies, TV shows, movie sets, scrapers, Kodi, Trakt.tv, tools, settings, module system, database, build).
-- `changes.log` backfilled with retroactive entries for all major development steps (2013–2020).
-- `README.md` updated: feature overview, project structure, test status, license and documentation references.
-- Solution builds self-contained again after a fresh clone (previously failed on the missing external `TheTVDBApi` project).
-- All projects retargeted to .NET Framework 4.8 (previously mixed 3.5 / 4.5 / 4.8 targets).
-- NuGet tooling updated to 6.14.0; package restore works again.
-- Compile errors fixed (missing tag database methods, renamed XML cache call, invalid `Prefer32Bit` flags, conditional post-build copy).
-- Fixed a startup crash on first run: missing `Settings.xml` no longer throws `FileNotFoundException`; default settings are used instead.
-- Build instructions added to `README.md` and `docs/help/build/`.
+- The version number displayed in the program (About dialog, splash screen, version menu) now matches the GitHub release version — it is stamped from the release tag during the CI build instead of the previously hardcoded `1.11.1.0`.
+- `release.zip` now ships `Unblock-ReleaseFiles.ps1`: after extracting the downloaded archive, run the script in the release folder to remove the Windows "downloaded from the internet" block (Mark-of-the-Web) from all files.
+- Title-based search for movies and TV shows in the IMDb data scraper works again: the title search now queries the TMDb API (TMDbLib 2.3.0) and resolves the IMDb ID of each hit.
+- New `APIKey` setting in the IMDb module settings (movies and TV shows): a personal TMDb API key (v3) can be entered via *Use my own API key*; an empty field falls back to the embedded Ember API key.
+- Source failures are now distinguishable from "no hits": an invalid or missing API key, a reached request limit or an unreachable source show a dedicated error entry in the *Search Results* dialog instead of *No Matches Found* — for both the IMDb and the TMDb data scraper; manual ID entry remains available as fallback.
+- Failed detail lookups are tolerated: if the details of a selected search result cannot be loaded, the entry can still be confirmed and its ID is applied.
+- Scraper help documentation updated and extended (`docs/help/scraper/`): reworked troubleshooting guide covering the new error messages and workarounds (manual ID entry, personal TMDb API key), plus description, user setup, technical flow, business rules and a new installation page.
+- Analysis/requirements document for Issue #8 added (`docs/analysis/issue-8-titelsuche-imdb.md`): documents the broken title-based IMDb search for movies and TV shows and specifies the migration of the title search to the TMDb API.
 
 ## Wichtige Hinweise vor dem Update
 
-- Die Solution zielt nun auf .NET Framework 4.8 — zum Ausführen der Anwendung ist die .NET Framework 4.8 Runtime erforderlich.
-- Die TVDB-Bibliothek ist im Repository vendored (`TheTVDBApi/`); ein separater Checkout neben dem Repository ist nicht mehr nötig.
-- Vor dem Bauen ist ein NuGet-Restore erforderlich (`.nuget\NuGet.exe restore "Ember Media Manager.sln"`); ein .NET 4.8 Developer Pack wird nicht benötigt.
+- Selbst kompilierte Builds zeigen jetzt „Version 0.0.0" an: Die eingecheckten Assembly-Versionen in `AssemblyInfo.vb` sind `0.0.0.0`-Platzhalter, die erst beim CI-Release-Build durch die echte Release-Version ersetzt werden.
+- IMDb-Titelsuche: Die speziellen Ergebniskategorien *Popular Titles*, *TV Movie Titles*, *Video Titles* und *Short Titles* wurden entfernt — Treffer werden nur noch in *Exact Matches* und *Partial Matches* gruppiert.
+- Die fünf `Search*Titles`-Settings im IMDb-Modul sind deprecated und werden nicht mehr ausgewertet; bestehende Einträge in `AdvancedSettings.xml` verbleiben wirkungslos (keine Migration erforderlich).
 
 ## Neuerungen
 
-- `Newtonsoft.Json` in allen Projekten einheitlich auf 13.0.3 aktualisiert — behebt eine hochkritische Denial-of-Service-Schwachstelle (GHSA-5crp-9r3c-p9vr).
-- Vollständige Featuredokumentation unter `docs/help/` ergänzt (Medienbibliothek, Filme, Serien, Filmsammlungen, Scraper, Kodi, Trakt.tv, Werkzeuge, Einstellungen, Modulsystem, Datenbank, Build).
-- `changes.log` um retroaktive Einträge für alle wesentlichen Entwicklungsschritte (2013–2020) ergänzt.
-- `README.md` aktualisiert: Feature-Übersicht, Projektstruktur, Teststatus, Lizenz und Dokumentationsverweise.
-- Die Solution ist nach einem frischen Clone wieder eigenständig baubar (zuvor scheiterte der Build am fehlenden externen `TheTVDBApi`-Projekt).
-- Alle Projekte wurden auf .NET Framework 4.8 angehoben (zuvor gemischte Targets 3.5 / 4.5 / 4.8).
-- NuGet-Werkzeuge auf 6.14.0 aktualisiert; der Paket-Restore funktioniert wieder.
-- Kompilierfehler behoben (fehlende Tag-Datenbankmethoden, umbenannter XML-Cache-Aufruf, ungültige `Prefer32Bit`-Einstellungen, abgesichertes Post-Build-Kopieren).
-- Startabsturz beim ersten Lauf behoben: Eine fehlende `Settings.xml` löst keine `FileNotFoundException` mehr aus; stattdessen werden Standardeinstellungen verwendet.
-- Build-Anleitung in `README.md` und `docs/help/build/` ergänzt.
+- Die im Programm angezeigte Versionsnummer (About-Dialog, Splashscreen, Versionsmenü) entspricht jetzt der GitHub-Release-Version — sie wird beim CI-Build aus dem Release-Tag gestempelt statt wie zuvor hartkodiert auf `1.11.1.0` gesetzt.
+- `release.zip` enthält jetzt `Unblock-ReleaseFiles.ps1`: Nach dem Entpacken des heruntergeladenen Archivs kann das Skript im Release-Ordner ausgeführt werden, um die Windows-Blockierung „aus dem Internet" (Mark-of-the-Web) von allen Dateien zu entfernen.
+- Die titelbasierte Suche für Filme und Serien im IMDb-Daten-Scraper funktioniert wieder: Die Titelsuche fragt nun die TMDb-API ab (TMDbLib 2.3.0) und löst die IMDb-ID jedes Treffers auf.
+- Neues `APIKey`-Setting in den IMDb-Moduleinstellungen (Filme und Serien): Über *Use my own API key* kann ein eigener TMDb-API-Key (v3) hinterlegt werden; ein leeres Feld fällt auf den eingebetteten Ember-API-Key zurück.
+- Quell-Ausfälle sind jetzt von „keine Treffer" unterscheidbar: Ein ungültiger oder fehlender API-Key, ein erreichtes Request-Limit oder eine nicht erreichbare Quelle zeigen einen eigenen Fehlereintrag im *Search Results*-Dialog statt *No Matches Found* — im IMDb- wie im TMDb-Daten-Scraper; die manuelle ID-Eingabe bleibt als Fallback verfügbar.
+- Fehlgeschlagene Detailabrufe werden toleriert: Können die Details eines gewählten Suchtreffers nicht geladen werden, lässt sich der Eintrag trotzdem bestätigen und seine ID wird übernommen.
+- Scraper-Hilfedokumentation aktualisiert und erweitert (`docs/help/scraper/`): überarbeitete Troubleshooting-Anleitung zu den neuen Fehlermeldungen und Workarounds (manuelle ID-Eingabe, eigener TMDb-API-Key), dazu Beschreibung, Anwender-Einrichtung, technischer Ablauf, Business Rules und eine neue Installationsseite.
+- Analyse-/Anforderungsdokument für Issue #8 ergänzt (`docs/analysis/issue-8-titelsuche-imdb.md`): dokumentiert die defekte titelbasierte IMDb-Suche für Filme und Serien und legt die Umstellung der Titelsuche auf die TMDb-API fest.

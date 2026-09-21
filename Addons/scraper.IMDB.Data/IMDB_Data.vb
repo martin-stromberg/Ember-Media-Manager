@@ -37,6 +37,7 @@ Public Class IMDB_Data
     Public Shared ConfigScrapeModifier_Movie As New Structures.ScrapeModifiers
     Public Shared ConfigScrapeModifier_TV As New Structures.ScrapeModifiers
 
+    Private strPrivateAPIKey As String = String.Empty
     Private _SpecialSettings_Movie As New SpecialSettings
     Private _SpecialSettings_TV As New SpecialSettings
     Private _Name As String = "IMDB_Data"
@@ -44,6 +45,8 @@ Public Class IMDB_Data
     Private _ScraperEnabled_TV As Boolean = False
     Private _setup_Movie As frmSettingsHolder_Movie
     Private _setup_TV As frmSettingsHolder_TV
+
+    Private Const _strAPIKey As String = "44810eefccd9cb1fa1d57e7b0d67b08d"
 
 #End Region 'Fields
 
@@ -162,12 +165,14 @@ Public Class IMDB_Data
         _setup_Movie.cbForceTitleLanguage.Text = _SpecialSettings_Movie.ForceTitleLanguage
         _setup_Movie.chkFallBackworldwide.Checked = _SpecialSettings_Movie.FallBackWorldwide
         _setup_Movie.chkMPAADescription.Checked = _SpecialSettings_Movie.MPAADescription
-        _setup_Movie.chkPartialTitles.Checked = _SpecialSettings_Movie.SearchPartialTitles
-        _setup_Movie.chkPopularTitles.Checked = _SpecialSettings_Movie.SearchPopularTitles
-        _setup_Movie.chkTvTitles.Checked = _SpecialSettings_Movie.SearchTvTitles
-        _setup_Movie.chkVideoTitles.Checked = _SpecialSettings_Movie.SearchVideoTitles
-        _setup_Movie.chkShortTitles.Checked = _SpecialSettings_Movie.SearchShortTitles
         _setup_Movie.chkStudiowithDistributors.Checked = _SpecialSettings_Movie.StudiowithDistributors
+        _setup_Movie.txtApiKey.Text = strPrivateAPIKey
+
+        If Not String.IsNullOrEmpty(strPrivateAPIKey) Then
+            _setup_Movie.btnUnlockAPI.Text = Master.eLang.GetString(443, "Use embedded API Key")
+            _setup_Movie.lblEMMAPI.Visible = False
+            _setup_Movie.txtApiKey.Enabled = True
+        End If
 
         _setup_Movie.orderChanged()
 
@@ -213,6 +218,13 @@ Public Class IMDB_Data
 
         _setup_TV.cbForceTitleLanguage.Text = _SpecialSettings_TV.ForceTitleLanguage
         _setup_TV.chkFallBackworldwide.Checked = _SpecialSettings_TV.FallBackWorldwide
+        _setup_TV.txtApiKey.Text = strPrivateAPIKey
+
+        If Not String.IsNullOrEmpty(strPrivateAPIKey) Then
+            _setup_TV.btnUnlockAPI.Text = Master.eLang.GetString(443, "Use embedded API Key")
+            _setup_TV.lblEMMAPI.Visible = False
+            _setup_TV.txtApiKey.Enabled = True
+        End If
 
         _setup_TV.orderChanged()
 
@@ -249,14 +261,11 @@ Public Class IMDB_Data
         ConfigScrapeOptions_Movie.bMainTop250 = AdvancedSettings.GetBooleanSetting("DoTop250", True, , Enums.ContentType.Movie)
         ConfigScrapeOptions_Movie.bMainWriters = AdvancedSettings.GetBooleanSetting("DoWriters", True, , Enums.ContentType.Movie)
 
+        strPrivateAPIKey = AdvancedSettings.GetSetting("APIKey", String.Empty, , Enums.ContentType.Movie)
+        _SpecialSettings_Movie.APIKey = If(String.IsNullOrEmpty(strPrivateAPIKey), _strAPIKey, strPrivateAPIKey)
         _SpecialSettings_Movie.FallBackWorldwide = AdvancedSettings.GetBooleanSetting("FallBackWorldwide", False, , Enums.ContentType.Movie)
         _SpecialSettings_Movie.ForceTitleLanguage = AdvancedSettings.GetSetting("ForceTitleLanguage", String.Empty, , Enums.ContentType.Movie)
         _SpecialSettings_Movie.MPAADescription = AdvancedSettings.GetBooleanSetting("MPAADescription", False, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.SearchPartialTitles = AdvancedSettings.GetBooleanSetting("SearchPartialTitles", True, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.SearchPopularTitles = AdvancedSettings.GetBooleanSetting("SearchPopularTitles", True, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.SearchTvTitles = AdvancedSettings.GetBooleanSetting("SearchTvTitles", False, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.SearchVideoTitles = AdvancedSettings.GetBooleanSetting("SearchVideoTitles", False, , Enums.ContentType.Movie)
-        _SpecialSettings_Movie.SearchShortTitles = AdvancedSettings.GetBooleanSetting("SearchShortTitles", False, , Enums.ContentType.Movie)
         _SpecialSettings_Movie.StudiowithDistributors = AdvancedSettings.GetBooleanSetting("StudiowithDistributors", False, , Enums.ContentType.Movie)
     End Sub
 
@@ -281,6 +290,8 @@ Public Class IMDB_Data
         ConfigScrapeOptions_TV.bMainStudios = AdvancedSettings.GetBooleanSetting("DoStudio", True, , Enums.ContentType.TVShow)
         ConfigScrapeOptions_TV.bMainTitle = AdvancedSettings.GetBooleanSetting("DoTitle", True, , Enums.ContentType.TVShow)
 
+        strPrivateAPIKey = AdvancedSettings.GetSetting("APIKey", String.Empty, , Enums.ContentType.TV)
+        _SpecialSettings_TV.APIKey = If(String.IsNullOrEmpty(strPrivateAPIKey), _strAPIKey, strPrivateAPIKey)
         _SpecialSettings_TV.FallBackWorldwide = AdvancedSettings.GetBooleanSetting("FallBackWorldwide", False, , Enums.ContentType.TVShow)
         _SpecialSettings_TV.ForceTitleLanguage = AdvancedSettings.GetSetting("ForceTitleLanguage", String.Empty, , Enums.ContentType.TVShow)
     End Sub
@@ -306,11 +317,7 @@ Public Class IMDB_Data
             settings.SetBooleanSetting("DoWriters", ConfigScrapeOptions_Movie.bMainWriters, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_Movie.FallBackWorldwide, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("MPAADescription", _SpecialSettings_Movie.MPAADescription, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchPartialTitles", _SpecialSettings_Movie.SearchPartialTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchPopularTitles", _SpecialSettings_Movie.SearchPopularTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchTvTitles", _SpecialSettings_Movie.SearchTvTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchVideoTitles", _SpecialSettings_Movie.SearchVideoTitles, , , Enums.ContentType.Movie)
-            settings.SetBooleanSetting("SearchShortTitles", _SpecialSettings_Movie.SearchShortTitles, , , Enums.ContentType.Movie)
+            settings.SetSetting("APIKey", _setup_Movie.txtApiKey.Text.Trim, , , Enums.ContentType.Movie)
             settings.SetSetting("ForceTitleLanguage", _SpecialSettings_Movie.ForceTitleLanguage, , , Enums.ContentType.Movie)
             settings.SetBooleanSetting("StudiowithDistributors", _SpecialSettings_Movie.StudiowithDistributors, , , Enums.ContentType.Movie)
         End Using
@@ -337,6 +344,7 @@ Public Class IMDB_Data
             settings.SetBooleanSetting("DoRuntime", ConfigScrapeOptions_TV.bMainRuntime, , , Enums.ContentType.TVShow)
             settings.SetBooleanSetting("DoStudio", ConfigScrapeOptions_TV.bMainStudios, , , Enums.ContentType.TVShow)
             settings.SetBooleanSetting("DoTitle", ConfigScrapeOptions_TV.bMainTitle, , , Enums.ContentType.TVShow)
+            settings.SetSetting("APIKey", _setup_TV.txtApiKey.Text.Trim, , , Enums.ContentType.TV)
             settings.SetBooleanSetting("FallBackWorldwide", _SpecialSettings_TV.FallBackWorldwide, , , Enums.ContentType.TVShow)
             settings.SetSetting("ForceTitleLanguage", _SpecialSettings_TV.ForceTitleLanguage, , , Enums.ContentType.TVShow)
         End Using
@@ -364,12 +372,9 @@ Public Class IMDB_Data
         _SpecialSettings_Movie.FallBackWorldwide = _setup_Movie.chkFallBackworldwide.Checked
         _SpecialSettings_Movie.ForceTitleLanguage = _setup_Movie.cbForceTitleLanguage.Text
         _SpecialSettings_Movie.MPAADescription = _setup_Movie.chkMPAADescription.Checked
-        _SpecialSettings_Movie.SearchPartialTitles = _setup_Movie.chkPartialTitles.Checked
-        _SpecialSettings_Movie.SearchPopularTitles = _setup_Movie.chkPopularTitles.Checked
-        _SpecialSettings_Movie.SearchTvTitles = _setup_Movie.chkTvTitles.Checked
-        _SpecialSettings_Movie.SearchVideoTitles = _setup_Movie.chkVideoTitles.Checked
-        _SpecialSettings_Movie.SearchShortTitles = _setup_Movie.chkShortTitles.Checked
         _SpecialSettings_Movie.StudiowithDistributors = _setup_Movie.chkStudiowithDistributors.Checked
+        strPrivateAPIKey = _setup_Movie.txtApiKey.Text.Trim
+        _SpecialSettings_Movie.APIKey = If(String.IsNullOrEmpty(strPrivateAPIKey), _strAPIKey, strPrivateAPIKey)
 
         SaveSettings_Movie()
         If DoDispose Then
@@ -402,6 +407,8 @@ Public Class IMDB_Data
 
         _SpecialSettings_TV.FallBackWorldwide = _setup_TV.chkFallBackworldwide.Checked
         _SpecialSettings_TV.ForceTitleLanguage = _setup_TV.cbForceTitleLanguage.Text
+        strPrivateAPIKey = _setup_TV.txtApiKey.Text.Trim
+        _SpecialSettings_TV.APIKey = If(String.IsNullOrEmpty(strPrivateAPIKey), _strAPIKey, strPrivateAPIKey)
 
         SaveSettings_TV()
         If DoDispose Then
@@ -592,10 +599,12 @@ Public Class IMDB_Data
 
 #Region "Fields"
 
+        Dim APIKey As String
         Dim FallBackWorldwide As Boolean
         Dim ForceTitleLanguage As String
         Dim MPAADescription As Boolean
         Dim PrefLanguage As String
+        'Deprecated: the IMDb HTML title search categories no longer exist; kept for compatibility only (not loaded/saved/evaluated)
         Dim SearchPartialTitles As Boolean
         Dim SearchPopularTitles As Boolean
         Dim SearchTvTitles As Boolean

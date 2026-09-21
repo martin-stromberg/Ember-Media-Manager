@@ -9,7 +9,7 @@
 | `.githooks/` (`install-hooks.*`, `pre-commit`, `pre-push`, `translation-check.py`) | Local Git hooks (sh/Python) | Client-side gates: `.resx` validation before commit, NU190x dependency scan before push |
 | `.github/workflows/` (7 files) | GitHub Actions workflows | Server-side gates, pre-release/production-release chain, branch-flow automation, scheduled scan |
 | `.github/actions/security-scan` | Composite action | Shared NuGet restore + NU190x evaluation + log artifact (single implementation used by three workflows) |
-| `.github/actions/build-and-package` | Composite action | Shared `Release\|x64` build → `publish/` → `release.zip` + `update.json` (used by prerelease and release jobs) |
+| `.github/actions/build-and-package` | Composite action | Shared `Release\|x64` build → `publish/` → `release.zip` + `update.json` (used by prerelease and release jobs); stamps `release-version` into the `AssemblyInfo.vb` attributes before building and verifies them on the built artifacts |
 | `.nuget\NuGet.exe` | Repo-pinned tool (NuGet 6.14) | Package restore for the legacy `packages.config` model; doubles as the vulnerability scanner at restore time |
 | `Directory.Build.props` + `Microsoft.NETFramework.ReferenceAssemblies.net48` | Build configuration | Lets MSBuild compile .NET Framework 4.8 without a Developer Pack on the runner |
 | `package.json` / `package-lock.json` / `release.config.js` / `scripts/resolve-release-version.mjs` | semantic-release toolchain (Node 24) | Conventional-commits version resolution, tag/release creation, asset upload, run classification |
@@ -40,7 +40,7 @@ graph TD
     GH -->|gh pr create| PR[Back-merge / promotion PRs]
 ```
 
-- Version numbers originate from the commit history (Conventional Commits) and existing `v*` tags — never from `AssemblyInfo`/`EMM_REVISION`, which keep their existing role.
+- Version numbers originate from the commit history (Conventional Commits) and existing `v*` tags. During release builds the resolved version is stamped into the `AssemblyInfo.vb` attributes of `EmberMediaManager`/`EmberAPI` in the CI working copy (no commit back; checked-in placeholder `0.0.0.0`); `EMM_REVISION` in the NSIS installer scripts keeps its existing role.
 - `update.json` carries `version`, `publishedAt` and per-asset `sha256`/`sizeBytes`/`assetUrl` derived from the produced `release.zip`.
 - The staging RC number is derived from the count of existing `v<version>-rc.*` tags.
 

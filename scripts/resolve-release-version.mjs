@@ -16,6 +16,16 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/;
+// Deliberately stricter than VERSION_PATTERN: the "Stamp assembly version" step in
+// .github/actions/build-and-package can only map stable X.Y.Z and RC X.Y.Z-rc.N versions
+// onto the four-part numeric AssemblyVersion, and each of those components is capped at
+// 65534. A tag like v1.2.3-beta.1 is valid SemVer but has no assembly mapping - rejecting
+// it (and out-of-range components like v70000.1.1) here fails the pipeline in the
+// "Resolve release version" step instead of mid-run in the stamp step.
+const STAMPABLE_VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-rc\.(0|[1-9]\d*))?$/;
+// Mirrors the range check in the stamp step of build-and-package/action.yml: assembly
+// version components max out at 65534.
+const MAX_ASSEMBLY_VERSION_COMPONENT = 65534;
 const NEXT_RELEASE_PATTERN = /The next release version is\s+(\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?)/i;
 // Only "master" triggers an automatic release here - unlike FinanceManager, staging pushes
 // are handled entirely by staging-ci.yml ("Pre-Release") and never reach this script.
@@ -29,6 +39,22 @@ export function parseManualTag(tagName) {
   const version = tagName.slice(1);
   if (!VERSION_PATTERN.test(version)) {
     throw new Error(`Tag '${tagName}' is not a valid vX.Y.Z release tag.`);
+  }
+  const stampableMatch = version.match(STAMPABLE_VERSION_PATTERN);
+  if (!stampableMatch) {
+    throw new Error(
+      `Tag '${tagName}' uses a prerelease identifier that cannot be stamped into the assembly version. Only vX.Y.Z and vX.Y.Z-rc.N release tags are supported.`
+    );
+  }
+
+  // The stamp step maps X.Y.Z-rc.N to assembly version X.Y.Z.N, so the RC number is the
+  // fourth component; a missing RC means revision 0, which is always in range.
+  const components = [stampableMatch[1], stampableMatch[2], stampableMatch[3], stampableMatch[5] ?? "0"];
+  const outOfRange = components.find((component) => Number(component) > MAX_ASSEMBLY_VERSION_COMPONENT);
+  if (outOfRange) {
+    throw new Error(
+      `Tag '${tagName}' contains the component '${outOfRange}', which is outside the allowed assembly version range 0-${MAX_ASSEMBLY_VERSION_COMPONENT}.`
+    );
   }
 
   return version;
