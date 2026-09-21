@@ -63,12 +63,12 @@ Public Class Scraper
     Friend WithEvents bwIMDB As New ComponentModel.BackgroundWorker
 
     Private Const REGEX_Certifications As String = "<a href=""/search/title\?certificates=[^""]*"">([^<]*):([^<]*)</a>[^<]*(<i>([^<]*)</i>)?"
-    Private Const REGEX_IMDBID As String = "tt\d\d\d\d\d\d\d"
 
     Private htmldPlotSummary As HtmlDocument = Nothing
     Private htmldReleaseInfo As HtmlDocument = Nothing
     Private strPosterURL As String = String.Empty
 
+    Private _client As TMDbLib.Client.TMDbClient
     Private _SpecialSettings As IMDB_Data.SpecialSettings
 
 #End Region 'Fields
@@ -128,16 +128,36 @@ Public Class Scraper
                 e.Result = New Results With {.ResultType = SearchType.TVShows, .Result = r}
 
             Case SearchType.SearchDetails_Movie
-                Dim r As MediaContainers.Movie = GetMovieInfo(Args.Parameter, True, Args.Options_Movie)
+                Dim r As MediaContainers.Movie = GetMoviePreviewInfo(Args.Parameter, Args.Options_Movie)
                 e.Result = New Results With {.ResultType = SearchType.SearchDetails_Movie, .Result = r}
 
             Case SearchType.SearchDetails_TVShow
-                Dim r As MediaContainers.TVShow = GetTVShowInfo(Args.Parameter, Args.ScrapeModifiers, Args.Options_TV, True)
+                Dim r As MediaContainers.TVShow = GetTVShowPreviewInfo(Args.Parameter, Args.Options_TV)
                 e.Result = New Results With {.ResultType = SearchType.SearchDetails_TVShow, .Result = r}
         End Select
     End Sub
 
     Private Sub bwIMDB_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwIMDB.RunWorkerCompleted
+        If e.Cancelled Then
+            Return
+        End If
+
+        If e.Error IsNot Nothing Then
+            'unwrap AggregateException from Task-based calls so the dialogs get the real error message
+            Dim err As Exception = e.Error
+            Dim agg As AggregateException = TryCast(err, AggregateException)
+            If agg IsNot Nothing AndAlso agg.InnerException IsNot Nothing Then
+                err = agg.InnerException
+            End If
+            logger.Error(err, New StackFrame().GetMethod().Name)
+            RaiseEvent Exception(err)
+            Return
+        End If
+
+        If e.Result Is Nothing Then
+            Return
+        End If
+
         Dim Res As Results = DirectCast(e.Result, Results)
 
         Select Case Res.ResultType
@@ -904,16 +924,33 @@ Public Class Scraper
                                            ByRef oDBElement As Database.DBElement,
                                            ByVal scrapetype As Enums.ScrapeType,
                                            ByVal filteredoptions As Structures.ScrapeOptions) As MediaContainers.Movie
-        Dim r As SearchResults_Movie = SearchMovie(title, year)
-
         Try
+            Dim r As SearchResults_Movie = Nothing
+            Try
+                r = SearchMovie(title, year)
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
+
+            If r Is Nothing Then
+                'the search itself failed (source/API error): in Ask mode open the search dialog so the user
+                'sees the failure (error node via the async search) and can retry or enter an IMDb id manually
+                Select Case scrapetype
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        Using dlgSearch As New dlgIMDBSearchResults_Movie(_SpecialSettings, Me)
+                            If dlgSearch.ShowDialog(title, year, oDBElement.Filename, filteredoptions) = DialogResult.OK Then
+                                If Not String.IsNullOrEmpty(dlgSearch.Result.UniqueIDs.IMDbId) Then
+                                    Return GetMovieInfo(dlgSearch.Result.UniqueIDs.IMDbId, False, filteredoptions)
+                                End If
+                            End If
+                        End Using
+                End Select
+                Return Nothing
+            End If
+
             Select Case scrapetype
                 Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
                     If r.ExactMatches.Count = 1 Then
-                        Return GetMovieInfo(r.ExactMatches.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
-                    ElseIf r.PopularTitles.Count = 1 AndAlso r.PopularTitles(0).Lev <= 5 Then
-                        Return GetMovieInfo(r.PopularTitles.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
-                    ElseIf r.ExactMatches.Count = 1 AndAlso r.ExactMatches(0).Lev <= 5 Then
                         Return GetMovieInfo(r.ExactMatches.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
                     Else
                         Using dlgSearch As New dlgIMDBSearchResults_Movie(_SpecialSettings, Me)
@@ -932,24 +969,20 @@ Public Class Scraper
 
                 Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
                     'check if ALL results are over lev value
+                    'note: PopularTitles/TvTitles/VideoTitles/ShortTitles are never filled by the TMDb-based search
+                    '(kept only as contract of SearchResults_Movie), so only Exact/PartialMatches are evaluated
                     Dim useAnyway As Boolean = False
-                    If ((r.PopularTitles.Count > 0 AndAlso r.PopularTitles(0).Lev > 5) OrElse r.PopularTitles.Count = 0) AndAlso
-                        ((r.ExactMatches.Count > 0 AndAlso r.ExactMatches(0).Lev > 5) OrElse r.ExactMatches.Count = 0) AndAlso
+                    If ((r.ExactMatches.Count > 0 AndAlso r.ExactMatches(0).Lev > 5) OrElse r.ExactMatches.Count = 0) AndAlso
                         ((r.PartialMatches.Count > 0 AndAlso r.PartialMatches(0).Lev > 5) OrElse r.PartialMatches.Count = 0) Then
                         useAnyway = True
                     End If
                     Dim exactHaveYear As Integer = FindYear(oDBElement.Filename, r.ExactMatches)
-                    Dim popularHaveYear As Integer = FindYear(oDBElement.Filename, r.PopularTitles)
                     If r.ExactMatches.Count = 1 Then
                         Return GetMovieInfo(r.ExactMatches.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
                     ElseIf r.ExactMatches.Count > 1 AndAlso exactHaveYear >= 0 Then
                         Return GetMovieInfo(r.ExactMatches.Item(exactHaveYear).UniqueIDs.IMDbId, False, filteredoptions)
-                    ElseIf r.PopularTitles.Count > 0 AndAlso popularHaveYear >= 0 Then
-                        Return GetMovieInfo(r.PopularTitles.Item(popularHaveYear).UniqueIDs.IMDbId, False, filteredoptions)
                     ElseIf r.ExactMatches.Count > 0 AndAlso (r.ExactMatches(0).Lev <= 5 OrElse useAnyway) Then
                         Return GetMovieInfo(r.ExactMatches.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
-                    ElseIf r.PopularTitles.Count > 0 AndAlso (r.PopularTitles(0).Lev <= 5 OrElse useAnyway) Then
-                        Return GetMovieInfo(r.PopularTitles.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
                     ElseIf r.PartialMatches.Count > 0 AndAlso (r.PartialMatches(0).Lev <= 5 OrElse useAnyway) Then
                         Return GetMovieInfo(r.PartialMatches.Item(0).UniqueIDs.IMDbId, False, filteredoptions)
                     End If
@@ -976,34 +1009,60 @@ Public Class Scraper
     End Sub
 
     Public Function GetSearchTVShowInfo(ByVal title As String, ByRef oDBElement As Database.DBElement, ByVal scrapetype As Enums.ScrapeType, ByVal scrapemodifier As Structures.ScrapeModifiers, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.TVShow
-        Dim r As SearchResults_TVShow = SearchTVShow(title)
+        Try
+            Dim r As SearchResults_TVShow = Nothing
+            Try
+                r = SearchTVShow(title)
+            Catch ex As Exception
+                logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
 
-        Select Case scrapetype
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgIMDBSearchResults_TV(_SpecialSettings, Me)
-                        If dlgSearch.ShowDialog(r, title, oDBElement.ShowPath) = DialogResult.OK Then
-                            If Not String.IsNullOrEmpty(dlgSearch.Result.UniqueIDs.IMDbId) Then
-                                Return GetTVShowInfo(dlgSearch.Result.UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+            If r Is Nothing Then
+                'the search itself failed (source/API error): in Ask mode open the search dialog so the user
+                'sees the failure (error node via the async search) and can retry or enter an IMDb id manually
+                Select Case scrapetype
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        Using dlgSearch As New dlgIMDBSearchResults_TV(_SpecialSettings, Me)
+                            If dlgSearch.ShowDialog(title, oDBElement.ShowPath, scrapemodifier, FilteredOptions) = DialogResult.OK Then
+                                If Not String.IsNullOrEmpty(dlgSearch.Result.UniqueIDs.IMDbId) Then
+                                    Return GetTVShowInfo(dlgSearch.Result.UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+                                End If
                             End If
-                        End If
-                    End Using
-                End If
+                        End Using
+                End Select
+                Return Nothing
+            End If
 
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
-                End If
+            Select Case scrapetype
+                Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                    If r.Matches.Count = 1 Then
+                        Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+                    Else
+                        Using dlgSearch As New dlgIMDBSearchResults_TV(_SpecialSettings, Me)
+                            If dlgSearch.ShowDialog(r, title, oDBElement.ShowPath) = DialogResult.OK Then
+                                If Not String.IsNullOrEmpty(dlgSearch.Result.UniqueIDs.IMDbId) Then
+                                    Return GetTVShowInfo(dlgSearch.Result.UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+                                End If
+                            End If
+                        End Using
+                    End If
 
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
-                End If
-        End Select
+                Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+                    If r.Matches.Count = 1 Then
+                        Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+                    End If
 
-        Return Nothing
+                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+                    If r.Matches.Count > 0 Then
+                        Return GetTVShowInfo(r.Matches.Item(0).UniqueIDs.IMDbId, scrapemodifier, FilteredOptions, False)
+                    End If
+            End Select
+
+            Return Nothing
+        Catch ex As Exception
+            logger.Error(ex, New StackFrame().GetMethod().Name)
+            Return Nothing
+        End Try
     End Function
 
     Public Sub GetSearchTVShowInfoAsync(ByVal id As String, ByVal options As Structures.ScrapeOptions)
@@ -1410,131 +1469,168 @@ Public Class Scraper
         Return Nothing
     End Function
 
+    Private Function GetClient() As TMDbLib.Client.TMDbClient
+        If _client Is Nothing Then
+            'assign to the field only after successful config retrieval so a failed
+            'GetConfigAsync does not leave a half-initialized client behind
+            Dim client = New TMDbLib.Client.TMDbClient(_SpecialSettings.APIKey)
+            client.GetConfigAsync().GetAwaiter().GetResult()
+            client.MaxRetryCount = 2
+            _client = client
+            logger.Trace("[IMDB_Data] [GetClient] TMDb client created")
+        End If
+        Return _client
+    End Function
+
+    Private Function GetMoviePreviewInfo(ByVal imdbId As String, ByVal filteredoptions As Structures.ScrapeOptions) As MediaContainers.Movie
+        'the detail preview in the search dialog is fetched via TMDb as well
+        '(the IMDb html detail pages can no longer be scraped)
+        strPosterURL = String.Empty
+
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
+        'TMDb accepts an IMDb id directly for movies
+        Dim tmdbMovie As TMDbLib.Objects.Movies.Movie = client.GetMovieAsync(imdbId, TMDbLib.Objects.Movies.MovieMethods.Credits).GetAwaiter().GetResult()
+        If tmdbMovie Is Nothing Then Return Nothing
+
+        Dim nMovie As New MediaContainers.Movie With {
+            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = imdbId, .TMDbId = tmdbMovie.Id},
+            .Scrapersource = "IMDB"
+        }
+
+        If filteredoptions.bMainTitle Then
+            nMovie.Title = tmdbMovie.Title
+            nMovie.OriginalTitle = tmdbMovie.OriginalTitle
+        End If
+        If filteredoptions.bMainTagline Then nMovie.Tagline = tmdbMovie.Tagline
+        If filteredoptions.bMainPremiered AndAlso tmdbMovie.ReleaseDate.HasValue Then
+            nMovie.Year = tmdbMovie.ReleaseDate.Value.Year.ToString
+            nMovie.Premiered = tmdbMovie.ReleaseDate.Value.ToString("yyyy-MM-dd")
+        End If
+        If filteredoptions.bMainDirectors AndAlso tmdbMovie.Credits IsNot Nothing AndAlso tmdbMovie.Credits.Crew IsNot Nothing Then
+            For Each aCrew As TMDbLib.Objects.General.Crew In tmdbMovie.Credits.Crew.Where(Function(f) f.Department = "Directing" AndAlso f.Job = "Director")
+                nMovie.Directors.Add(aCrew.Name)
+            Next
+        End If
+        If filteredoptions.bMainGenres AndAlso tmdbMovie.Genres IsNot Nothing Then
+            nMovie.Genres.AddRange(tmdbMovie.Genres.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainOutline OrElse filteredoptions.bMainPlot Then
+            nMovie.Outline = tmdbMovie.Overview
+            nMovie.Plot = tmdbMovie.Overview
+        End If
+        If Not String.IsNullOrEmpty(tmdbMovie.PosterPath) Then
+            strPosterURL = String.Concat(client.Config.Images.BaseUrl, "w185", tmdbMovie.PosterPath)
+        End If
+
+        Return nMovie
+    End Function
+
+    Private Function GetTVShowPreviewInfo(ByVal imdbId As String, ByVal filteredoptions As Structures.ScrapeOptions) As MediaContainers.TVShow
+        'the detail preview in the search dialog is fetched via TMDb as well
+        '(the IMDb html detail pages can no longer be scraped)
+        strPosterURL = String.Empty
+
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
+        'GetTvShowAsync only accepts the TMDb id, so resolve the IMDb id via the find endpoint first
+        Dim found As TMDbLib.Objects.Find.FindContainer = client.FindAsync(TMDbLib.Objects.Find.FindExternalSource.Imdb, imdbId).GetAwaiter().GetResult()
+        If found Is Nothing OrElse found.TvResults Is Nothing OrElse found.TvResults.Count = 0 Then Return Nothing
+
+        Dim tmdbShow As TMDbLib.Objects.TvShows.TvShow = client.GetTvShowAsync(found.TvResults(0).Id, TMDbLib.Objects.TvShows.TvShowMethods.Credits).GetAwaiter().GetResult()
+        If tmdbShow Is Nothing Then Return Nothing
+
+        Dim nShow As New MediaContainers.TVShow With {
+            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = imdbId, .TMDbId = tmdbShow.Id},
+            .Scrapersource = "IMDB"
+        }
+
+        If filteredoptions.bMainTitle Then
+            nShow.Title = tmdbShow.Name
+            nShow.OriginalTitle = tmdbShow.OriginalName
+        End If
+        If filteredoptions.bMainCreators AndAlso tmdbShow.CreatedBy IsNot Nothing Then
+            nShow.Creators.AddRange(tmdbShow.CreatedBy.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainGenres AndAlso tmdbShow.Genres IsNot Nothing Then
+            nShow.Genres.AddRange(tmdbShow.Genres.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainPlot Then
+            nShow.Plot = tmdbShow.Overview
+        End If
+        If filteredoptions.bMainPremiered AndAlso tmdbShow.FirstAirDate.HasValue Then
+            nShow.Premiered = tmdbShow.FirstAirDate.Value.ToString("yyyy-MM-dd")
+        End If
+        If Not String.IsNullOrEmpty(tmdbShow.PosterPath) Then
+            strPosterURL = String.Concat(client.Config.Images.BaseUrl, "w185", tmdbShow.PosterPath)
+        End If
+
+        Return nShow
+    End Function
+
     Private Function SearchMovie(ByVal title As String, ByVal year As String) As SearchResults_Movie
         Dim R As New SearchResults_Movie
 
         Dim strTitle As String = String.Concat(title, " ", If(Not String.IsNullOrEmpty(year), String.Concat("(", year, ")"), String.Empty)).Trim
+        Dim strTitleFiltered As String = StringUtils.FilterYear(strTitle)
 
-        Dim htmldResultsPartialTitles As HtmlDocument = Nothing
-        Dim htmldResultsPopularTitles As HtmlDocument = Nothing
-        Dim htmldResultsShortTitles As HtmlDocument = Nothing
-        Dim htmldResultsTvTitles As HtmlDocument = Nothing
-        Dim htmldResultsVideoTitles As HtmlDocument = Nothing
-
-        Dim webParsing As New HtmlWeb
-        Dim htmldResultStandard As HtmlDocument = webParsing.Load(String.Concat("http://www.imdb.com/find?q=", HttpUtility.UrlEncode(strTitle), "&s=tt&ttype=ft"))
-        Dim htmldResultsExact As HtmlDocument = webParsing.Load(String.Concat("http://www.imdb.com/find?q=", HttpUtility.UrlEncode(strTitle), "&s=tt&ttype=ft&exact=true&ref_=fn_tt_ex"))
-        Dim strResponseUri = webParsing.ResponseUri.ToString
-
-        If _SpecialSettings.SearchTvTitles Then
-            htmldResultsTvTitles = webParsing.Load(String.Concat("http://www.imdb.com/search/title?title=", HttpUtility.UrlEncode(strTitle), "&title_type=tv_movie&view=simple"))
-        End If
-        If _SpecialSettings.SearchVideoTitles Then
-            htmldResultsVideoTitles = webParsing.Load(String.Concat("http://www.imdb.com/search/title?title=", HttpUtility.UrlEncode(strTitle), "&title_type=video&view=simple"))
-        End If
-        If _SpecialSettings.SearchShortTitles Then
-            htmldResultsShortTitles = webParsing.Load(String.Concat("http://www.imdb.com/search/title?title=", HttpUtility.UrlEncode(strTitle), "&title_type=short&view=simple"))
-        End If
-        If _SpecialSettings.SearchPartialTitles Then
-            htmldResultsPartialTitles = webParsing.Load(String.Concat("http://www.imdb.com/find?q=", HttpUtility.UrlEncode(strTitle), "&s=tt&ttype=ft&ref_=fn_ft"))
-        End If
-        If _SpecialSettings.SearchPopularTitles Then
-            htmldResultsPopularTitles = webParsing.Load(String.Concat("http://www.imdb.com/find?q=", HttpUtility.UrlEncode(strTitle), "&s=tt&ttype=ft&ref_=fn_tt_pop"))
+        Dim iYear As Integer = 0
+        If Not Integer.TryParse(year, iYear) OrElse iYear = 0 Then
+            'the search dialog passes a combined "title (year)" string, so try to extract the year from it
+            Dim mYear As Match = Regex.Match(strTitle, "\((\d{4})\)\s*$")
+            If mYear.Success Then Integer.TryParse(mYear.Groups(1).Value, iYear)
         End If
 
-        'Check if we've been redirected straight to the movie page
-        If Regex.IsMatch(strResponseUri, REGEX_IMDBID) Then
-            Return R
-        End If
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
 
-        'popular titles
-        If htmldResultsPopularTitles IsNot Nothing Then
-            Dim searchResults = htmldResultsPopularTitles.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.PopularTitles.Add(New MediaContainers.Movie With {
-                                        .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                        .Title = nResult.SelectSingleNode("a").InnerText,
-                                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.OuterHtml)},
-                                        .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
-                                        })
-                Next
-            End If
-        End If
+        Dim Page As Integer = 1
+        Dim TotP As Integer
 
-        'partial titles
-        If htmldResultsPartialTitles IsNot Nothing Then
-            Dim searchResults = htmldResultsPartialTitles.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.PartialMatches.Add(New MediaContainers.Movie With {
-                                         .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                         .Title = nResult.SelectSingleNode("a").InnerText,
-                                         .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.OuterHtml)},
-                                         .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
-                                         })
-                Next
-            End If
-        End If
+        Dim Movies As TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie)
+        'includeAdult is fixed to False - unlike the TMDB module there is no adult-items setting in this module
+        Movies = client.SearchMovieAsync(strTitleFiltered, Page, False, iYear).GetAwaiter().GetResult()
 
-        'tv titles
-        If htmldResultsTvTitles IsNot Nothing Then
-            Dim searchResults = htmldResultsTvTitles.DocumentNode.SelectNodes("//span[@title]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.TvTitles.Add(New MediaContainers.Movie With {
-                                   .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                   .Title = nResult.SelectSingleNode("a").InnerText,
-                                   .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.InnerHtml)},
-                                   .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
-                                   })
-                Next
-            End If
-        End If
+        If Movies IsNot Nothing AndAlso Movies.TotalResults > 0 Then
+            TotP = Movies.TotalPages
+            While Page <= TotP AndAlso Page <= 3
+                If Movies IsNot Nothing AndAlso Movies.Results IsNot Nothing Then
+                    For Each aMovie In Movies.Results
+                        'resolve the IMDb id of the hit; hits without resolvable id are unusable for the dialog/heuristic
+                        Dim strIMDbId As String = String.Empty
+                        Try
+                            Dim extIds = client.GetMovieExternalIdsAsync(aMovie.Id).GetAwaiter().GetResult()
+                            If extIds IsNot Nothing AndAlso Not String.IsNullOrEmpty(extIds.ImdbId) Then
+                                strIMDbId = extIds.ImdbId
+                            End If
+                        Catch ex As Exception
+                            'logged here and swallowed on purpose: the hit is skipped, the error never reaches the caller
+                            logger.Error(ex, String.Format("[IMDB_Data] [SearchMovie] external ids for TMDb id {0} could not be resolved", aMovie.Id))
+                        End Try
 
-        'video titles
-        If htmldResultsVideoTitles IsNot Nothing Then
-            Dim searchResults = htmldResultsVideoTitles.DocumentNode.SelectNodes("//span[@title]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.VideoTitles.Add(New MediaContainers.Movie With {
-                                      .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                      .Title = nResult.SelectSingleNode("a").InnerText,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.InnerHtml)},
-                                      .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
-                                      })
-                Next
-            End If
-        End If
+                        If String.IsNullOrEmpty(strIMDbId) Then Continue For
 
-        'short titles
-        If htmldResultsShortTitles IsNot Nothing Then
-            Dim searchResults = htmldResultsShortTitles.DocumentNode.SelectNodes("//span[@title]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.ShortTitles.Add(New MediaContainers.Movie With {
-                                      .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                      .Title = nResult.SelectSingleNode("a").InnerText,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.InnerHtml)},
-                                      .Year = Regex.Match(nResult.SelectSingleNode("span").InnerText, "\((\d{4})").Groups(1).Value
-                                      })
-                Next
-            End If
-        End If
+                        Dim tTitle As String = If(Not String.IsNullOrEmpty(aMovie.Title), aMovie.Title, aMovie.OriginalTitle)
+                        Dim tYear As String = String.Empty
+                        If aMovie.ReleaseDate IsNot Nothing Then tYear = CStr(aMovie.ReleaseDate.Value.Year)
 
-        'exact titles
-        If htmldResultsExact IsNot Nothing Then
-            Dim searchResults = htmldResultsExact.DocumentNode.SelectNodes("//table[@class=""findList""]/tr[@class]/td[2]")
-            If searchResults IsNot Nothing Then
-                For Each nResult In searchResults
-                    R.ExactMatches.Add(New MediaContainers.Movie With {
-                                           .Lev = StringUtils.ComputeLevenshtein(StringUtils.FilterYear(strTitle).ToLower, nResult.SelectSingleNode("a").InnerText),
-                                           .Title = nResult.SelectSingleNode("a").InnerText,
-                                           .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = StringUtils.GetIMDBIDFromString(nResult.InnerHtml)},
-                                           .Year = Regex.Match(nResult.InnerText, "\((\d{4})").Groups(1).Value
-                                           })
-                Next
-            End If
+                        Dim nMovie As New MediaContainers.Movie With {
+                            .Lev = StringUtils.ComputeLevenshtein(strTitleFiltered.ToLower, tTitle),
+                            .Title = tTitle,
+                            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = strIMDbId, .TMDbId = aMovie.Id},
+                            .Year = tYear
+                            }
+
+                        If String.Equals(StringUtils.FilterYear(tTitle), strTitleFiltered, StringComparison.OrdinalIgnoreCase) AndAlso
+                            (iYear = 0 OrElse tYear = CStr(iYear)) Then
+                            R.ExactMatches.Add(nMovie)
+                        Else
+                            R.PartialMatches.Add(nMovie)
+                        End If
+                    Next
+                End If
+                Page = Page + 1
+                If Page <= TotP AndAlso Page <= 3 Then
+                    Movies = client.SearchMovieAsync(strTitleFiltered, Page, False, iYear).GetAwaiter().GetResult()
+                End If
+            End While
         End If
 
         Return R
@@ -1555,26 +1651,49 @@ Public Class Scraper
     Private Function SearchTVShow(ByVal title As String) As SearchResults_TVShow
         Dim R As New SearchResults_TVShow
 
-        Dim webParsing As New HtmlWeb
-        Dim htmldSearchResults As HtmlDocument = webParsing.Load(String.Concat("http://www.imdb.com/search/title?title=",
-                                                                               HttpUtility.UrlEncode(title),
-                                                                               "&title_type=tv_series&view=simple"))
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
 
-        Dim selNodes = htmldSearchResults.DocumentNode.SelectNodes("//div[@class=""lister-item mode-simple""]")
-        If selNodes IsNot Nothing Then
-            For Each nResult In selNodes
-                Dim ndInfo = nResult.Descendants("img").FirstOrDefault
-                If ndInfo IsNot Nothing Then
-                    Dim attIMDBID = ndInfo.Attributes.Where(Function(f) f.Name = "data-tconst").FirstOrDefault
-                    Dim attTitle = ndInfo.Attributes.Where(Function(f) f.Name = "alt").FirstOrDefault
-                    If attIMDBID IsNot Nothing AndAlso attTitle IsNot Nothing Then
+        Dim Page As Integer = 1
+        Dim TotP As Integer
+
+        Dim Shows As TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv)
+        Shows = client.SearchTvShowAsync(title, Page).GetAwaiter().GetResult()
+
+        If Shows IsNot Nothing AndAlso Shows.TotalResults > 0 Then
+            TotP = Shows.TotalPages
+            While Page <= TotP AndAlso Page <= 3
+                If Shows IsNot Nothing AndAlso Shows.Results IsNot Nothing Then
+                    For Each aShow In Shows.Results
+                        'resolve the IMDb id of the hit; hits without resolvable id are unusable for the dialog/heuristic
+                        Dim strIMDbId As String = String.Empty
+                        Try
+                            Dim extIds = client.GetTvShowExternalIdsAsync(aShow.Id).GetAwaiter().GetResult()
+                            If extIds IsNot Nothing AndAlso Not String.IsNullOrEmpty(extIds.ImdbId) Then
+                                strIMDbId = extIds.ImdbId
+                            End If
+                        Catch ex As Exception
+                            'logged here and swallowed on purpose: the hit is skipped, the error never reaches the caller
+                            logger.Error(ex, String.Format("[IMDB_Data] [SearchTVShow] external ids for TMDb id {0} could not be resolved", aShow.Id))
+                        End Try
+
+                        If String.IsNullOrEmpty(strIMDbId) Then Continue For
+
+                        Dim tTitle As String = If(Not String.IsNullOrEmpty(aShow.Name), aShow.Name, aShow.OriginalName)
+                        Dim tPremiered As String = String.Empty
+                        If aShow.FirstAirDate IsNot Nothing Then tPremiered = aShow.FirstAirDate.Value.ToString("yyyy-MM-dd")
+
                         R.Matches.Add(New MediaContainers.TVShow With {
-                                      .Title = attTitle.Value,
-                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = attIMDBID.Value}
+                                      .Premiered = tPremiered,
+                                      .Title = tTitle,
+                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = strIMDbId, .TMDbId = aShow.Id}
                                       })
-                    End If
+                    Next
                 End If
-            Next
+                Page = Page + 1
+                If Page <= TotP AndAlso Page <= 3 Then
+                    Shows = client.SearchTvShowAsync(title, Page).GetAwaiter().GetResult()
+                End If
+            End While
         End If
 
         Return R

@@ -1581,4 +1581,10 @@
   <string name="1490">Cleaning</string>
   <string name="1491">Delete history from a specific date</string>
   <string name="1492">Delete history for a particular timespan</string>
+  <string name="1493">The search could not be completed: {0}</string>
+  <string name="1494">The API key is invalid or missing. Check the TMDB API key in the module settings.</string>
+  <string name="1495">The request limit of the source has been reached. Please try again later.</string>
+  <string name="1496">The source could not be reached. Check the internet connection and try again later.</string>
+  <string name="1497">The details for the selected entry could not be loaded, but the entry can still be used.</string>
+  <string name="1498">TMDB API Key (used for title search)</string>
 </resources>

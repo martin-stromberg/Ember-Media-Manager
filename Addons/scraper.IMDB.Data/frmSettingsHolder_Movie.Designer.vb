@@ -56,14 +56,14 @@ Partial Class frmSettingsHolder_Movie
         Me.chkRating = New System.Windows.Forms.CheckBox()
         Me.gbScraperOpts = New System.Windows.Forms.GroupBox()
         Me.tblScraperOpts = New System.Windows.Forms.TableLayoutPanel()
-        Me.chkPopularTitles = New System.Windows.Forms.CheckBox()
+        Me.lblApiKey = New System.Windows.Forms.Label()
+        Me.btnUnlockAPI = New System.Windows.Forms.Button()
+        Me.txtApiKey = New System.Windows.Forms.TextBox()
+        Me.lblEMMAPI = New System.Windows.Forms.Label()
+        Me.pbTMDBApiKeyInfo = New System.Windows.Forms.PictureBox()
         Me.chkFallBackworldwide = New System.Windows.Forms.CheckBox()
         Me.lblForceTitleLanguage = New System.Windows.Forms.Label()
         Me.cbForceTitleLanguage = New System.Windows.Forms.ComboBox()
-        Me.chkPartialTitles = New System.Windows.Forms.CheckBox()
-        Me.chkTvTitles = New System.Windows.Forms.CheckBox()
-        Me.chkVideoTitles = New System.Windows.Forms.CheckBox()
-        Me.chkShortTitles = New System.Windows.Forms.CheckBox()
         Me.pnlSettingBottom = New System.Windows.Forms.Panel()
         Me.tblSettingsBottom = New System.Windows.Forms.TableLayoutPanel()
         Me.pbIconBottom = New System.Windows.Forms.PictureBox()
@@ -80,6 +80,7 @@ Partial Class frmSettingsHolder_Movie
         Me.pnlSettingBottom.SuspendLayout()
         Me.tblSettingsBottom.SuspendLayout()
         CType(Me.pbIconBottom, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.pbTMDBApiKeyInfo, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'chkEnabled
@@ -522,19 +523,19 @@ Partial Class frmSettingsHolder_Movie
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblScraperOpts.Controls.Add(Me.chkPopularTitles, 0, 0)
-        Me.tblScraperOpts.Controls.Add(Me.chkFallBackworldwide, 1, 1)
-        Me.tblScraperOpts.Controls.Add(Me.lblForceTitleLanguage, 1, 0)
-        Me.tblScraperOpts.Controls.Add(Me.cbForceTitleLanguage, 2, 0)
-        Me.tblScraperOpts.Controls.Add(Me.chkPartialTitles, 0, 1)
-        Me.tblScraperOpts.Controls.Add(Me.chkTvTitles, 0, 2)
-        Me.tblScraperOpts.Controls.Add(Me.chkVideoTitles, 0, 3)
-        Me.tblScraperOpts.Controls.Add(Me.chkShortTitles, 0, 4)
+        Me.tblScraperOpts.Controls.Add(Me.lblApiKey, 0, 0)
+        Me.tblScraperOpts.Controls.Add(Me.lblEMMAPI, 1, 0)
+        Me.tblScraperOpts.Controls.Add(Me.btnUnlockAPI, 0, 1)
+        Me.tblScraperOpts.Controls.Add(Me.txtApiKey, 1, 1)
+        Me.tblScraperOpts.Controls.Add(Me.pbTMDBApiKeyInfo, 2, 1)
+        Me.tblScraperOpts.Controls.Add(Me.lblForceTitleLanguage, 0, 2)
+        Me.tblScraperOpts.Controls.Add(Me.cbForceTitleLanguage, 1, 2)
+        Me.tblScraperOpts.Controls.Add(Me.chkFallBackworldwide, 0, 3)
         Me.tblScraperOpts.Dock = System.Windows.Forms.DockStyle.Fill
         Me.tblScraperOpts.Location = New System.Drawing.Point(3, 18)
         Me.tblScraperOpts.Name = "tblScraperOpts"
         Me.tblScraperOpts.RowCount = 5
-        Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
+        Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
@@ -543,17 +544,58 @@ Partial Class frmSettingsHolder_Movie
         Me.tblScraperOpts.Size = New System.Drawing.Size(500, 119)
         Me.tblScraperOpts.TabIndex = 1
         '
-        'chkPopularTitles
+        'lblApiKey
         '
-        Me.chkPopularTitles.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.chkPopularTitles.AutoSize = True
-        Me.chkPopularTitles.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkPopularTitles.Location = New System.Drawing.Point(3, 5)
-        Me.chkPopularTitles.Name = "chkPopularTitles"
-        Me.chkPopularTitles.Size = New System.Drawing.Size(96, 17)
-        Me.chkPopularTitles.TabIndex = 0
-        Me.chkPopularTitles.Text = "Popular Titles"
-        Me.chkPopularTitles.UseVisualStyleBackColor = True
+        Me.lblApiKey.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblApiKey.AutoSize = True
+        Me.lblApiKey.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblApiKey.Location = New System.Drawing.Point(3, 3)
+        Me.lblApiKey.Name = "lblApiKey"
+        Me.lblApiKey.Size = New System.Drawing.Size(80, 13)
+        Me.lblApiKey.TabIndex = 0
+        Me.lblApiKey.Text = "TMDB API Key (used for title search):"
+        '
+        'lblEMMAPI
+        '
+        Me.lblEMMAPI.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblEMMAPI.AutoSize = True
+        Me.tblScraperOpts.SetColumnSpan(Me.lblEMMAPI, 2)
+        Me.lblEMMAPI.Font = New System.Drawing.Font("Segoe UI", 8.25!)
+        Me.lblEMMAPI.Location = New System.Drawing.Point(171, 3)
+        Me.lblEMMAPI.Name = "lblEMMAPI"
+        Me.lblEMMAPI.Size = New System.Drawing.Size(220, 13)
+        Me.lblEMMAPI.TabIndex = 12
+        Me.lblEMMAPI.Text = "Ember Media Manager Embedded API Key"
+        '
+        'btnUnlockAPI
+        '
+        Me.btnUnlockAPI.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.btnUnlockAPI.Location = New System.Drawing.Point(3, 23)
+        Me.btnUnlockAPI.Name = "btnUnlockAPI"
+        Me.btnUnlockAPI.Size = New System.Drawing.Size(162, 23)
+        Me.btnUnlockAPI.TabIndex = 11
+        Me.btnUnlockAPI.Text = "Use my own API key"
+        Me.btnUnlockAPI.UseVisualStyleBackColor = True
+        '
+        'txtApiKey
+        '
+        Me.txtApiKey.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.txtApiKey.Enabled = False
+        Me.txtApiKey.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtApiKey.Location = New System.Drawing.Point(171, 23)
+        Me.txtApiKey.Name = "txtApiKey"
+        Me.txtApiKey.Size = New System.Drawing.Size(230, 22)
+        Me.txtApiKey.TabIndex = 1
+        '
+        'pbTMDBApiKeyInfo
+        '
+        Me.pbTMDBApiKeyInfo.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.pbTMDBApiKeyInfo.Image = CType(resources.GetObject("pbTMDBApiKeyInfo.Image"), System.Drawing.Image)
+        Me.pbTMDBApiKeyInfo.Location = New System.Drawing.Point(407, 26)
+        Me.pbTMDBApiKeyInfo.Name = "pbTMDBApiKeyInfo"
+        Me.pbTMDBApiKeyInfo.Size = New System.Drawing.Size(16, 16)
+        Me.pbTMDBApiKeyInfo.TabIndex = 5
+        Me.pbTMDBApiKeyInfo.TabStop = False
         '
         'chkFallBackworldwide
         '
@@ -562,7 +604,7 @@ Partial Class frmSettingsHolder_Movie
         Me.tblScraperOpts.SetColumnSpan(Me.chkFallBackworldwide, 2)
         Me.chkFallBackworldwide.Enabled = False
         Me.chkFallBackworldwide.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkFallBackworldwide.Location = New System.Drawing.Point(112, 30)
+        Me.chkFallBackworldwide.Location = New System.Drawing.Point(3, 76)
         Me.chkFallBackworldwide.Name = "chkFallBackworldwide"
         Me.chkFallBackworldwide.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
         Me.chkFallBackworldwide.Size = New System.Drawing.Size(189, 17)
@@ -575,7 +617,7 @@ Partial Class frmSettingsHolder_Movie
         Me.lblForceTitleLanguage.Anchor = System.Windows.Forms.AnchorStyles.Left
         Me.lblForceTitleLanguage.AutoSize = True
         Me.lblForceTitleLanguage.Font = New System.Drawing.Font("Segoe UI", 8.25!)
-        Me.lblForceTitleLanguage.Location = New System.Drawing.Point(112, 7)
+        Me.lblForceTitleLanguage.Location = New System.Drawing.Point(3, 56)
         Me.lblForceTitleLanguage.Name = "lblForceTitleLanguage"
         Me.lblForceTitleLanguage.Size = New System.Drawing.Size(117, 13)
         Me.lblForceTitleLanguage.TabIndex = 4
@@ -593,54 +635,6 @@ Partial Class frmSettingsHolder_Movie
         Me.cbForceTitleLanguage.Size = New System.Drawing.Size(131, 21)
         Me.cbForceTitleLanguage.Sorted = True
         Me.cbForceTitleLanguage.TabIndex = 77
-        '
-        'chkPartialTitles
-        '
-        Me.chkPartialTitles.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.chkPartialTitles.AutoSize = True
-        Me.chkPartialTitles.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkPartialTitles.Location = New System.Drawing.Point(3, 30)
-        Me.chkPartialTitles.Name = "chkPartialTitles"
-        Me.chkPartialTitles.Size = New System.Drawing.Size(88, 17)
-        Me.chkPartialTitles.TabIndex = 1
-        Me.chkPartialTitles.Text = "Partial Titles"
-        Me.chkPartialTitles.UseVisualStyleBackColor = True
-        '
-        'chkTvTitles
-        '
-        Me.chkTvTitles.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.chkTvTitles.AutoSize = True
-        Me.chkTvTitles.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkTvTitles.Location = New System.Drawing.Point(3, 53)
-        Me.chkTvTitles.Name = "chkTvTitles"
-        Me.chkTvTitles.Size = New System.Drawing.Size(103, 17)
-        Me.chkTvTitles.TabIndex = 2
-        Me.chkTvTitles.Text = "TV Movie Titles"
-        Me.chkTvTitles.UseVisualStyleBackColor = True
-        '
-        'chkVideoTitles
-        '
-        Me.chkVideoTitles.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.chkVideoTitles.AutoSize = True
-        Me.chkVideoTitles.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkVideoTitles.Location = New System.Drawing.Point(3, 76)
-        Me.chkVideoTitles.Name = "chkVideoTitles"
-        Me.chkVideoTitles.Size = New System.Drawing.Size(86, 17)
-        Me.chkVideoTitles.TabIndex = 3
-        Me.chkVideoTitles.Text = "Video Titles"
-        Me.chkVideoTitles.UseVisualStyleBackColor = True
-        '
-        'chkShortTitles
-        '
-        Me.chkShortTitles.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.chkShortTitles.AutoSize = True
-        Me.chkShortTitles.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkShortTitles.Location = New System.Drawing.Point(3, 99)
-        Me.chkShortTitles.Name = "chkShortTitles"
-        Me.chkShortTitles.Size = New System.Drawing.Size(84, 17)
-        Me.chkShortTitles.TabIndex = 80
-        Me.chkShortTitles.Text = "Short Titles"
-        Me.chkShortTitles.UseVisualStyleBackColor = True
         '
         'pnlSettingBottom
         '
@@ -734,6 +728,7 @@ Partial Class frmSettingsHolder_Movie
         Me.tblSettingsBottom.ResumeLayout(False)
         Me.tblSettingsBottom.PerformLayout()
         CType(Me.pbIconBottom, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.pbTMDBApiKeyInfo, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -763,11 +758,11 @@ Partial Class frmSettingsHolder_Movie
     Friend WithEvents chkPremiered As System.Windows.Forms.CheckBox
     Friend WithEvents chkTitle As System.Windows.Forms.CheckBox
     Friend WithEvents gbScraperOpts As System.Windows.Forms.GroupBox
-    Friend WithEvents chkTvTitles As System.Windows.Forms.CheckBox
-    Friend WithEvents chkPartialTitles As System.Windows.Forms.CheckBox
-    Friend WithEvents chkPopularTitles As System.Windows.Forms.CheckBox
-    Friend WithEvents chkVideoTitles As System.Windows.Forms.CheckBox
-    Friend WithEvents chkShortTitles As System.Windows.Forms.CheckBox
+    Friend WithEvents lblApiKey As System.Windows.Forms.Label
+    Friend WithEvents btnUnlockAPI As System.Windows.Forms.Button
+    Friend WithEvents txtApiKey As System.Windows.Forms.TextBox
+    Friend WithEvents lblEMMAPI As System.Windows.Forms.Label
+    Friend WithEvents pbTMDBApiKeyInfo As System.Windows.Forms.PictureBox
     Friend WithEvents chkFallBackworldwide As System.Windows.Forms.CheckBox
     Friend WithEvents cbForceTitleLanguage As System.Windows.Forms.ComboBox
     Friend WithEvents lblForceTitleLanguage As System.Windows.Forms.Label
