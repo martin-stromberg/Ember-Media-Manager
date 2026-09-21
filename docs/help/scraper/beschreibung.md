@@ -45,7 +45,8 @@ Scraper modules fetch information from the internet: metadata (title, plot, cast
 
 ## Limitations
 
-- Availability and data quality of the online sources are outside the project's control; individual services may have changed or shut down — the module then simply reports no results.
-- **Known defect:** the IMDb data scraper's title search currently returns no results — the *Search Results* dialog always shows *No Matches Found* for movies and TV shows. Workaround: enter the IMDb ID via *Manual IMDB Entry* in the search dialog. The TMDb data scraper may also fail to deliver search hits in the same setup. Details and workarounds: [Troubleshooting](troubleshooting.md).
+- Availability and data quality of the online sources are outside the project's control; individual services may have changed or shut down.
+- The IMDb data scraper performs its title search via the TMDb search service and maps each hit to an IMDb ID. Hits without a resolvable IMDb ID do not appear in the *Search Results* dialog. In the movie search, hits are grouped only into *Exact Matches* and *Partial Matches* — the former special groups *Popular Titles*, *TV Movie Titles*, *Video Titles* and *Short Titles* no longer exist. If the search source fails — for example an invalid API key or a reached request limit — the dialog shows a dedicated error message (*The search could not be completed: …*) instead of *No Matches Found*; the IMDb ID can still be entered via *Manual IMDB Entry*. See [Troubleshooting](troubleshooting.md).
+- The IMDb data scraper's detail pages are partially unavailable: if the details of a selected search result cannot be loaded, the dialog shows *The details for the selected entry could not be loaded, but the entry can still be used.* — the selected entry can still be confirmed.
 - Some sources require API keys or account sign-in (see [Setup](einrichtung-anwender.md)).
 - Locked entries (*Lock*) are not modified; empty fields are only filled when the scraper provides them.

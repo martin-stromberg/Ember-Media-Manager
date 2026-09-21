@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-21 — Title-based search for movies and TV shows migrated to the TMDb API (Issue #16)
+
+- The title search of the `scraper.Data.IMDB` module no longer parses the broken IMDb HTML pages (`imdb.com/find`, `imdb.com/search/title`). `SearchMovie`/`SearchTVShow` in `clsScrapeIMDB.vb` now query the TMDb API via `TMDbLib` (`SearchMovieAsync`/`SearchTvShowAsync`, up to 3 result pages) and resolve the IMDb ID of each hit (`GetMovieExternalIdsAsync`/`GetTvShowExternalIdsAsync`). Hits without a resolvable IMDb ID are logged and skipped.
+- Search results are classified into *Exact Matches* (title matches after year normalization plus matching year) and *Partial Matches*; the former special categories *Popular Titles*, *TV Movie Titles*, *Video Titles* and *Short Titles* are no longer filled and were removed from the IMDb movie search dialog and the module settings (the five `Search*Titles` settings/checkboxes are deprecated — existing entries in `AdvancedSettings.xml` remain inert).
+- New `APIKey` setting in the IMDb module settings (movies and TV): a personal TMDb API key can be entered after *Use my own API key*; an empty field falls back to the embedded Ember API key. Persisted per content type via `AdvancedSettings`.
+- Source failures are now distinguishable from "no hits": worker errors propagate through a new `Exception` event to the search dialogs, which show a dedicated error node (*The search could not be completed: …*) with mapped reasons (invalid/missing API key, request limit reached, source unreachable) instead of *No Matches Found*; *Manual IMDB Entry* remains usable as fallback. If the detail lookup for a selected entry fails, the entry can still be confirmed (*The details for the selected entry could not be loaded, but the entry can still be used.*).
+- The same error handling was added to the `scraper.Data.TMDB` module (`clsScrapeTMDB.vb`): `APIResult.Result` is no longer evaluated blindly (now `GetAwaiter().GetResult()` inside `Try/Catch`), `bwTMDB_RunWorkerCompleted` checks `e.Error`/`e.Cancelled` before accessing `e.Result`, and all three TMDb search dialogs show the same error node instead of hanging in the loading state.
+- `TMDbLib` upgraded to 2.3.0 in both modules (highest .NET Framework-compatible release; 3.x targets net8.0+ only) including transitive packages and a `TMDbLib` binding redirect in `EmberMediaManager\App.config`.
+- New UI strings 1493–1498 in `EmberAPI\Translations\en-US.xml`. Help documentation updated under `docs/help/scraper/` (description, troubleshooting, user setup, technical flow, business rules; new `installation.md`).
+
 ## 2026-09-20 — Requirements analysis: restore title-based IMDb search for movies and TV shows (Issue #8)
 
 - New analysis/requirements document `docs/analysis/issue-8-titelsuche-imdb.md` for the responsible development project — no code changes in this branch.

@@ -41,6 +41,7 @@ Public Class dlgIMDBSearchResults_Movie
     Private _InfoCache As New Dictionary(Of String, MediaContainers.Movie)
     Private _PosterCache As New Dictionary(Of String, Image)
     Private _filterOptions As Structures.ScrapeOptions
+    Private _searchPending As Boolean = False
 
     Private _tmpMovie As New MediaContainers.Movie
 
@@ -85,6 +86,7 @@ Public Class dlgIMDBSearchResults_Movie
         'chkManual.Enabled = False
         chkManual.Enabled = True
 
+        _searchPending = True
         _IMDB.SearchMovieAsync(sMovieTitle, sMovieYear, _filterOptions)
 
         Return ShowDialog()
@@ -117,6 +119,7 @@ Public Class dlgIMDBSearchResults_Movie
             chkManual.Enabled = False
 
             _IMDB.CancelAsync()
+            _searchPending = True
             _IMDB.SearchMovieAsync(txtSearch.Text, String.Empty, _filterOptions)
         End If
     End Sub
@@ -187,6 +190,7 @@ Public Class dlgIMDBSearchResults_Movie
         ClearInfo()
         If chkManual.Enabled Then
             pnlLoading.Visible = False
+            _searchPending = False
             _IMDB.CancelAsync()
         End If
         OK_Button.Enabled = False
@@ -240,6 +244,7 @@ Public Class dlgIMDBSearchResults_Movie
         pnlPicStatus.Visible = False
         AddHandler _IMDB.SearchInfoDownloaded_Movie, AddressOf SearchMovieInfoDownloaded
         AddHandler _IMDB.SearchResultsDownloaded_Movie, AddressOf SearchResultsDownloaded
+        AddHandler _IMDB.Exception, AddressOf SearchFailed
 
         Try
             Dim iBackground As New Bitmap(pnlTop.Width, pnlTop.Height)
@@ -327,10 +332,68 @@ Public Class dlgIMDBSearchResults_Movie
                 If chkManual.Checked Then
                     MessageBox.Show(Master.eLang.GetString(825, "Unable to retrieve movie details for the entered IMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     btnVerify.Enabled = True
+                ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
+                    'detail lookup failed: keep the selected IMDb id so the user can still confirm the result
+                    ControlsVisible(True)
+                    _tmpMovie.UniqueIDs.IMDbId = tvResults.SelectedNode.Tag.ToString
+                    lblTitle.Text = tvResults.SelectedNode.Text
+                    lblIMDBID.Text = _tmpMovie.UniqueIDs.IMDbId
+                    txtOutline.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
                 End If
             End If
         Catch ex As Exception
             logger.Error(ex, New StackFrame().GetMethod().Name)
+        End Try
+    End Sub
+
+    Private Function GetSearchErrorMessage(ByVal ex As Exception) As String
+        'map common source/API errors to understandable messages; keep the technical message as fallback
+        Dim agg As AggregateException = TryCast(ex, AggregateException)
+        If agg IsNot Nothing AndAlso agg.InnerException IsNot Nothing Then
+            ex = agg.InnerException
+        End If
+
+        If TypeOf ex Is UnauthorizedAccessException Then
+            Return Master.eLang.GetString(1494, "The API key is invalid or missing. Check the TMDB API key in the module settings.")
+        ElseIf TypeOf ex Is TMDbLib.Objects.Exceptions.RequestLimitExceededException Then
+            Return Master.eLang.GetString(1495, "The request limit of the source has been reached. Please try again later.")
+        ElseIf TypeOf ex Is System.Net.Http.HttpRequestException OrElse TypeOf ex Is System.Net.WebException Then
+            Return Master.eLang.GetString(1496, "The source could not be reached. Check the internet connection and try again later.")
+        End If
+
+        Return ex.Message
+    End Function
+
+    Private Sub SearchFailed(ByVal ex As Exception)
+        '//
+        ' The search itself failed (source/API error). This is different from "No Matches Found":
+        ' stop the pending detail lookup, unlock the UI and show the failure instead of empty results.
+        '\\
+
+        Try
+            tmrWait.Stop()
+            tmrLoad.Stop()
+            pnlLoading.Visible = False
+            chkManual.Enabled = True
+
+            If _searchPending Then
+                _searchPending = False
+                tvResults.Nodes.Clear()
+                tvResults.Nodes.Add(New TreeNode With {.Text = String.Format(Master.eLang.GetString(1493, "The search could not be completed: {0}"), GetSearchErrorMessage(ex))})
+            ElseIf chkManual.Checked Then
+                MessageBox.Show(Master.eLang.GetString(825, "Unable to retrieve movie details for the entered IMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                btnVerify.Enabled = True
+            ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
+                'a detail lookup for the selected entry failed: keep the results and show the id with a hint
+                ControlsVisible(True)
+                _tmpMovie.UniqueIDs.IMDbId = tvResults.SelectedNode.Tag.ToString
+                lblTitle.Text = tvResults.SelectedNode.Text
+                lblIMDBID.Text = _tmpMovie.UniqueIDs.IMDbId
+                txtOutline.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
+                OK_Button.Enabled = True
+            End If
+        Catch ex2 As Exception
+            logger.Error(ex2, New StackFrame().GetMethod().Name)
         End Try
     End Sub
 
@@ -340,15 +403,14 @@ Public Class dlgIMDBSearchResults_Movie
         '\\
 
         Try
+            _searchPending = False
             tvResults.Nodes.Clear()
             ClearInfo()
             If tSearchResults IsNot Nothing Then
+                'the TMDb-based search only fills ExactMatches and PartialMatches; the other lists
+                '(PopularTitles/TvTitles/VideoTitles/ShortTitles) remain part of the contract but stay empty
                 If tSearchResults.PartialMatches.Count > 0 OrElse
-                    tSearchResults.PopularTitles.Count > 0 OrElse
-                    tSearchResults.TvTitles.Count > 0 OrElse
-                    tSearchResults.ExactMatches.Count > 0 OrElse
-                    tSearchResults.VideoTitles.Count > 0 OrElse
-                    tSearchResults.ShortTitles.Count > 0 Then
+                    tSearchResults.ExactMatches.Count > 0 Then
                     Dim TnP As New TreeNode(String.Format(Master.eLang.GetString(827, "Partial Matches ({0})"), tSearchResults.PartialMatches.Count))
                     Dim selNode As New TreeNode
 
@@ -362,65 +424,9 @@ Public Class dlgIMDBSearchResults_Movie
                         selNode = TnP.FirstNode
                     End If
 
-                    If tSearchResults.TvTitles.Count > 0 Then
-                        'tSearchResults.TvTitles.Sort()
-                        If tSearchResults.PartialMatches.Count > 0 Then
-                            tvResults.Nodes(TnP.Index).Collapse()
-                        End If
-                        TnP = New TreeNode(String.Format(Master.eLang.GetString(1006, "TV Movie Titles ({0})"), tSearchResults.TvTitles.Count))
-                        For Each Movie As MediaContainers.Movie In tSearchResults.TvTitles
-                            TnP.Nodes.Add(New TreeNode() With {.Text = String.Concat(Movie.Title, If(Not String.IsNullOrEmpty(Movie.Year), String.Format(" ({0})", Movie.Year), String.Empty)), .Tag = Movie.UniqueIDs.IMDbId})
-                        Next
-                        TnP.Expand()
-                        tvResults.Nodes.Add(TnP)
-                        selNode = TnP.FirstNode
-                    End If
-
-                    If tSearchResults.VideoTitles.Count > 0 Then
-                        'tSearchResults.VideoTitles.Sort()
-                        If tSearchResults.PartialMatches.Count > 0 Then
-                            tvResults.Nodes(TnP.Index).Collapse()
-                        End If
-                        TnP = New TreeNode(String.Format(Master.eLang.GetString(1083, "Video Titles ({0})"), tSearchResults.VideoTitles.Count))
-                        For Each Movie As MediaContainers.Movie In tSearchResults.VideoTitles
-                            TnP.Nodes.Add(New TreeNode() With {.Text = String.Concat(Movie.Title, If(Not String.IsNullOrEmpty(Movie.Year), String.Format(" ({0})", Movie.Year), String.Empty)), .Tag = Movie.UniqueIDs.IMDbId})
-                        Next
-                        TnP.Expand()
-                        tvResults.Nodes.Add(TnP)
-                        selNode = TnP.FirstNode
-                    End If
-
-                    If tSearchResults.ShortTitles.Count > 0 Then
-                        'tSearchResults.ShortTitles.Sort()
-                        If tSearchResults.PartialMatches.Count > 0 Then
-                            tvResults.Nodes(TnP.Index).Collapse()
-                        End If
-                        TnP = New TreeNode(String.Format(Master.eLang.GetString(1389, "Short Titles ({0})"), tSearchResults.ShortTitles.Count))
-                        For Each Movie As MediaContainers.Movie In tSearchResults.ShortTitles
-                            TnP.Nodes.Add(New TreeNode() With {.Text = String.Concat(Movie.Title, If(Not String.IsNullOrEmpty(Movie.Year), String.Format(" ({0})", Movie.Year), String.Empty)), .Tag = Movie.UniqueIDs.IMDbId})
-                        Next
-                        TnP.Expand()
-                        tvResults.Nodes.Add(TnP)
-                        selNode = TnP.FirstNode
-                    End If
-
-                    If tSearchResults.PopularTitles.Count > 0 Then
-                        'tSearchResults.PopularTitles.Sort()
-                        If tSearchResults.PartialMatches.Count > 0 OrElse tSearchResults.TvTitles.Count > 0 Then
-                            tvResults.Nodes(TnP.Index).Collapse()
-                        End If
-                        TnP = New TreeNode(String.Format(Master.eLang.GetString(829, "Popular Titles ({0})"), tSearchResults.PopularTitles.Count))
-                        For Each Movie As MediaContainers.Movie In tSearchResults.PopularTitles
-                            TnP.Nodes.Add(New TreeNode() With {.Text = String.Concat(Movie.Title, If(Not String.IsNullOrEmpty(Movie.Year), String.Format(" ({0})", Movie.Year), String.Empty)), .Tag = Movie.UniqueIDs.IMDbId})
-                        Next
-                        TnP.Expand()
-                        tvResults.Nodes.Add(TnP)
-                        selNode = TnP.FirstNode
-                    End If
-
                     If tSearchResults.ExactMatches.Count > 0 Then
                         'tSearchResults.ExactMatches.Sort()
-                        If tSearchResults.PartialMatches.Count > 0 OrElse tSearchResults.TvTitles.Count > 0 OrElse tSearchResults.PopularTitles.Count > 0 Then
+                        If tSearchResults.PartialMatches.Count > 0 Then
                             tvResults.Nodes(TnP.Index).Collapse()
                         End If
                         TnP = New TreeNode(String.Format(Master.eLang.GetString(831, "Exact Matches ({0})"), tSearchResults.ExactMatches.Count))
@@ -434,17 +440,7 @@ Public Class dlgIMDBSearchResults_Movie
                     _prevnode = -2
 
                     'determine if we automatically start downloading info for selected node
-                    If tSearchResults.ExactMatches.Count > 0 Then
-                        tvResults.SelectedNode = selNode
-                    ElseIf tSearchResults.PopularTitles.Count > 0 Then
-                        tvResults.SelectedNode = selNode
-                    ElseIf tSearchResults.TvTitles.Count > 0 Then
-                        tvResults.SelectedNode = selNode
-                    ElseIf tSearchResults.VideoTitles.Count > 0 Then
-                        tvResults.SelectedNode = selNode
-                    ElseIf tSearchResults.ShortTitles.Count > 0 Then
-                        tvResults.SelectedNode = selNode
-                    ElseIf tSearchResults.PartialMatches.Count > 0 Then
+                    If tSearchResults.ExactMatches.Count > 0 OrElse tSearchResults.PartialMatches.Count > 0 Then
                         tvResults.SelectedNode = selNode
                     Else
                         tvResults.SelectedNode = Nothing

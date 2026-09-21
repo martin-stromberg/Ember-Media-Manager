@@ -34,6 +34,10 @@ Partial Class frmSettingsHolder_TV
         Me.tblSettingsMain = New System.Windows.Forms.TableLayoutPanel()
         Me.gbScraperOpts = New System.Windows.Forms.GroupBox()
         Me.tblScraperOpts = New System.Windows.Forms.TableLayoutPanel()
+        Me.lblApiKey = New System.Windows.Forms.Label()
+        Me.btnUnlockAPI = New System.Windows.Forms.Button()
+        Me.txtApiKey = New System.Windows.Forms.TextBox()
+        Me.lblEMMAPI = New System.Windows.Forms.Label()
         Me.chkFallBackworldwide = New System.Windows.Forms.CheckBox()
         Me.lblForceTitleLanguage = New System.Windows.Forms.Label()
         Me.cbForceTitleLanguage = New System.Windows.Forms.ComboBox()
@@ -222,18 +226,67 @@ Partial Class frmSettingsHolder_TV
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
         Me.tblScraperOpts.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle())
-        Me.tblScraperOpts.Controls.Add(Me.chkFallBackworldwide, 0, 1)
-        Me.tblScraperOpts.Controls.Add(Me.lblForceTitleLanguage, 0, 0)
-        Me.tblScraperOpts.Controls.Add(Me.cbForceTitleLanguage, 1, 0)
+        Me.tblScraperOpts.Controls.Add(Me.lblApiKey, 0, 0)
+        Me.tblScraperOpts.Controls.Add(Me.lblEMMAPI, 1, 0)
+        Me.tblScraperOpts.Controls.Add(Me.btnUnlockAPI, 0, 1)
+        Me.tblScraperOpts.Controls.Add(Me.txtApiKey, 1, 1)
+        Me.tblScraperOpts.Controls.Add(Me.lblForceTitleLanguage, 0, 2)
+        Me.tblScraperOpts.Controls.Add(Me.cbForceTitleLanguage, 1, 2)
+        Me.tblScraperOpts.Controls.Add(Me.chkFallBackworldwide, 0, 3)
         Me.tblScraperOpts.Dock = System.Windows.Forms.DockStyle.Fill
         Me.tblScraperOpts.Location = New System.Drawing.Point(3, 18)
         Me.tblScraperOpts.Name = "tblScraperOpts"
-        Me.tblScraperOpts.RowCount = 3
+        Me.tblScraperOpts.RowCount = 4
+        Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
         Me.tblScraperOpts.RowStyles.Add(New System.Windows.Forms.RowStyle())
-        Me.tblScraperOpts.Size = New System.Drawing.Size(387, 50)
+        Me.tblScraperOpts.Size = New System.Drawing.Size(387, 96)
         Me.tblScraperOpts.TabIndex = 1
+        '
+        'lblApiKey
+        '
+        Me.lblApiKey.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblApiKey.AutoSize = True
+        Me.lblApiKey.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblApiKey.Location = New System.Drawing.Point(3, 3)
+        Me.lblApiKey.Name = "lblApiKey"
+        Me.lblApiKey.Size = New System.Drawing.Size(80, 13)
+        Me.lblApiKey.TabIndex = 0
+        Me.lblApiKey.Text = "TMDB API Key (used for title search):"
+        '
+        'lblEMMAPI
+        '
+        Me.lblEMMAPI.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.lblEMMAPI.AutoSize = True
+        Me.tblScraperOpts.SetColumnSpan(Me.lblEMMAPI, 2)
+        Me.lblEMMAPI.Font = New System.Drawing.Font("Segoe UI", 8.25!)
+        Me.lblEMMAPI.Location = New System.Drawing.Point(171, 3)
+        Me.lblEMMAPI.Name = "lblEMMAPI"
+        Me.lblEMMAPI.Size = New System.Drawing.Size(220, 13)
+        Me.lblEMMAPI.TabIndex = 12
+        Me.lblEMMAPI.Text = "Ember Media Manager Embedded API Key"
+        '
+        'btnUnlockAPI
+        '
+        Me.btnUnlockAPI.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.btnUnlockAPI.Location = New System.Drawing.Point(3, 23)
+        Me.btnUnlockAPI.Name = "btnUnlockAPI"
+        Me.btnUnlockAPI.Size = New System.Drawing.Size(162, 23)
+        Me.btnUnlockAPI.TabIndex = 11
+        Me.btnUnlockAPI.Text = "Use my own API key"
+        Me.btnUnlockAPI.UseVisualStyleBackColor = True
+        '
+        'txtApiKey
+        '
+        Me.txtApiKey.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.tblScraperOpts.SetColumnSpan(Me.txtApiKey, 2)
+        Me.txtApiKey.Enabled = False
+        Me.txtApiKey.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtApiKey.Location = New System.Drawing.Point(171, 23)
+        Me.txtApiKey.Name = "txtApiKey"
+        Me.txtApiKey.Size = New System.Drawing.Size(230, 22)
+        Me.txtApiKey.TabIndex = 1
         '
         'chkFallBackworldwide
         '
@@ -242,7 +295,7 @@ Partial Class frmSettingsHolder_TV
         Me.tblScraperOpts.SetColumnSpan(Me.chkFallBackworldwide, 2)
         Me.chkFallBackworldwide.Enabled = False
         Me.chkFallBackworldwide.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.chkFallBackworldwide.Location = New System.Drawing.Point(3, 30)
+        Me.chkFallBackworldwide.Location = New System.Drawing.Point(3, 76)
         Me.chkFallBackworldwide.Name = "chkFallBackworldwide"
         Me.chkFallBackworldwide.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
         Me.chkFallBackworldwide.Size = New System.Drawing.Size(189, 17)
@@ -255,7 +308,7 @@ Partial Class frmSettingsHolder_TV
         Me.lblForceTitleLanguage.Anchor = System.Windows.Forms.AnchorStyles.Left
         Me.lblForceTitleLanguage.AutoSize = True
         Me.lblForceTitleLanguage.Font = New System.Drawing.Font("Segoe UI", 8.25!)
-        Me.lblForceTitleLanguage.Location = New System.Drawing.Point(3, 7)
+        Me.lblForceTitleLanguage.Location = New System.Drawing.Point(3, 56)
         Me.lblForceTitleLanguage.Name = "lblForceTitleLanguage"
         Me.lblForceTitleLanguage.Size = New System.Drawing.Size(116, 13)
         Me.lblForceTitleLanguage.TabIndex = 4
@@ -268,7 +321,7 @@ Partial Class frmSettingsHolder_TV
         Me.cbForceTitleLanguage.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(238, Byte))
         Me.cbForceTitleLanguage.FormattingEnabled = True
         Me.cbForceTitleLanguage.Items.AddRange(New Object() {"", "Argentina", "Australia", "Azerbaijan", "Belgium", "Brazil", "Bulgaria (Bulgarian title)", "Canada (English title)", "Canada (French title)", "Chile", "China (Mandarin title)", "Colombia", "Croatia", "Czech Republic", "Denmark", "Estonia", "Finland", "Finland (Swedish title)", "France", "Georgia", "Germany", "Greece", "Hong Kong", "Hong Kong (Cantonese title)", "Hong Kong (Mandarin title)", "Hungary", "Iceland", "India (Hindi title)", "Ireland", "Israel (Hebrew title)", "Italy", "Japan", "Japan (English title)", "Latvia", "Lithuania", "Mexico", "Netherlands", "New Zealand", "Panama", "Peru", "Poland", "Portugal", "Romania", "Russia", "Serbia", "Singapore", "Slovakia", "Slovenia", "South Korea", "Spain", "Sweden", "Switzerland", "Taiwan", "Turkey (Turkish title)", "UK", "Ukraine", "Uruguay", "USA", "Venezuela", "Vietnam"})
-        Me.cbForceTitleLanguage.Location = New System.Drawing.Point(125, 3)
+        Me.cbForceTitleLanguage.Location = New System.Drawing.Point(125, 52)
         Me.cbForceTitleLanguage.Name = "cbForceTitleLanguage"
         Me.cbForceTitleLanguage.Size = New System.Drawing.Size(131, 21)
         Me.cbForceTitleLanguage.Sorted = True
@@ -743,6 +796,10 @@ Partial Class frmSettingsHolder_TV
     Friend WithEvents chkScraperShowCountries As System.Windows.Forms.CheckBox
     Friend WithEvents gbScraperOpts As GroupBox
     Friend WithEvents tblScraperOpts As TableLayoutPanel
+    Friend WithEvents lblApiKey As Label
+    Friend WithEvents btnUnlockAPI As Button
+    Friend WithEvents txtApiKey As TextBox
+    Friend WithEvents lblEMMAPI As Label
     Friend WithEvents chkFallBackworldwide As CheckBox
     Friend WithEvents lblForceTitleLanguage As Label
     Friend WithEvents cbForceTitleLanguage As ComboBox

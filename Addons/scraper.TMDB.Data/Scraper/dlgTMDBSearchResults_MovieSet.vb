@@ -40,6 +40,7 @@ Public Class dlgTMDBSearchResults_MovieSet
     Private _InfoCache As New Dictionary(Of String, MediaContainers.Movieset)
     Private _PosterCache As New Dictionary(Of String, Image)
     Private _filterOptions As Structures.ScrapeOptions
+    Private _searchPending As Boolean = False
 
     Private _tmpMovieSet As New MediaContainers.Movieset
 
@@ -80,6 +81,7 @@ Public Class dlgTMDBSearchResults_MovieSet
         txtSearch.Text = sMovieSetTitle
         txtFileName.Text = String.Empty
         chkManual.Enabled = False
+        _searchPending = True
         _TMDB.SearchAsync_MovieSet(sMovieSetTitle, _filterOptions)
 
         Return ShowDialog()
@@ -111,6 +113,7 @@ Public Class dlgTMDBSearchResults_MovieSet
             chkManual.Enabled = False
             _TMDB.CancelAsync()
             'IMDB.IMDBURL = IMDBURL
+            _searchPending = True
             _TMDB.SearchAsync_MovieSet(txtSearch.Text, _filterOptions)
         End If
     End Sub
@@ -205,6 +208,7 @@ Public Class dlgTMDBSearchResults_MovieSet
         pnlPicStatus.Visible = False
         AddHandler _TMDB.SearchInfoDownloaded_MovieSet, AddressOf SearchMovieSetInfoDownloaded
         AddHandler _TMDB.SearchResultsDownloaded_MovieSet, AddressOf SearchResultsDownloaded_MovieSet
+        AddHandler _TMDB.Exception, AddressOf SearchFailed
 
         Try
             Dim iBackground As New Bitmap(pnlTop.Width, pnlTop.Height)
@@ -269,11 +273,74 @@ Public Class dlgTMDBSearchResults_MovieSet
             If chkManual.Checked Then
                 MessageBox.Show(Master.eLang.GetString(935, "Unable to retrieve movie details for the entered TMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 btnVerify.Enabled = True
+            ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
+                'detail lookup failed: keep the selected TMDb id so the user can still confirm the result
+                Dim tmdbId As Integer = -1
+                Integer.TryParse(tvResults.SelectedNode.Tag.ToString, tmdbId)
+                ControlsVisible(True)
+                _tmpMovieSet.UniqueIDs.TMDbId = tmdbId
+                lblTitle.Text = tvResults.SelectedNode.Text
+                lblTMDBID.Text = tvResults.SelectedNode.Tag.ToString
+                txtPlot.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
             End If
         End If
     End Sub
 
+    Private Function GetSearchErrorMessage(ByVal ex As Exception) As String
+        'map common source/API errors to understandable messages; keep the technical message as fallback
+        Dim agg As AggregateException = TryCast(ex, AggregateException)
+        If agg IsNot Nothing AndAlso agg.InnerException IsNot Nothing Then
+            ex = agg.InnerException
+        End If
+
+        If TypeOf ex Is UnauthorizedAccessException Then
+            Return Master.eLang.GetString(1494, "The API key is invalid or missing. Check the TMDB API key in the module settings.")
+        ElseIf TypeOf ex Is TMDbLib.Objects.Exceptions.RequestLimitExceededException Then
+            Return Master.eLang.GetString(1495, "The request limit of the source has been reached. Please try again later.")
+        ElseIf TypeOf ex Is System.Net.Http.HttpRequestException OrElse TypeOf ex Is System.Net.WebException Then
+            Return Master.eLang.GetString(1496, "The source could not be reached. Check the internet connection and try again later.")
+        End If
+
+        Return ex.Message
+    End Function
+
+    Private Sub SearchFailed(ByVal ex As Exception)
+        '//
+        ' The search itself failed (source/API error). This is different from "No Matches Found":
+        ' stop the pending detail lookup, unlock the UI and show the failure instead of empty results.
+        '\\
+
+        Try
+            tmrWait.Stop()
+            tmrLoad.Stop()
+            pnlLoading.Visible = False
+            chkManual.Enabled = True
+
+            If _searchPending Then
+                _searchPending = False
+                tvResults.Nodes.Clear()
+                tvResults.Nodes.Add(New TreeNode With {.Text = String.Format(Master.eLang.GetString(1493, "The search could not be completed: {0}"), GetSearchErrorMessage(ex))})
+            ElseIf chkManual.Checked Then
+                MessageBox.Show(Master.eLang.GetString(935, "Unable to retrieve movie details for the entered TMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                btnVerify.Enabled = True
+            ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
+                'a detail lookup for the selected entry failed: keep the results and show the id with a hint
+                Dim tmdbId As Integer = -1
+                Integer.TryParse(tvResults.SelectedNode.Tag.ToString, tmdbId)
+                ControlsVisible(True)
+                _tmpMovieSet.UniqueIDs.TMDbId = tmdbId
+                lblTitle.Text = tvResults.SelectedNode.Text
+                lblTMDBID.Text = tvResults.SelectedNode.Tag.ToString
+                txtPlot.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
+                OK_Button.Enabled = True
+            End If
+        Catch ex2 As Exception
+            logger.Error(ex2, New StackFrame().GetMethod().Name)
+        End Try
+    End Sub
+
     Private Sub SearchResultsDownloaded_MovieSet(ByVal m As SearchResults_MovieSet)
+        _searchPending = False
         tvResults.Nodes.Clear()
         ClearInfo()
         If m IsNot Nothing AndAlso m.Matches.Count > 0 Then

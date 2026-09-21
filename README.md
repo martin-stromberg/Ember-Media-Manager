@@ -15,6 +15,7 @@ Ember Media Manager is a Windows media manager for movies, TV shows and movie se
 
 - Media library for movies, TV shows/seasons/episodes and movie sets (local SQLite database, Kodi `MyVideos` naming)
 - Pluggable scrapers — data (IMDb, TMDb, TheTVDB, OMDb, OFDb, Moviepilot, Trakt.tv), images (TMDb, Fanart.tv, TheTVDB), trailers (YouTube, TMDb, Apple, hd-trailers.net, Videobuster) and themes (YouTube, TelevisionTunes)
+  - the IMDb data scraper resolves title searches via the TMDb API and maps each hit to an IMDb ID; hits are grouped into *Exact Matches* and *Partial Matches*
 - Kodi-compatible file layout: NFO files, poster/fanart/banner and other artwork next to the media
 - Kodi interface module: syncs edits and library operations to Kodi hosts via JSON-RPC
 - Trakt.tv module: watched-state/playcount sync, lists and ratings
@@ -22,7 +23,9 @@ Ember Media Manager is a Windows media manager for movies, TV shows and movie se
 - Multi-profile support, advanced settings, offline media (stub) management
 - Extensible module system: add-on assemblies loaded from the `Modules` directory
 
-> **Known issue:** The IMDb data scraper's title search currently returns no results — IMDb no longer serves the HTML endpoints it parses (AWS WAF challenge / rebuilt frontend), so the *Search Results* dialog always shows *No Matches Found*. Manual IMDb ID entry still works. The TMDb data scraper may also fail to deliver search hits. Details and workarounds: [Scraper troubleshooting](docs/help/scraper/troubleshooting.md).
+> **Note:** The title search of the IMDb data scraper runs via the TMDb API — like the TMDb data scraper it uses the embedded Ember API key by default, and a personal TMDb API key (v3) can be entered in the module settings. Source failures (invalid key, request limit reached, unreachable source) show a distinguishable error in the *Search Results* dialog instead of *No Matches Found*; manual IMDb/TMDb ID entry remains available as fallback.
+>
+> **Known limitation:** The IMDb detail pages are still partially unavailable — if the details of a selected search result cannot be loaded, the entry can still be confirmed and its ID is applied. Details and workarounds: [Scraper troubleshooting](docs/help/scraper/troubleshooting.md).
 
 ## Documentation
 
