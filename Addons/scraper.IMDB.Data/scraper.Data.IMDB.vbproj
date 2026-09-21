@@ -184,7 +184,6 @@
     <Import Include="System.Diagnostics" />
     <Import Include="System.Drawing" />
     <Import Include="System.Linq" />
-    <Import Include="System.Threading.Tasks" />
     <Import Include="System.Web" />
     <Import Include="System.Windows.Forms" />
     <Import Include="System.Xml.Linq" />

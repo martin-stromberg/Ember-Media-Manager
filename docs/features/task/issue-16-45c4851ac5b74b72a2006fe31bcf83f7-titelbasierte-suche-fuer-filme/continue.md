@@ -2,6 +2,7 @@
 
 Erstellt am: 2026-09-21
 Abbruchgrund: Maximale Iterationsanzahl erreicht
+Letzte Aktualisierung: 2026-09-21 (Nacharbeits-Lauf — alle automatisierbaren Punkte erledigt)
 
 Die folgenden Aufgaben konnten im automatisierten Zyklus nicht abgeschlossen werden
 und müssen manuell oder in einem erneuten Lauf bearbeitet werden.
@@ -12,16 +13,16 @@ und müssen manuell oder in einem erneuten Lauf bearbeitet werden.
 
 ## Code-Review-Befunde
 
-- [ ] `clsScrapeTMDB.vb` — `Try … Catch ex As Exception → Throw`-Hüllen um die Methodenrümpfe von `SearchMovie` (Z. 1474–1557), `SearchMovieSet` (Z. 1574–1617) und `SearchTVShow` (Z. 1634–1686) entfernen; erklärenden Kommentar als Methodenkommentar belassen.
-- [ ] `clsScrapeTMDB.vb` — `strTitle`/`strYear` sind in `SearchMovieSet` (Z. 1587) bzw. `SearchTVShow` (Z. 1647–1648) vor der Schleife deklariert → Einträge ohne `Name`/`FirstAirDate` erben Vorgängerwerte (latente Falschzuordnung, pre-existing). Deklaration in den `For Each`-Block verschieben (Muster aus `SearchMovie`, Z. 1515–1519).
-- [ ] `clsScrapeIMDB.vb` — `GetClient()` (Z. 1472–1480): `_client` wird vor `GetConfigAsync().GetAwaiter().GetResult()` zugewiesen → bei Fehler halb initialisierter Client im Feld. Erst nach erfolgreichem Config-Abruf dem Feld zuweisen (lokale Variable).
-- [ ] `scraper.Data.IMDB.vbproj` — ungenutzten `<Import Include="System.Threading.Tasks" />` (Z. ~187) entfernen.
-- [ ] Suchdialoge — doppelter Detail-Fehler-Fallback-Block (`*InfoDownloaded`-ElseIf vs. `SearchFailed`-ElseIf, ~8–10 Zeilen) in eine private Hilfsmethode pro Dialog auslagern (kein Blocker).
+- [x] `clsScrapeTMDB.vb` — `Try … Catch ex As Exception → Throw`-Hüllen um die Methodenrümpfe von `SearchMovie`, `SearchMovieSet` und `SearchTVShow` entfernt; erklärende Kommentare als Methodenkommentare über den Signaturen belassen.
+- [x] `clsScrapeTMDB.vb` — `strTitle`/`strYear` in `SearchMovieSet` bzw. `SearchTVShow` in den `For Each`-Block verschoben (Muster aus `SearchMovie`); latente Falschzuordnung behoben.
+- [x] `clsScrapeIMDB.vb` — `GetClient()`: `_client` wird erst nach erfolgreichem `GetConfigAsync().GetAwaiter().GetResult()` über lokale Variable zugewiesen; kein halb initialisierter Client mehr.
+- [x] `scraper.Data.IMDB.vbproj` — ungenutzten `<Import Include="System.Threading.Tasks" />` entfernt.
+- [x] Suchdialoge — doppelter Detail-Fehler-Fallback-Block in allen fünf Dialogen in die private Hilfsmethode `ShowDetailLookupFallback()` ausgelagert.
 
 ## Usability-Befunde
 
-- [ ] `frmSettingsHolder_Movie.vb` / `frmSettingsHolder_TV.vb` (IMDB-Modul) — Info-Symbol neben `txtApiKey` fehlt (TMDb-Referenz: `pbTMDBApiKeyInfo` → `Functions.Launch(My.Resources.urlAPIKey)`); Anwender finden keinen Hinweis, woher ein eigener TMDB-API-Key bezogen werden kann. Klickbares Info-Element analog den TMDb-Panels ergänzen.
-- [ ] `dlgIMDBSearchResults_Movie.vb` / `dlgIMDBSearchResults_TV.vb` — `SearchFailed` zeigt bei `chkManual.Checked = True` die Verify-Meldung „Unable to retrieve movie details for the entered IMDB ID", auch wenn keine ID eingegeben wurde (z. B. Detail-Fehler beim Umschalten während laufendem Download). Zwischen Verify-Fehler und Detail-Fehler unterscheiden; im Detail-Fall Meldung 1497 verwenden.
+- [x] `frmSettingsHolder_Movie.vb` / `frmSettingsHolder_TV.vb` (IMDB-Modul) — Info-Symbol `pbTMDBApiKeyInfo` neben `txtApiKey` ergänzt (Designer + Formular-`.resx` + `urlAPIKey`-Ressource in `My Project/Resources.resx`/`Resources.Designer.vb`); `pbTMDBApiKeyInfo_Click` → `Functions.Launch(My.Resources.urlAPIKey)`.
+- [x] `dlgIMDBSearchResults_Movie.vb` / `dlgIMDBSearchResults_TV.vb` — `SearchFailed`/`Search*InfoDownloaded` unterscheiden jetzt Verify-Fehler (`chkManual.Checked AndAlso Not String.IsNullOrEmpty(txtIMDBID.Text)` → Meldung 825) und Detail-Fehler (→ `ShowDetailLookupFallback()` mit Meldung 1497); analog in den drei TMDB-Dialogen (`txtTMDBID`, Meldung 935).
 
 ## Fehlgeschlagene Tests
 

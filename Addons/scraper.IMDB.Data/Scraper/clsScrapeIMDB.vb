@@ -1471,9 +1471,12 @@ Public Class Scraper
 
     Private Function GetClient() As TMDbLib.Client.TMDbClient
         If _client Is Nothing Then
-            _client = New TMDbLib.Client.TMDbClient(_SpecialSettings.APIKey)
-            _client.GetConfigAsync().GetAwaiter().GetResult()
-            _client.MaxRetryCount = 2
+            'assign to the field only after successful config retrieval so a failed
+            'GetConfigAsync does not leave a half-initialized client behind
+            Dim client = New TMDbLib.Client.TMDbClient(_SpecialSettings.APIKey)
+            client.GetConfigAsync().GetAwaiter().GetResult()
+            client.MaxRetryCount = 2
+            _client = client
             logger.Trace("[IMDB_Data] [GetClient] TMDb client created")
         End If
         Return _client

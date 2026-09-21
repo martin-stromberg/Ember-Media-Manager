@@ -22,21 +22,20 @@ Testsuite vorhanden, siehe „Automatisierte Tests" unten). Der Status
 „Fehler vorhanden" begründet sich aus den ausstehenden Pflicht-E2E-Szenarien
 (Abschnitt „E2E-Abdeckung"), nicht aus Testfehlschlägen.
 
-## Build-Verifikation (Lauf 5 — Iteration-3-Fixes, Nachlauf)
+## Build-Verifikation (Lauf 6 — continue.md-Nacharbeiten)
 
 Nachweis per Build, da keine kompilierbare Testsuite existiert (siehe Abschnitt
 „Automatisierte Tests" unten). Der Code wurde seit dem letzten Lauf geändert
-(Iteration-3-Nacharbeiten: Guard in `bwIMDB_RunWorkerCompleted`, Label-Texte in
-den Settings-Panels, Logging-Bereinigung, Designer-Anpassungen in
-`frmSettingsHolder_Movie.Designer.vb`/`frmSettingsHolder_TV.Designer.vb`);
-dieser Lauf (2026-09-21) ist der erneute automatisierbare Nachweis für den
-aktuellen Code-Stand.
+(Nacharbeiten aus `continue.md`: `Try/Catch`-Hüllen in `clsScrapeTMDB.vb`
+entfernt, `strTitle`/`strYear`-Scope korrigiert, `GetClient()`-Teilinitialisierung
+behoben, ungenutzter `System.Threading.Tasks`-Import entfernt,
+`ShowDetailLookupFallback()` in allen fünf Suchdialogen, Verify-/Detail-Fehler-
+Unterscheidung, `pbTMDBApiKeyInfo`-Info-Symbol in beiden IMDB-Settings-Panels
+inkl. `urlAPIKey`-Ressource); dieser Lauf ist der erneute automatisierbare
+Nachweis für den aktuellen Code-Stand.
 
 Werkzeug: `C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe`
 (MSBuild 18.10.1, .NET Framework), Konfiguration `Debug|x86`.
-Vorab: `.nuget\NuGet.exe restore "Ember Media Manager.sln"` → Exit-Code 0
-(„Alle in packages.config aufgeführten Pakete sind bereits installiert",
-`packages\TMDbLib.2.3.0` vorhanden).
 
 | Projekt | Befehl | Exit-Code | Ergebnis |
 |---------|--------|-----------|----------|
@@ -57,6 +56,7 @@ durch diese Änderung verursacht.
 | 3 | Iteration-2-Fixes (nachgelieferte Korrekturen in `clsScrapeIMDB.vb`, `clsScrapeTMDB.vb`, 5 Dialogen, `en-US.xml`) | 3/3 erfolgreich | Keine Build-Fehler |
 | 4 | Iteration-3-Fixes (`e.Result`-Guard, `strPlot` entfernt, doppeltes Logging aufgelöst, Label 1498, `SetColumnSpan` TV-Panel, Repo-Artefakte gelöscht) | 3/3 erfolgreich | Keine Build-Fehler |
 | 5 | Iteration-3-Nacharbeiten (Guard, Label-Texte, Logging, `frmSettingsHolder_*.Designer.vb`) — erneuter `/run-tests`-Lauf (2026-09-21) | 3/3 erfolgreich | Keine Build-Fehler |
+| 6 | `continue.md`-Nacharbeiten (`clsScrapeTMDB.vb`-Cleanup, `GetClient()`, vbproj-Import, `ShowDetailLookupFallback()` ×5, Verify-/Detail-Unterscheidung, `pbTMDBApiKeyInfo` + `urlAPIKey`) | 3/3 erfolgreich | Keine Build-Fehler |
 
 Anmerkung zu Lauf 2 (unverändert gültig): In `SearchMovie`/`SearchMovieSet`/
 `SearchTVShow` (`clsScrapeTMDB.vb`) werden gefaultete Tasks per
@@ -113,7 +113,7 @@ Abnahme durchgeführt und protokolliert ist.
 - Bestanden: 0
 - Fehlgeschlagen: 0
 - Übersprungen: 0
-- Builds (aktueller Lauf 5): 3 von 3 erfolgreich (Exit-Code 0)
+- Builds (aktueller Lauf 6): 3 von 3 erfolgreich (Exit-Code 0)
 - Manuelle E2E-Pflichtszenarien: 6 geplant / 0 ausgeführt (ausstehend)
 
 ## Testabdeckung

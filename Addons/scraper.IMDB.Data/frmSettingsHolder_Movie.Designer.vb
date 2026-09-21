@@ -60,6 +60,7 @@ Partial Class frmSettingsHolder_Movie
         Me.btnUnlockAPI = New System.Windows.Forms.Button()
         Me.txtApiKey = New System.Windows.Forms.TextBox()
         Me.lblEMMAPI = New System.Windows.Forms.Label()
+        Me.pbTMDBApiKeyInfo = New System.Windows.Forms.PictureBox()
         Me.chkFallBackworldwide = New System.Windows.Forms.CheckBox()
         Me.lblForceTitleLanguage = New System.Windows.Forms.Label()
         Me.cbForceTitleLanguage = New System.Windows.Forms.ComboBox()
@@ -79,6 +80,7 @@ Partial Class frmSettingsHolder_Movie
         Me.pnlSettingBottom.SuspendLayout()
         Me.tblSettingsBottom.SuspendLayout()
         CType(Me.pbIconBottom, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.pbTMDBApiKeyInfo, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'chkEnabled
@@ -525,6 +527,7 @@ Partial Class frmSettingsHolder_Movie
         Me.tblScraperOpts.Controls.Add(Me.lblEMMAPI, 1, 0)
         Me.tblScraperOpts.Controls.Add(Me.btnUnlockAPI, 0, 1)
         Me.tblScraperOpts.Controls.Add(Me.txtApiKey, 1, 1)
+        Me.tblScraperOpts.Controls.Add(Me.pbTMDBApiKeyInfo, 2, 1)
         Me.tblScraperOpts.Controls.Add(Me.lblForceTitleLanguage, 0, 2)
         Me.tblScraperOpts.Controls.Add(Me.cbForceTitleLanguage, 1, 2)
         Me.tblScraperOpts.Controls.Add(Me.chkFallBackworldwide, 0, 3)
@@ -577,13 +580,22 @@ Partial Class frmSettingsHolder_Movie
         'txtApiKey
         '
         Me.txtApiKey.Anchor = System.Windows.Forms.AnchorStyles.Left
-        Me.tblScraperOpts.SetColumnSpan(Me.txtApiKey, 2)
         Me.txtApiKey.Enabled = False
         Me.txtApiKey.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.txtApiKey.Location = New System.Drawing.Point(171, 23)
         Me.txtApiKey.Name = "txtApiKey"
         Me.txtApiKey.Size = New System.Drawing.Size(230, 22)
         Me.txtApiKey.TabIndex = 1
+        '
+        'pbTMDBApiKeyInfo
+        '
+        Me.pbTMDBApiKeyInfo.Anchor = System.Windows.Forms.AnchorStyles.Left
+        Me.pbTMDBApiKeyInfo.Image = CType(resources.GetObject("pbTMDBApiKeyInfo.Image"), System.Drawing.Image)
+        Me.pbTMDBApiKeyInfo.Location = New System.Drawing.Point(407, 26)
+        Me.pbTMDBApiKeyInfo.Name = "pbTMDBApiKeyInfo"
+        Me.pbTMDBApiKeyInfo.Size = New System.Drawing.Size(16, 16)
+        Me.pbTMDBApiKeyInfo.TabIndex = 5
+        Me.pbTMDBApiKeyInfo.TabStop = False
         '
         'chkFallBackworldwide
         '
@@ -716,6 +728,7 @@ Partial Class frmSettingsHolder_Movie
         Me.tblSettingsBottom.ResumeLayout(False)
         Me.tblSettingsBottom.PerformLayout()
         CType(Me.pbIconBottom, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.pbTMDBApiKeyInfo, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -749,6 +762,7 @@ Partial Class frmSettingsHolder_Movie
     Friend WithEvents btnUnlockAPI As System.Windows.Forms.Button
     Friend WithEvents txtApiKey As System.Windows.Forms.TextBox
     Friend WithEvents lblEMMAPI As System.Windows.Forms.Label
+    Friend WithEvents pbTMDBApiKeyInfo As System.Windows.Forms.PictureBox
     Friend WithEvents chkFallBackworldwide As System.Windows.Forms.CheckBox
     Friend WithEvents cbForceTitleLanguage As System.Windows.Forms.ComboBox
     Friend WithEvents lblForceTitleLanguage As System.Windows.Forms.Label

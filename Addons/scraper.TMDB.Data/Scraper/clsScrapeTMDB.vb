@@ -1459,6 +1459,9 @@ Public Class Scraper
         End If
     End Sub
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchMovie(ByVal strMovie As String, Optional ByVal iYear As Integer = 0) As SearchResults_Movie
         If String.IsNullOrEmpty(strMovie) Then Return New SearchResults_Movie
 
@@ -1468,97 +1471,91 @@ Public Class Scraper
         Dim TotP As Integer
         Dim aE As Boolean
 
-        'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
-        'errors are rethrown and logged once by the caller's error path
-        '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
-        Try
-            Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie))
-            APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie))
+        APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
 
+        Movies = APIResult.GetAwaiter().GetResult()
+
+        If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
+            APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+            Movies = APIResult.GetAwaiter().GetResult()
+            aE = True
+        End If
+
+        'try -1 year if no search result was found
+        If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso iYear > 0 AndAlso _addonSettings.SearchDeviant Then
+            APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
             Movies = APIResult.GetAwaiter().GetResult()
 
             If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
-                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
                 Movies = APIResult.GetAwaiter().GetResult()
                 aE = True
             End If
 
-            'try -1 year if no search result was found
-            If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso iYear > 0 AndAlso _addonSettings.SearchDeviant Then
-                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
+            'still no search result, try +1 year
+            If Movies Is Nothing OrElse Movies.TotalResults = 0 Then
+                APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
                 Movies = APIResult.GetAwaiter().GetResult()
 
                 If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
-                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
+                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
                     Movies = APIResult.GetAwaiter().GetResult()
                     aE = True
                 End If
+            End If
+        End If
 
-                'still no search result, try +1 year
-                If Movies Is Nothing OrElse Movies.TotalResults = 0 Then
-                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
-                    Movies = APIResult.GetAwaiter().GetResult()
+        If Movies IsNot Nothing AndAlso Movies.TotalResults > 0 Then
+            TotP = Movies.TotalPages
+            While Page <= TotP AndAlso Page <= 3
+                If Movies IsNot Nothing AndAlso Movies.Results IsNot Nothing Then
+                    For Each aMovie In Movies.Results
+                        Dim tOriginalTitle As String = String.Empty
+                        Dim tPlot As String = String.Empty
+                        Dim tThumbPoster As MediaContainers.Image = New MediaContainers.Image
+                        Dim tTitle As String = String.Empty
+                        Dim tYear As String = String.Empty
 
-                    If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
-                        APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
+                        If aMovie.OriginalTitle IsNot Nothing Then tOriginalTitle = aMovie.OriginalTitle
+                        If aMovie.Overview IsNot Nothing Then tPlot = aMovie.Overview
+                        If aMovie.PosterPath IsNot Nothing Then
+                            tThumbPoster.URLOriginal = _client.Config.Images.BaseUrl & "original" & aMovie.PosterPath
+                            tThumbPoster.URLThumb = _client.Config.Images.BaseUrl & "w185" & aMovie.PosterPath
+                        End If
+                        If aMovie.ReleaseDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aMovie.ReleaseDate)) Then tYear = CStr(aMovie.ReleaseDate.Value.Year)
+                        If aMovie.Title IsNot Nothing Then tTitle = aMovie.Title
+
+                        Dim lNewMovie As MediaContainers.Movie = New MediaContainers.Movie With {
+                        .OriginalTitle = tOriginalTitle,
+                        .Plot = tPlot,
+                        .Title = tTitle,
+                        .ThumbPoster = tThumbPoster,
+                        .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.TMDbId = aMovie.Id},
+                        .Year = tYear
+                        }
+                        R.Matches.Add(lNewMovie)
+                    Next
+                End If
+                Page = Page + 1
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
                         Movies = APIResult.GetAwaiter().GetResult()
-                        aE = True
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+                        Movies = APIResult.GetAwaiter().GetResult()
                     End If
                 End If
-            End If
-
-            If Movies IsNot Nothing AndAlso Movies.TotalResults > 0 Then
-                TotP = Movies.TotalPages
-                While Page <= TotP AndAlso Page <= 3
-                    If Movies IsNot Nothing AndAlso Movies.Results IsNot Nothing Then
-                        For Each aMovie In Movies.Results
-                            Dim tOriginalTitle As String = String.Empty
-                            Dim tPlot As String = String.Empty
-                            Dim tThumbPoster As MediaContainers.Image = New MediaContainers.Image
-                            Dim tTitle As String = String.Empty
-                            Dim tYear As String = String.Empty
-
-                            If aMovie.OriginalTitle IsNot Nothing Then tOriginalTitle = aMovie.OriginalTitle
-                            If aMovie.Overview IsNot Nothing Then tPlot = aMovie.Overview
-                            If aMovie.PosterPath IsNot Nothing Then
-                                tThumbPoster.URLOriginal = _client.Config.Images.BaseUrl & "original" & aMovie.PosterPath
-                                tThumbPoster.URLThumb = _client.Config.Images.BaseUrl & "w185" & aMovie.PosterPath
-                            End If
-                            If aMovie.ReleaseDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aMovie.ReleaseDate)) Then tYear = CStr(aMovie.ReleaseDate.Value.Year)
-                            If aMovie.Title IsNot Nothing Then tTitle = aMovie.Title
-
-                            Dim lNewMovie As MediaContainers.Movie = New MediaContainers.Movie With {
-                            .OriginalTitle = tOriginalTitle,
-                            .Plot = tPlot,
-                            .Title = tTitle,
-                            .ThumbPoster = tThumbPoster,
-                            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.TMDbId = aMovie.Id},
-                            .Year = tYear
-                            }
-                            R.Matches.Add(lNewMovie)
-                        Next
-                    End If
-                    Page = Page + 1
-                    If Page <= TotP AndAlso Page <= 3 Then
-                        If aE Then
-                            APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                            Movies = APIResult.GetAwaiter().GetResult()
-                        Else
-                            APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                            Movies = APIResult.GetAwaiter().GetResult()
-                        End If
-                    End If
-                End While
-            End If
-        Catch ex As Exception
-            'rethrow only - the exception is logged once by the caller's error path
-            '(bwTMDB_RunWorkerCompleted / the Try/Catch in GetSearch*Info)
-            Throw
-        End Try
+            End While
+        End If
 
         Return R
     End Function
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchMovieSet(ByVal strMovieSet As String) As SearchResults_MovieSet
         If String.IsNullOrEmpty(strMovieSet) Then Return New SearchResults_MovieSet
 
@@ -1568,57 +1565,52 @@ Public Class Scraper
         Dim TotP As Integer
         Dim aE As Boolean
 
-        'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
-        'errors are rethrown and logged once by the caller's error path
-        '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
-        Try
-            Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchCollection))
-            APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
+        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchCollection))
+        APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
 
+        MovieSets = APIResult.GetAwaiter().GetResult()
+
+        If (MovieSets Is Nothing OrElse MovieSets.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
+            APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
             MovieSets = APIResult.GetAwaiter().GetResult()
+            aE = True
+        End If
 
-            If (MovieSets Is Nothing OrElse MovieSets.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
-                APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-                MovieSets = APIResult.GetAwaiter().GetResult()
-                aE = True
-            End If
+        If MovieSets IsNot Nothing AndAlso MovieSets.TotalResults > 0 Then
+            TotP = MovieSets.TotalPages
+            While Page <= TotP AndAlso Page <= 3
+                If MovieSets IsNot Nothing AndAlso MovieSets.Results IsNot Nothing Then
+                    For Each aMovieSet In MovieSets.Results
+                        Dim strTitle As String = String.Empty
 
-            If MovieSets IsNot Nothing AndAlso MovieSets.TotalResults > 0 Then
-                Dim strTitle As String = String.Empty
-                TotP = MovieSets.TotalPages
-                While Page <= TotP AndAlso Page <= 3
-                    If MovieSets IsNot Nothing AndAlso MovieSets.Results IsNot Nothing Then
-                        For Each aMovieSet In MovieSets.Results
-                            If aMovieSet.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.Name) Then
-                                strTitle = aMovieSet.Name
-                            End If
-                            R.Matches.Add(New MediaContainers.Movieset With {
-                                          .Title = strTitle,
-                                          .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.TMDbId = aMovieSet.Id}
-                                          })
-                        Next
-                    End If
-                    Page = Page + 1
-                    If Page <= TotP AndAlso Page <= 3 Then
-                        If aE Then
-                            APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-                            MovieSets = APIResult.GetAwaiter().GetResult()
-                        Else
-                            APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
-                            MovieSets = APIResult.GetAwaiter().GetResult()
+                        If aMovieSet.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.Name) Then
+                            strTitle = aMovieSet.Name
                         End If
+                        R.Matches.Add(New MediaContainers.Movieset With {
+                                      .Title = strTitle,
+                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.TMDbId = aMovieSet.Id}
+                                      })
+                    Next
+                End If
+                Page = Page + 1
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
+                        MovieSets = APIResult.GetAwaiter().GetResult()
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
+                        MovieSets = APIResult.GetAwaiter().GetResult()
                     End If
-                End While
-            End If
-        Catch ex As Exception
-            'rethrow only - the exception is logged once by the caller's error path
-            '(bwTMDB_RunWorkerCompleted / the Try/Catch in GetSearch*Info)
-            Throw
-        End Try
+                End If
+            End While
+        End If
 
         Return R
     End Function
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchTVShow(ByVal showName As String) As SearchResults_TVShow
         If String.IsNullOrEmpty(showName) Then Return New SearchResults_TVShow
 
@@ -1628,62 +1620,54 @@ Public Class Scraper
         Dim TotP As Integer
         Dim aE As Boolean
 
-        'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
-        'errors are rethrown and logged once by the caller's error path
-        '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
-        Try
-            Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv))
-            APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
+        Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv))
+        APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
 
+        Shows = APIResult.GetAwaiter().GetResult()
+
+        If (Shows Is Nothing OrElse Shows.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
+            APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
             Shows = APIResult.GetAwaiter().GetResult()
+            aE = True
+        End If
 
-            If (Shows Is Nothing OrElse Shows.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
-                APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-                Shows = APIResult.GetAwaiter().GetResult()
-                aE = True
-            End If
+        If Shows IsNot Nothing AndAlso Shows.TotalResults > 0 Then
+            TotP = Shows.TotalPages
+            While Page <= TotP AndAlso Page <= 3
+                If Shows IsNot Nothing AndAlso Shows.Results IsNot Nothing Then
+                    For Each aShow In Shows.Results
+                        Dim strTitle As String = String.Empty
+                        Dim strYear As String = String.Empty
 
-            If Shows IsNot Nothing AndAlso Shows.TotalResults > 0 Then
-                Dim strTitle As String = String.Empty
-                Dim strYear As String = String.Empty
-                TotP = Shows.TotalPages
-                While Page <= TotP AndAlso Page <= 3
-                    If Shows IsNot Nothing AndAlso Shows.Results IsNot Nothing Then
-                        For Each aShow In Shows.Results
-                            If aShow.Name Is Nothing OrElse (aShow.Name IsNot Nothing AndAlso String.IsNullOrEmpty(aShow.Name)) Then
-                                If aShow.OriginalName IsNot Nothing AndAlso Not String.IsNullOrEmpty(aShow.OriginalName) Then
-                                    strTitle = aShow.OriginalName
-                                End If
-                            Else
-                                strTitle = aShow.Name
+                        If aShow.Name Is Nothing OrElse (aShow.Name IsNot Nothing AndAlso String.IsNullOrEmpty(aShow.Name)) Then
+                            If aShow.OriginalName IsNot Nothing AndAlso Not String.IsNullOrEmpty(aShow.OriginalName) Then
+                                strTitle = aShow.OriginalName
                             End If
-                            If aShow.FirstAirDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aShow.FirstAirDate)) Then
-                                strYear = CStr(aShow.FirstAirDate.Value.Year)
-                            End If
-                            R.Matches.Add(New MediaContainers.TVShow With {
-                                          .Premiered = strYear,
-                                          .Title = strTitle,
-                                          .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.TMDbId = aShow.Id}
-                                          })
-                        Next
-                    End If
-                    Page = Page + 1
-                    If Page <= TotP AndAlso Page <= 3 Then
-                        If aE Then
-                            APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-                            Shows = APIResult.GetAwaiter().GetResult()
                         Else
-                            APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
-                            Shows = APIResult.GetAwaiter().GetResult()
+                            strTitle = aShow.Name
                         End If
+                        If aShow.FirstAirDate IsNot Nothing AndAlso Not String.IsNullOrEmpty(CStr(aShow.FirstAirDate)) Then
+                            strYear = CStr(aShow.FirstAirDate.Value.Year)
+                        End If
+                        R.Matches.Add(New MediaContainers.TVShow With {
+                                      .Premiered = strYear,
+                                      .Title = strTitle,
+                                      .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.TMDbId = aShow.Id}
+                                      })
+                    Next
+                End If
+                Page = Page + 1
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
+                        Shows = APIResult.GetAwaiter().GetResult()
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
+                        Shows = APIResult.GetAwaiter().GetResult()
                     End If
-                End While
-            End If
-        Catch ex As Exception
-            'rethrow only - the exception is logged once by the caller's error path
-            '(bwTMDB_RunWorkerCompleted / the Try/Catch in GetSearch*Info)
-            Throw
-        End Try
+                End If
+            End While
+        End If
 
         Return R
     End Function

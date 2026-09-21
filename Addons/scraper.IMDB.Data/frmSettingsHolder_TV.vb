@@ -114,6 +114,10 @@ Public Class frmSettingsHolder_TV
         End If
     End Sub
 
+    Private Sub pbTMDBApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbTMDBApiKeyInfo.Click
+        Functions.Launch(My.Resources.urlAPIKey)
+    End Sub
+
     Private Sub cbEnabled_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkEnabled.CheckedChanged
         RaiseEvent SetupScraperChanged(chkEnabled.Checked, 0)
     End Sub

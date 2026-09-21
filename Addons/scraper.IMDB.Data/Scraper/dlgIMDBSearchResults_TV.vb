@@ -317,18 +317,23 @@ Public Class dlgIMDBSearchResults_TV
 
             btnVerify.Enabled = False
         Else
-            If chkManual.Checked Then
+            If chkManual.Checked AndAlso Not String.IsNullOrEmpty(txtIMDBID.Text) Then
                 MessageBox.Show(Master.eLang.GetString(825, "Unable to retrieve movie details for the entered IMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 btnVerify.Enabled = True
             ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
-                'detail lookup failed: keep the selected IMDb id so the user can still confirm the result
-                ControlsVisible(True)
-                _tmpTVShow.UniqueIDs.IMDbId = tvResults.SelectedNode.Tag.ToString
-                lblTitle.Text = tvResults.SelectedNode.Text
-                lblIMDBID.Text = _tmpTVShow.UniqueIDs.IMDbId
-                txtPlot.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
+                ShowDetailLookupFallback()
             End If
         End If
+    End Sub
+
+    Private Sub ShowDetailLookupFallback()
+        'detail lookup failed: keep the selected IMDb id so the user can still confirm the result
+        ControlsVisible(True)
+        _tmpTVShow.UniqueIDs.IMDbId = tvResults.SelectedNode.Tag.ToString
+        lblTitle.Text = tvResults.SelectedNode.Text
+        lblIMDBID.Text = _tmpTVShow.UniqueIDs.IMDbId
+        txtPlot.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
+        OK_Button.Enabled = True
     End Sub
 
     Private Function GetSearchErrorMessage(ByVal ex As Exception) As String
@@ -365,17 +370,14 @@ Public Class dlgIMDBSearchResults_TV
                 _searchPending = False
                 tvResults.Nodes.Clear()
                 tvResults.Nodes.Add(New TreeNode With {.Text = String.Format(Master.eLang.GetString(1493, "The search could not be completed: {0}"), GetSearchErrorMessage(ex))})
-            ElseIf chkManual.Checked Then
+            ElseIf chkManual.Checked AndAlso Not String.IsNullOrEmpty(txtIMDBID.Text) Then
+                'the manual verify (btnVerify) failed: the entered ID could not be resolved
                 MessageBox.Show(Master.eLang.GetString(825, "Unable to retrieve movie details for the entered IMDB ID. Please check your entry and try again."), Master.eLang.GetString(826, "Verification Failed"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                 btnVerify.Enabled = True
             ElseIf tvResults.SelectedNode IsNot Nothing AndAlso tvResults.SelectedNode.Tag IsNot Nothing AndAlso Not String.IsNullOrEmpty(tvResults.SelectedNode.Tag.ToString) Then
-                'a detail lookup for the selected entry failed: keep the results and show the id with a hint
-                ControlsVisible(True)
-                _tmpTVShow.UniqueIDs.IMDbId = tvResults.SelectedNode.Tag.ToString
-                lblTitle.Text = tvResults.SelectedNode.Text
-                lblIMDBID.Text = _tmpTVShow.UniqueIDs.IMDbId
-                txtPlot.Text = Master.eLang.GetString(1497, "The details for the selected entry could not be loaded, but the entry can still be used.")
-                OK_Button.Enabled = True
+                'a detail lookup for the selected entry failed (e.g. the worker was still running
+                'when the user switched to manual entry): keep the results and show the id with a hint
+                ShowDetailLookupFallback()
             End If
         Catch ex2 As Exception
             logger.Error(ex2, New StackFrame().GetMethod().Name)
