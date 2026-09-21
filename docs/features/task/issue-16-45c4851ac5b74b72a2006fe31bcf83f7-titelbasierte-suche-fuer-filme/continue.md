@@ -24,6 +24,39 @@ und müssen manuell oder in einem erneuten Lauf bearbeitet werden.
 - [x] `frmSettingsHolder_Movie.vb` / `frmSettingsHolder_TV.vb` (IMDB-Modul) — Info-Symbol `pbTMDBApiKeyInfo` neben `txtApiKey` ergänzt (Designer + Formular-`.resx` + `urlAPIKey`-Ressource in `My Project/Resources.resx`/`Resources.Designer.vb`); `pbTMDBApiKeyInfo_Click` → `Functions.Launch(My.Resources.urlAPIKey)`.
 - [x] `dlgIMDBSearchResults_Movie.vb` / `dlgIMDBSearchResults_TV.vb` — `SearchFailed`/`Search*InfoDownloaded` unterscheiden jetzt Verify-Fehler (`chkManual.Checked AndAlso Not String.IsNullOrEmpty(txtIMDBID.Text)` → Meldung 825) und Detail-Fehler (→ `ShowDetailLookupFallback()` mit Meldung 1497); analog in den drei TMDB-Dialogen (`txtTMDBID`, Meldung 935).
 
+## Nachgetragener Fix: Cancelled-Abbruch (Upstream-Defekt)
+
+Erstellt am: 2026-09-21 (nach erstem manuellen Testlauf des Anwenders)
+
+Beim manuellen Test zeigte sich: Titelsuche liefert Exact-/Partial-Matches, aber
+nach Bestätigen des Dialogs „passiert nichts". Ursache ist **nicht** die neue
+Titelsuche, sondern eine nie abgeschlossene Upstream-Migration aus Commit
+`d08f4dae` (2022-11-27, DanCooper, Commit-Text: „preparing for switching module
+result from 'False' to 'True'"):
+
+- Alle `ScrapeData_*`/`ScrapeImage_*`/`ScrapeTheme_*`/`ScrapeTrailer_*`-Funktionen
+  in `EmberAPI/clsAPIModules.vb` geben weiterhin `ret.Cancelled` zurück
+  (**True = Abbruch/Fehler**, alte Semantik — unverändert seit 2016).
+- `d08f4dae` hat aber nur die Aufrufer in `EmberMediaManager/frmMain.vb` auf die
+  neue Semantik (**True = Erfolg**) umgestellt — 45 Bedingungen.
+- Alle Aufrufer außerhalb von `frmMain` (`dlgEdit_*`, `dlgOfflineHolder`,
+  `clsAPIScanner`, `clsAPITaskManager`, `dlgMediaFileSelect`, TVDB-Addon) sowie
+  zwei übersehene Stellen in `frmMain` selbst (11761, 15543/15558) erwarten noch
+  die alte Semantik.
+
+Folge: Ein erfolgreicher Scrape (`Return False`) wurde in `frmMain` als Abbruch
+gewertet → `bwMovieScraper.CancelAsync()` → Ergebnis verworfen, Film von Platte
+neu geladen. Die komplette Scrape-Pipeline (Daten, Bilder, Themes, Trailer) war
+seit Nov 2022 funktionslos.
+
+- [x] Fix: Alle 45 vom Commit geänderten Bedingungen in `frmMain.vb` auf die alte,
+      konsistente Semantik zurückgedreht (38× `If X` → `If Not X` für
+      „bei Erfolg fortfahren", 8× `If Not X` → `If X` für Abbruch-Checks).
+      Die nicht migrierten Aufrufer in den übrigen Dateien werden dadurch
+      automatisch wieder korrekt. Kein Funktions- oder API-Eingriff in
+      `clsAPIModules.vb` nötig.
+- [x] Build `Debug|x86` und `Debug|AnyCPU` erfolgreich (Exit 0).
+
 ## Fehlgeschlagene Tests
 
-- [ ] Abnahmeprotokoll-Szenarien 1–7 — nicht ausgeführt (manuelle Abnahme ausstehend; kein UI-Test-Framework, Live-TMDb-API-Abhängigkeit). Siehe `abnahmeprotokoll.md` und `test-results.md`.
+- [ ] Abnahmeprotokoll-Szenarien 1–7 — nicht ausgeführt (manuelle Abnahme ausstehend; kein UI-Test-Framework, Live-TMDb-API-Abhängigkeit). Siehe `abnahmeprotokoll.md` und `test-results.md`. Erster Teillauf des Anwenders (2026-09-21): Suche zeigte Exact- und Partial-Matches korrekt; Bestätigen scheiterte am oben behobenen Cancelled-Abbruch — **Wiederholung der Abnahme mit dem neuen Build erforderlich**.

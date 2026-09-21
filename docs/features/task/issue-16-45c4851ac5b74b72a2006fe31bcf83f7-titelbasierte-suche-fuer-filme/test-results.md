@@ -57,6 +57,16 @@ durch diese Änderung verursacht.
 | 4 | Iteration-3-Fixes (`e.Result`-Guard, `strPlot` entfernt, doppeltes Logging aufgelöst, Label 1498, `SetColumnSpan` TV-Panel, Repo-Artefakte gelöscht) | 3/3 erfolgreich | Keine Build-Fehler |
 | 5 | Iteration-3-Nacharbeiten (Guard, Label-Texte, Logging, `frmSettingsHolder_*.Designer.vb`) — erneuter `/run-tests`-Lauf (2026-09-21) | 3/3 erfolgreich | Keine Build-Fehler |
 | 6 | `continue.md`-Nacharbeiten (`clsScrapeTMDB.vb`-Cleanup, `GetClient()`, vbproj-Import, `ShowDetailLookupFallback()` ×5, Verify-/Detail-Unterscheidung, `pbTMDBApiKeyInfo` + `urlAPIKey`) | 3/3 erfolgreich | Keine Build-Fehler |
+| 7 | Fix „Cancelled-Abbruch" (Upstream-Defekt aus `d08f4dae`): alle 45 migrierten Bedingungen in `frmMain.vb` auf alte Semantik (`True` = Cancelled) zurückgedreht — Details in `continue.md` | `Debug|x86` + `Debug|AnyCPU` erfolgreich | Keine Build-Fehler |
+
+## Manueller Teillauf (Anwender, 2026-09-21)
+
+- Titelsuche „28 Days Later" lieferte Exact-Match und mehrere Partial-Matches
+  (Teilnachweis Szenario 1: Suchdialog + Trefferliste funktionieren).
+- Nach Bestätigen des exakten Treffers wurde das Ergebnis verworfen — Ursache:
+  invertierte Cancelled-Semantik in `frmMain.vb` (Upstream-Defekt, siehe
+  `continue.md`). Nach dem Fix ist die komplette Abnahme mit dem neuen Build
+  zu wiederholen.
 
 Anmerkung zu Lauf 2 (unverändert gültig): In `SearchMovie`/`SearchMovieSet`/
 `SearchTVShow` (`clsScrapeTMDB.vb`) werden gefaultete Tasks per
@@ -113,7 +123,7 @@ Abnahme durchgeführt und protokolliert ist.
 - Bestanden: 0
 - Fehlgeschlagen: 0
 - Übersprungen: 0
-- Builds (aktueller Lauf 6): 3 von 3 erfolgreich (Exit-Code 0)
+- Builds (aktueller Lauf 7): `Debug|x86` und `Debug|AnyCPU` erfolgreich (Exit-Code 0)
 - Manuelle E2E-Pflichtszenarien: 6 geplant / 0 ausgeführt (ausstehend)
 
 ## Testabdeckung
