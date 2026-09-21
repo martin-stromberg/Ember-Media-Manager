@@ -9,6 +9,7 @@
 ## What's New
 
 - The version number displayed in the program (About dialog, splash screen, version menu) now matches the GitHub release version — it is stamped from the release tag during the CI build instead of the previously hardcoded `1.11.1.0`.
+- `release.zip` now ships `Unblock-ReleaseFiles.ps1`: after extracting the downloaded archive, run the script in the release folder to remove the Windows "downloaded from the internet" block (Mark-of-the-Web) from all files.
 - Title-based search for movies and TV shows in the IMDb data scraper works again: the title search now queries the TMDb API (TMDbLib 2.3.0) and resolves the IMDb ID of each hit.
 - New `APIKey` setting in the IMDb module settings (movies and TV shows): a personal TMDb API key (v3) can be entered via *Use my own API key*; an empty field falls back to the embedded Ember API key.
 - Source failures are now distinguishable from "no hits": an invalid or missing API key, a reached request limit or an unreachable source show a dedicated error entry in the *Search Results* dialog instead of *No Matches Found* — for both the IMDb and the TMDb data scraper; manual ID entry remains available as fallback.
@@ -25,6 +26,7 @@
 ## Neuerungen
 
 - Die im Programm angezeigte Versionsnummer (About-Dialog, Splashscreen, Versionsmenü) entspricht jetzt der GitHub-Release-Version — sie wird beim CI-Build aus dem Release-Tag gestempelt statt wie zuvor hartkodiert auf `1.11.1.0` gesetzt.
+- `release.zip` enthält jetzt `Unblock-ReleaseFiles.ps1`: Nach dem Entpacken des heruntergeladenen Archivs kann das Skript im Release-Ordner ausgeführt werden, um die Windows-Blockierung „aus dem Internet" (Mark-of-the-Web) von allen Dateien zu entfernen.
 - Die titelbasierte Suche für Filme und Serien im IMDb-Daten-Scraper funktioniert wieder: Die Titelsuche fragt nun die TMDb-API ab (TMDbLib 2.3.0) und löst die IMDb-ID jedes Treffers auf.
 - Neues `APIKey`-Setting in den IMDb-Moduleinstellungen (Filme und Serien): Über *Use my own API key* kann ein eigener TMDb-API-Key (v3) hinterlegt werden; ein leeres Feld fällt auf den eingebetteten Ember-API-Key zurück.
 - Quell-Ausfälle sind jetzt von „keine Treffer" unterscheidbar: Ein ungültiger oder fehlender API-Key, ein erreichtes Request-Limit oder eine nicht erreichbare Quelle zeigen einen eigenen Fehlereintrag im *Search Results*-Dialog statt *No Matches Found* — im IMDb- wie im TMDb-Daten-Scraper; die manuelle ID-Eingabe bleibt als Fallback verfügbar.

@@ -96,6 +96,9 @@ runs:
         if (Test-Path 'publish' -PathType Leaf) { Remove-Item 'publish' -Force }
         New-Item -ItemType Directory -Path 'publish' -Force | Out-Null
         Copy-Item -Path 'EmberMM - Release - x64\*' -Destination 'publish' -Recurse -Force
+        # Helper for end users: removes the Mark-of-the-Web block from the
+        # extracted release files (Get-ChildItem -Recurse | Unblock-File).
+        Copy-Item -Path 'scripts/Unblock-ReleaseFiles.ps1' -Destination 'publish' -Force
       shell: pwsh
 
     - name: Write version manifest
@@ -132,6 +135,9 @@ runs:
         }
         if (-not (Test-Path 'publish/version.json')) {
           throw "publish/ is incomplete: version.json is missing."
+        }
+        if (-not (Test-Path 'publish/Unblock-ReleaseFiles.ps1')) {
+          throw "publish/ is incomplete: Unblock-ReleaseFiles.ps1 is missing."
         }
         if ($env:RELEASE_VERSION) {
           # A silent non-matching -replace in "Stamp assembly version" must not ship an

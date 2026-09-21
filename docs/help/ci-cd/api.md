@@ -52,7 +52,7 @@ None beyond the standard GitHub Actions / GitHub API quotas.
 
 **File:** `.github/actions/build-and-package/action.yml`
 
-**Description:** Provisions MSBuild, restores dependencies, stamps `release-version` into the assembly attributes (step `stamp-version`, skipped when the input is empty), builds `Release|x64`, copies `EmberMM - Release - x64\*` to `publish/`, writes `publish/version.json`, verifies the output — including the stamped `FileVersion`/`AssemblyVersion`/`ProductVersion` of the exe and `FileVersion`/`AssemblyVersion` of `EmberAPI.dll` when `release-version` is set — creates `release.zip`, and generates the update manifest `update.json` (SHA-256, size, asset URL). Used by `staging-ci.yml` (prerelease job) and `release.yml`. The NSIS installer is deliberately not part of the pipeline.
+**Description:** Provisions MSBuild, restores dependencies, stamps `release-version` into the assembly attributes (step `stamp-version`, skipped when the input is empty), builds `Release|x64`, copies `EmberMM - Release - x64\*` to `publish/` — plus `scripts/Unblock-ReleaseFiles.ps1`, a helper end users can run in the extracted release folder to remove the Mark-of-the-Web block (`Get-ChildItem -Recurse | Unblock-File`) — writes `publish/version.json`, verifies the output — including the stamped `FileVersion`/`AssemblyVersion`/`ProductVersion` of the exe and `FileVersion`/`AssemblyVersion` of `EmberAPI.dll` when `release-version` is set — creates `release.zip`, and generates the update manifest `update.json` (SHA-256, size, asset URL). Used by `staging-ci.yml` (prerelease job) and `release.yml`. The NSIS installer is deliberately not part of the pipeline.
 
 **Inputs:**
 
@@ -61,11 +61,11 @@ None beyond the standard GitHub Actions / GitHub API quotas.
 | `release-version` | string | No (default `''`) | Version without leading `v` (e.g. `1.2.3` / `1.2.3-rc.1`); written into `version.json`/`update.json` and stamped into `AssemblyVersion`/`AssemblyFileVersion` (`X.Y.Z.0` or `X.Y.Z.N`) plus `AssemblyInformationalVersion` (full SemVer string) of `EmberMediaManager` and `EmberAPI`. Must match `X.Y.Z` or `X.Y.Z-rc.N`, components ≤ 65534 — otherwise the build fails before compiling |
 | `release-tag` | string | No (default `''`) | Tag (e.g. `v1.2.3` / `v1.2.3-rc.1`); builds the asset download URL |
 
-**Outputs (files):** `release.zip`, `update.json`, `publish/version.json`.
+**Outputs (files):** `release.zip`, `update.json`, `publish/version.json`, `publish/Unblock-ReleaseFiles.ps1`.
 
 **Outputs (step `stamp-version`):** `assembly_version` (four-part `X.Y.Z.0`/`X.Y.Z.N`) and `product_version` (full SemVer string) — consumed internally by "Verify publish output".
 
-**Failures:** throws if `publish/Ember Media Manager.exe` or `publish/version.json` is missing; with `release-version` set, throws on an unmappable version format or when any stamped attribute of the built exe/dll does not match the expected value.
+**Failures:** throws if `publish/Ember Media Manager.exe`, `publish/version.json` or `publish/Unblock-ReleaseFiles.ps1` is missing; with `release-version` set, throws on an unmappable version format or when any stamped attribute of the built exe/dll does not match the expected value.
 
 ## Script `resolve-release-version.mjs`
 
