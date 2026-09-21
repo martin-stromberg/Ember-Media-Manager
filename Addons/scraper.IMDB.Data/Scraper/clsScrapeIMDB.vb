@@ -128,11 +128,11 @@ Public Class Scraper
                 e.Result = New Results With {.ResultType = SearchType.TVShows, .Result = r}
 
             Case SearchType.SearchDetails_Movie
-                Dim r As MediaContainers.Movie = GetMovieInfo(Args.Parameter, True, Args.Options_Movie)
+                Dim r As MediaContainers.Movie = GetMoviePreviewInfo(Args.Parameter, Args.Options_Movie)
                 e.Result = New Results With {.ResultType = SearchType.SearchDetails_Movie, .Result = r}
 
             Case SearchType.SearchDetails_TVShow
-                Dim r As MediaContainers.TVShow = GetTVShowInfo(Args.Parameter, Args.ScrapeModifiers, Args.Options_TV, True)
+                Dim r As MediaContainers.TVShow = GetTVShowPreviewInfo(Args.Parameter, Args.Options_TV)
                 e.Result = New Results With {.ResultType = SearchType.SearchDetails_TVShow, .Result = r}
         End Select
     End Sub
@@ -1480,6 +1480,90 @@ Public Class Scraper
             logger.Trace("[IMDB_Data] [GetClient] TMDb client created")
         End If
         Return _client
+    End Function
+
+    Private Function GetMoviePreviewInfo(ByVal imdbId As String, ByVal filteredoptions As Structures.ScrapeOptions) As MediaContainers.Movie
+        'the detail preview in the search dialog is fetched via TMDb as well
+        '(the IMDb html detail pages can no longer be scraped)
+        strPosterURL = String.Empty
+
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
+        'TMDb accepts an IMDb id directly for movies
+        Dim tmdbMovie As TMDbLib.Objects.Movies.Movie = client.GetMovieAsync(imdbId, TMDbLib.Objects.Movies.MovieMethods.Credits).GetAwaiter().GetResult()
+        If tmdbMovie Is Nothing Then Return Nothing
+
+        Dim nMovie As New MediaContainers.Movie With {
+            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.Movie) With {.IMDbId = imdbId, .TMDbId = tmdbMovie.Id},
+            .Scrapersource = "IMDB"
+        }
+
+        If filteredoptions.bMainTitle Then
+            nMovie.Title = tmdbMovie.Title
+            nMovie.OriginalTitle = tmdbMovie.OriginalTitle
+        End If
+        If filteredoptions.bMainTagline Then nMovie.Tagline = tmdbMovie.Tagline
+        If filteredoptions.bMainPremiered AndAlso tmdbMovie.ReleaseDate.HasValue Then
+            nMovie.Year = tmdbMovie.ReleaseDate.Value.Year.ToString
+            nMovie.Premiered = tmdbMovie.ReleaseDate.Value.ToString("yyyy-MM-dd")
+        End If
+        If filteredoptions.bMainDirectors AndAlso tmdbMovie.Credits IsNot Nothing AndAlso tmdbMovie.Credits.Crew IsNot Nothing Then
+            For Each aCrew As TMDbLib.Objects.General.Crew In tmdbMovie.Credits.Crew.Where(Function(f) f.Department = "Directing" AndAlso f.Job = "Director")
+                nMovie.Directors.Add(aCrew.Name)
+            Next
+        End If
+        If filteredoptions.bMainGenres AndAlso tmdbMovie.Genres IsNot Nothing Then
+            nMovie.Genres.AddRange(tmdbMovie.Genres.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainOutline OrElse filteredoptions.bMainPlot Then
+            nMovie.Outline = tmdbMovie.Overview
+            nMovie.Plot = tmdbMovie.Overview
+        End If
+        If Not String.IsNullOrEmpty(tmdbMovie.PosterPath) Then
+            strPosterURL = String.Concat(client.Config.Images.BaseUrl, "w185", tmdbMovie.PosterPath)
+        End If
+
+        Return nMovie
+    End Function
+
+    Private Function GetTVShowPreviewInfo(ByVal imdbId As String, ByVal filteredoptions As Structures.ScrapeOptions) As MediaContainers.TVShow
+        'the detail preview in the search dialog is fetched via TMDb as well
+        '(the IMDb html detail pages can no longer be scraped)
+        strPosterURL = String.Empty
+
+        Dim client As TMDbLib.Client.TMDbClient = GetClient()
+        'GetTvShowAsync only accepts the TMDb id, so resolve the IMDb id via the find endpoint first
+        Dim found As TMDbLib.Objects.Find.FindContainer = client.FindAsync(TMDbLib.Objects.Find.FindExternalSource.Imdb, imdbId).GetAwaiter().GetResult()
+        If found Is Nothing OrElse found.TvResults Is Nothing OrElse found.TvResults.Count = 0 Then Return Nothing
+
+        Dim tmdbShow As TMDbLib.Objects.TvShows.TvShow = client.GetTvShowAsync(found.TvResults(0).Id, TMDbLib.Objects.TvShows.TvShowMethods.Credits).GetAwaiter().GetResult()
+        If tmdbShow Is Nothing Then Return Nothing
+
+        Dim nShow As New MediaContainers.TVShow With {
+            .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.TVShow) With {.IMDbId = imdbId, .TMDbId = tmdbShow.Id},
+            .Scrapersource = "IMDB"
+        }
+
+        If filteredoptions.bMainTitle Then
+            nShow.Title = tmdbShow.Name
+            nShow.OriginalTitle = tmdbShow.OriginalName
+        End If
+        If filteredoptions.bMainCreators AndAlso tmdbShow.CreatedBy IsNot Nothing Then
+            nShow.Creators.AddRange(tmdbShow.CreatedBy.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainGenres AndAlso tmdbShow.Genres IsNot Nothing Then
+            nShow.Genres.AddRange(tmdbShow.Genres.Select(Function(f) f.Name))
+        End If
+        If filteredoptions.bMainPlot Then
+            nShow.Plot = tmdbShow.Overview
+        End If
+        If filteredoptions.bMainPremiered AndAlso tmdbShow.FirstAirDate.HasValue Then
+            nShow.Premiered = tmdbShow.FirstAirDate.Value.ToString("yyyy-MM-dd")
+        End If
+        If Not String.IsNullOrEmpty(tmdbShow.PosterPath) Then
+            strPosterURL = String.Concat(client.Config.Images.BaseUrl, "w185", tmdbShow.PosterPath)
+        End If
+
+        Return nShow
     End Function
 
     Private Function SearchMovie(ByVal title As String, ByVal year As String) As SearchResults_Movie

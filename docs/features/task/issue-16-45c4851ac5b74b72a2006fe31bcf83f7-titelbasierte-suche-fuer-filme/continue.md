@@ -57,6 +57,28 @@ seit Nov 2022 funktionslos.
       `clsAPIModules.vb` nötig.
 - [x] Build `Debug|x86` und `Debug|AnyCPU` erfolgreich (Exit 0).
 
+## Nachgetragener Fix: Detail-Vorschau im Suchdialog (TMDb)
+
+Erstellt am: 2026-09-21 (Anwender-Rückmeldung nach erfolgreichem Scrape)
+
+Im Suchdialog wurden bei markiertem Treffer nur die IMDb-ID angezeigt —
+Premiered/Year, Directors, Genres, Plot Outline und Poster blieben leer. Grund:
+Die Vorschau (`SearchType.SearchDetails_*` in `bwIMDB_DoWork`) rief weiterhin
+`GetMovieInfo`/`GetTVShowInfo` auf, die auf den defekten IMDb-HTML-Detailseiten
+basieren (Parsing schlägt fehl, aber ohne Exception → leere Felder).
+
+- [x] Fix: `clsScrapeIMDB.vb` — neue `GetMoviePreviewInfo`/`GetTVShowPreviewInfo`,
+      die die Vorschau über die TMDb-API befüllen (`GetMovieAsync` akzeptiert die
+      IMDb-ID direkt; für Serien Auflösung über `FindAsync(Imdb)` →
+      `GetTvShowAsync`). Gemappt: Title/OriginalTitle, Tagline, Year/Premiered,
+      Directors (Crew: Department „Directing"/Job „Director"), Genres,
+      Outline/Plot (Overview) bzw. Creators/Plot bei Serien, Poster-URL
+      (`w185`) über `strPosterURL`. `bwIMDB_DoWork` ruft für
+      `SearchDetails_*` nun diese Funktionen; `GetMovieInfo`/`GetTVShowInfo`
+      (IMDb-Detail-Scrape für den eigentlichen Scrape) bleiben unverändert.
+      Fehlerfall läuft über den bestehenden `ShowDetailLookupFallback`-Pfad.
+- [x] Build `scraper.Data.IMDB` `Debug|x86` und `Debug|AnyCPU` erfolgreich (Exit 0).
+
 ## Fehlgeschlagene Tests
 
 - [ ] Abnahmeprotokoll-Szenarien 1–7 — nicht ausgeführt (manuelle Abnahme ausstehend; kein UI-Test-Framework, Live-TMDb-API-Abhängigkeit). Siehe `abnahmeprotokoll.md` und `test-results.md`. Erster Teillauf des Anwenders (2026-09-21): Suche zeigte Exact- und Partial-Matches korrekt; Bestätigen scheiterte am oben behobenen Cancelled-Abbruch — **Wiederholung der Abnahme mit dem neuen Build erforderlich**.
