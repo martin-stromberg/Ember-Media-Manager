@@ -2,11 +2,13 @@
 
 ## Important Notes Before Update
 
+- Self-compiled builds now display "Version 0.0.0": the checked-in assembly versions in `AssemblyInfo.vb` are `0.0.0.0` placeholders that are only replaced with the real release version during the CI release build.
 - IMDb title search: the special result categories *Popular Titles*, *TV Movie Titles*, *Video Titles* and *Short Titles* have been removed — search hits are now only grouped into *Exact Matches* and *Partial Matches*.
 - The five `Search*Titles` settings in the IMDb module are deprecated and no longer evaluated; existing entries in `AdvancedSettings.xml` remain inert (no migration required).
 
 ## What's New
 
+- The version number displayed in the program (About dialog, splash screen, version menu) now matches the GitHub release version — it is stamped from the release tag during the CI build instead of the previously hardcoded `1.11.1.0`.
 - Title-based search for movies and TV shows in the IMDb data scraper works again: the title search now queries the TMDb API (TMDbLib 2.3.0) and resolves the IMDb ID of each hit.
 - New `APIKey` setting in the IMDb module settings (movies and TV shows): a personal TMDb API key (v3) can be entered via *Use my own API key*; an empty field falls back to the embedded Ember API key.
 - Source failures are now distinguishable from "no hits": an invalid or missing API key, a reached request limit or an unreachable source show a dedicated error entry in the *Search Results* dialog instead of *No Matches Found* — for both the IMDb and the TMDb data scraper; manual ID entry remains available as fallback.
@@ -16,11 +18,13 @@
 
 ## Wichtige Hinweise vor dem Update
 
+- Selbst kompilierte Builds zeigen jetzt „Version 0.0.0" an: Die eingecheckten Assembly-Versionen in `AssemblyInfo.vb` sind `0.0.0.0`-Platzhalter, die erst beim CI-Release-Build durch die echte Release-Version ersetzt werden.
 - IMDb-Titelsuche: Die speziellen Ergebniskategorien *Popular Titles*, *TV Movie Titles*, *Video Titles* und *Short Titles* wurden entfernt — Treffer werden nur noch in *Exact Matches* und *Partial Matches* gruppiert.
 - Die fünf `Search*Titles`-Settings im IMDb-Modul sind deprecated und werden nicht mehr ausgewertet; bestehende Einträge in `AdvancedSettings.xml` verbleiben wirkungslos (keine Migration erforderlich).
 
 ## Neuerungen
 
+- Die im Programm angezeigte Versionsnummer (About-Dialog, Splashscreen, Versionsmenü) entspricht jetzt der GitHub-Release-Version — sie wird beim CI-Build aus dem Release-Tag gestempelt statt wie zuvor hartkodiert auf `1.11.1.0` gesetzt.
 - Die titelbasierte Suche für Filme und Serien im IMDb-Daten-Scraper funktioniert wieder: Die Titelsuche fragt nun die TMDb-API ab (TMDbLib 2.3.0) und löst die IMDb-ID jedes Treffers auf.
 - Neues `APIKey`-Setting in den IMDb-Moduleinstellungen (Filme und Serien): Über *Use my own API key* kann ein eigener TMDb-API-Key (v3) hinterlegt werden; ein leeres Feld fällt auf den eingebetteten Ember-API-Key zurück.
 - Quell-Ausfälle sind jetzt von „keine Treffer" unterscheidbar: Ein ungültiger oder fehlender API-Key, ein erreichtes Request-Limit oder eine nicht erreichbare Quelle zeigen einen eigenen Fehlereintrag im *Search Results*-Dialog statt *No Matches Found* — im IMDb- wie im TMDb-Daten-Scraper; die manuelle ID-Eingabe bleibt als Fallback verfügbar.

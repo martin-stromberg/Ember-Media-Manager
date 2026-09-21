@@ -99,3 +99,41 @@
 **Cause:** `@semantic-release/github` tries to comment on PRs associated with the released commit; the default `GITHUB_TOKEN` lacks that permission.
 
 **Solution:** Already mitigated — `release.config.js` sets `successComment: false`/`failComment: false`. If the error reappears, verify those options were not removed.
+
+## Release fails: tag "uses a prerelease identifier that cannot be stamped" or component out of range
+
+**Symptom:** `release.yml` fails in the "Resolve release version" step for a manually pushed tag, with an error about a prerelease identifier or a component outside `0-65534`.
+
+**Cause:** Only `vX.Y.Z` and `vX.Y.Z-rc.N` tags can be mapped onto the four-part numeric assembly version (`X.Y.Z.0` / `X.Y.Z.N`), and each component is capped at 65534. A tag like `v1.2.3-beta.1` is valid SemVer — it passes the generic `VERSION_PATTERN` — but has no assembly mapping, so it is rejected here instead of failing mid-run in the "Stamp assembly version" step or shipping a wrongly stamped build.
+
+**Solution:**
+1. Push only `vX.Y.Z` or `vX.Y.Z-rc.N` tags for manual releases (all components ≤ 65534).
+2. For any other version shape, let the automatic `master` path derive the version via semantic-release.
+
+## Build fails in "Stamp assembly version": "does not match the accepted format X.Y.Z or X.Y.Z-rc.N"
+
+**Symptom:** The `build-and-package` composite action aborts before "Build (Release x64)" with that message.
+
+**Cause:** The `release-version` input was set to a value that is not `X.Y.Z` or `X.Y.Z-rc.N` (a leading `v` is tolerated and stripped). Normally unreachable for tags — `resolve-release-version.mjs` rejects unmappable tags earlier — so this indicates a caller passing a hand-crafted `release-version`.
+
+**Solution:**
+1. Check what the calling workflow passed as `release-version` (`staging-ci.yml` passes `rc_version`, `release.yml` passes the resolved `version`).
+2. Fix the value to `X.Y.Z`/`X.Y.Z-rc.N`, or leave it empty to skip stamping entirely.
+
+## Build fails in "Verify publish output" with a version mismatch
+
+**Symptom:** The build and copy succeeded, but "Verify publish output" throws — e.g. `Ember Media Manager.exe FileVersion '...' does not match expected '...'` (same for `AssemblyVersion`, `ProductVersion`, or `EmberAPI.dll`).
+
+**Cause:** One of the regex replacements in "Stamp assembly version" did not match — most likely the attribute line format in an `AssemblyInfo.vb` changed (the step expects `<Assembly: AssemblyVersion("x.y.z.r")>` on its own line). PowerShell `-replace` is silent on no-match, which is exactly what this verification exists to catch: an unstamped or partially stamped artifact must never ship.
+
+**Solution:**
+1. Open `EmberMediaManager/My Project/AssemblyInfo.vb` and `EmberAPI/My Project/AssemblyInfo.vb` and restore the expected line format for `AssemblyVersion`, `AssemblyFileVersion` and `AssemblyInformationalVersion` — or update the regex patterns in the stamp step to match the new format.
+2. Re-run the workflow; the log of "Stamp assembly version" prints the stamped values per file for comparison.
+
+## Installed build shows "Version 0.0.0"
+
+**Symptom:** The About dialog, splash screen or version menu entry of a build shows "Version 0.0.0" — and the file properties show `0.0.0.0`.
+
+**Cause:** The artifact was built without a `release-version` input — a local build or a CI run outside the release path. The checked-in placeholder `0.0.0.0` is deliberate: it makes unstamped artifacts recognizable instead of letting them pose as a concrete release version.
+
+**Solution:** No action needed — this is expected for non-release builds. Only builds produced by the `prerelease`/`release` pipeline jobs carry the stamped release version; install `release.zip` from a GitHub release for a properly versioned build.
