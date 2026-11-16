@@ -4,7 +4,7 @@
 
 ## Overview
 
-The pipeline exposes no HTTP endpoints. Its programmatic interfaces are the two composite actions under `.github/actions/`, the version-resolution script `scripts/resolve-release-version.mjs`, the localization checker `.githooks/translation-check.py`, and the workflow triggers themselves.
+The pipeline exposes no HTTP endpoints. Its programmatic interfaces are the two composite actions under `.github/actions/`, the version-resolution script `scripts/resolve-release-version.mjs`, the recurring-issue helper `scripts/New-RecurringIssue.ps1` plus templates under `.github/recurring-issues/`, the localization checker `.githooks/translation-check.py`, and the workflow triggers themselves.
 
 ## Authentication
 
@@ -85,6 +85,23 @@ None beyond the standard GitHub Actions / GitHub API quotas.
 
 **Expected assets:** `expectedReleaseAssetNames()` → `["release.zip", "update.json"]`.
 
+## Script `New-RecurringIssue.ps1`
+
+**File:** `scripts/New-RecurringIssue.ps1` — invoked by the three recurring review workflows after checkout; needs `GH_TOKEN` and GitHub CLI `gh`.
+
+**Parameters:**
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `Repository` | Yes | Repository in `owner/name` form |
+| `Label` | Yes | Stable duplicate label for the review type |
+| `LabelColor` | Yes | Hex color used when the label is created |
+| `LabelDescription` | Yes | Label description used when the label is created |
+| `Title` | Yes | Issue title |
+| `BodyFile` | Yes | Markdown template used as issue body |
+
+**Behavior:** validates `gh` and the body file, creates/updates the label via `gh label create --force`, checks `gh issue list --state open --label <label> --limit 1`, skips creation when an open issue exists, otherwise calls `gh issue create`. Every `gh` call's exit code is checked; failures throw and fail the workflow.
+
 ## Script `translation-check.py`
 
 **File:** `.githooks/translation-check.py` — invoked by the `pre-commit` hook (staged files) or manually.
@@ -106,4 +123,7 @@ Checks: `IStringLocalizer` key existence (`.cs`/`.razor`/`.cshtml`), `.resx` pac
 | `sync-staging-with-main.yml` | `push` → `master` |
 | `staging-to-main-promotion.yml` | `workflow_run` "Pre-Release" completed on `staging` |
 | `security-scan.yml` | `schedule` `0 4 * * 1` + `workflow_dispatch` |
+| `monthly-architecture-security-review.yml` | `schedule` `0 6 1 * *` + `workflow_dispatch` |
+| `weekly-nuget-review.yml` | `schedule` `0 5 * * 1` + `workflow_dispatch` |
+| `yearly-compliance-review.yml` | `schedule` `0 7 1 1 *` + `workflow_dispatch` |
 | `release.yml` | `push` → `master` and tags `v*.*.*` |

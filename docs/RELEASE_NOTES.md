@@ -16,6 +16,7 @@
 - Failed detail lookups are tolerated: if the details of a selected search result cannot be loaded, the entry can still be confirmed and its ID is applied.
 - Scraper help documentation updated and extended (`docs/help/scraper/`): reworked troubleshooting guide covering the new error messages and workarounds (manual ID entry, personal TMDb API key), plus description, user setup, technical flow, business rules and a new installation page.
 - Analysis/requirements document for Issue #8 added (`docs/analysis/issue-8-titelsuche-imdb.md`): documents the broken title-based IMDb search for movies and TV shows and specifies the migration of the title search to the TMDb API.
+- Three scheduled GitHub Actions now create recurring review issues for `@softwarewerkstatt`: a monthly architecture/security review, a weekly NuGet dependency review and a yearly compliance/copyright review. A type-specific label check prevents duplicates while an open issue still exists.
 
 ## Wichtige Hinweise vor dem Update
 
@@ -33,3 +34,4 @@
 - Fehlgeschlagene Detailabrufe werden toleriert: Können die Details eines gewählten Suchtreffers nicht geladen werden, lässt sich der Eintrag trotzdem bestätigen und seine ID wird übernommen.
 - Scraper-Hilfedokumentation aktualisiert und erweitert (`docs/help/scraper/`): überarbeitete Troubleshooting-Anleitung zu den neuen Fehlermeldungen und Workarounds (manuelle ID-Eingabe, eigener TMDb-API-Key), dazu Beschreibung, Anwender-Einrichtung, technischer Ablauf, Business Rules und eine neue Installationsseite.
 - Analyse-/Anforderungsdokument für Issue #8 ergänzt (`docs/analysis/issue-8-titelsuche-imdb.md`): dokumentiert die defekte titelbasierte IMDb-Suche für Filme und Serien und legt die Umstellung der Titelsuche auf die TMDb-API fest.
+- Drei geplante GitHub Actions erzeugen jetzt wiederkehrende Review-Issues für `@softwarewerkstatt`: monatlich Architektur/Sicherheit, wöchentlich NuGet-Abhängigkeiten und jährlich Compliance/Copyright. Eine typbezogene Label-Prüfung verhindert Duplikate, solange ein offenes Issue existiert.
