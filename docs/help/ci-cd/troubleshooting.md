@@ -130,6 +130,17 @@
 1. Open `EmberMediaManager/My Project/AssemblyInfo.vb` and `EmberAPI/My Project/AssemblyInfo.vb` and restore the expected line format for `AssemblyVersion`, `AssemblyFileVersion` and `AssemblyInformationalVersion` — or update the regex patterns in the stamp step to match the new format.
 2. Re-run the workflow; the log of "Stamp assembly version" prints the stamped values per file for comparison.
 
+## Scheduled review issue was not created
+
+**Symptom:** A recurring review workflow ran successfully, but no new issue appeared.
+
+**Cause:** Usually intentional duplicate prevention: an open issue already carries the workflow's type label (`automated-review-architecture-security`, `automated-review-nuget` or `automated-review-compliance`). Another common cause is that the workflow file is not yet on `master` — GitHub only runs scheduled workflows from the default branch.
+
+**Solution:**
+1. Check open issues for the matching label; close or relabel the existing issue if a new one should be created.
+2. Confirm the workflow file exists on `master` and inspect the run log for the `gh issue list` output.
+3. For a controlled check, use `Run workflow` (`workflow_dispatch`) on the branch containing the workflow.
+
 ## Installed build shows "Version 0.0.0"
 
 **Symptom:** The About dialog, splash screen or version menu entry of a build shows "Version 0.0.0" — and the file properties show `0.0.0.0`.

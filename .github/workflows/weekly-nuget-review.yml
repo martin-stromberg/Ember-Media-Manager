@@ -1,0 +1,38 @@
+name: Weekly NuGet Review
+
+# Creates the weekly NuGet review issue. The label is the stable duplicate key:
+# as long as an open issue carries it, no new issue is created.
+# Scheduled runs only execute once this workflow exists on the default branch.
+"on":
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: weekly-nuget-review
+  cancel-in-progress: false
+
+jobs:
+  create-review-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Create review issue if none is open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          & ./scripts/New-RecurringIssue.ps1 `
+            -Repository "${{ github.repository }}" `
+            -Label "automated-review-nuget" `
+            -LabelColor "0E8A16" `
+            -LabelDescription "Automated weekly NuGet dependency review" `
+            -Title "Wöchentliche NuGet-Paketprüfung" `
+            -BodyFile ".github/recurring-issues/nuget-review.md"
+        shell: pwsh

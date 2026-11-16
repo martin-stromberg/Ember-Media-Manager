@@ -22,6 +22,7 @@ The system has two layers:
 - After a successful staging run, a draft pull request `staging → master` is opened for a maintainer to review and merge. Pull requests that target `master` directly from any other branch are rejected.
 - A push to `master` automatically opens a back-merge pull request `master → staging` and produces the release: the version is derived from the commits, stamped into the program during the build so the published executable displays exactly the GitHub release version, a tagged GitHub release is created and the build artifacts (`release.zip` and `update.json`) are attached. Releases can also be triggered by pushing a `vX.Y.Z` tag manually.
 - Once a week (Mondays 04:00 UTC) all NuGet dependencies are re-scanned, so newly disclosed vulnerabilities are caught even when nothing changed.
+- Three additional scheduled workflows create recurring review issues for `@softwarewerkstatt`: a monthly architecture/security review, a weekly NuGet dependency review and a yearly compliance/copyright review. Each workflow checks a type-specific label first and skips creation while an open issue of that type already exists.
 
 ## Examples
 

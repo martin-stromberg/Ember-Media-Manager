@@ -4,7 +4,7 @@
 
 ## Overview
 
-The pipeline is implemented entirely as repository files: shell/Python hooks under `.githooks/` (activated via `core.hooksPath`), seven GitHub Actions workflows under `.github/workflows/`, two shared composite actions under `.github/actions/`, and a semantic-release toolchain (`package.json`, `release.config.js`, `scripts/resolve-release-version.mjs`). All workflows build with the repo-pinned `.nuget\NuGet.exe` plus MSBuild on `windows-latest`; there is no `dotnet` CLI usage because the solution uses the legacy `packages.config` project format.
+The pipeline is implemented entirely as repository files: shell/Python hooks under `.githooks/` (activated via `core.hooksPath`), ten GitHub Actions workflows under `.github/workflows/`, two shared composite actions under `.github/actions/`, the recurring-issue helper `scripts/New-RecurringIssue.ps1` plus body templates under `.github/recurring-issues/`, and a semantic-release toolchain (`package.json`, `release.config.js`, `scripts/resolve-release-version.mjs`). All build/release workflows build with the repo-pinned `.nuget\NuGet.exe` plus MSBuild on `windows-latest`; there is no `dotnet` CLI usage because the solution uses the legacy `packages.config` project format.
 
 ## Local hooks
 
@@ -60,6 +60,16 @@ Triggers on `workflow_run` of the workflow **display name** `"Pre-Release"` (`ty
 
 Triggers on `schedule: '0 4 * * 1'` (Mondays 04:00 UTC) and `workflow_dispatch`; `permissions: contents: read`. Single job on windows: checkout → composite action `./.github/actions/security-scan` (`fail-on-vulnerabilities: 'true'`, artifact `vulnerable-packages-scan`).
 
+### Recurring review issue workflows
+
+Three separate workflows create review issues for `@softwarewerkstatt`; all run on `ubuntu-latest`, use `workflow_dispatch` as an additional manual trigger and serialize runs with `cancel-in-progress: false`:
+
+- `monthly-architecture-security-review.yml` — `schedule: '0 6 1 * *'` (first day of every month 06:00 UTC), label `automated-review-architecture-security`, title `Monatliches Architektur- und Sicherheitsreview`, template `.github/recurring-issues/architecture-security-review.md`.
+- `weekly-nuget-review.yml` — `schedule: '0 5 * * 1'` (Mondays 05:00 UTC), label `automated-review-nuget`, title `Wöchentliche NuGet-Paketprüfung`, template `.github/recurring-issues/nuget-review.md`.
+- `yearly-compliance-review.yml` — `schedule: '0 7 1 1 *'` (January 1, 07:00 UTC), label `automated-review-compliance`, title `Jährliches Compliance- und Copyright-Review`, template `.github/recurring-issues/compliance-review.md`.
+
+Each job checks out the repository (`contents: read`) and invokes `scripts/New-RecurringIssue.ps1` with `GH_TOKEN: ${{ github.token }}` (`issues: write`). The script creates the type label if needed, checks `gh issue list --state open --label <label> --limit 1`, skips creation when an open issue exists, and otherwise creates the issue from the template with `gh issue create`. Scheduled runs only start once the workflow file is present on `master`.
+
 ### `release.yml` — "Release"
 
 Triggers on `push` to `master` and on tags `v*.*.*`; serialized via `concurrency: release` (`cancel-in-progress: false`); single job on windows (30 min):
@@ -105,3 +115,4 @@ flowchart TD
 - `build-and-package` "Stamp assembly version" fails the build when `release-version` is set but does not match `X.Y.Z`/`X.Y.Z-rc.N` or contains a component > 65534.
 - `build-and-package` aborts if `publish/Ember Media Manager.exe`, `publish/version.json` or `publish/Unblock-ReleaseFiles.ps1` is missing after the copy step; with `release-version` set, "Verify publish output" additionally fails on any mismatch of `FileVersion`/`AssemblyVersion`/`ProductVersion` between the built artifacts and the stamped values.
 - The `verify-pr-source` workflow runs with empty permissions; a non-staging head ref produces an `::error` annotation and fails the required check.
+- `New-RecurringIssue.ps1` validates the body template and checks `gh` plus every `gh` call's exit code; label/search/create failures fail the workflow visibly instead of silently skipping the cycle.

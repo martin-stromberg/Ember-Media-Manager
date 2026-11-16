@@ -101,6 +101,21 @@
 
 **Implementation:** enforced socially via the PR body text in `sync-staging-with-main.yml`; detection relies on merge-parent checks in `detect-backmerge`.
 
+## Recurring issue de-duplication
+
+**Description:** Recurring review automations must create at most one open assignment issue per review type; a closed previous-cycle issue must not block the next cycle.
+
+**Conditions:**
+- One of the three recurring review workflows runs on schedule or via `workflow_dispatch`.
+- The workflow-specific label exists (it is created with `gh label create --force` if missing).
+
+**Behavior:**
+- `gh issue list --state open --label <label> --limit 1` finds an issue → the run logs the existing issue and exits successfully without `gh issue create`.
+- No open issue carries the label → the workflow creates a new issue with the configured title, label and Markdown body template.
+- `cancel-in-progress: false` serializes concurrent runs of the same workflow so the duplicate check is evaluated one run at a time.
+
+**Implementation:** `scripts/New-RecurringIssue.ps1`, invoked by `monthly-architecture-security-review.yml`, `weekly-nuget-review.yml` and `yearly-compliance-review.yml`.
+
 ## Dropped reference gates
 
 **Description:** Three gates of the reference pipeline intentionally do not exist here:

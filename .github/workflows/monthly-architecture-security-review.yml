@@ -1,0 +1,38 @@
+name: Monthly Architecture Security Review
+
+# Creates the monthly architecture/security review issue. The label is the stable
+# duplicate key: as long as an open issue carries it, no new issue is created.
+# Scheduled runs only execute once this workflow exists on the default branch.
+"on":
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: monthly-architecture-security-review
+  cancel-in-progress: false
+
+jobs:
+  create-review-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Create review issue if none is open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          & ./scripts/New-RecurringIssue.ps1 `
+            -Repository "${{ github.repository }}" `
+            -Label "automated-review-architecture-security" `
+            -LabelColor "B60205" `
+            -LabelDescription "Automated monthly architecture and security review" `
+            -Title "Monatliches Architektur- und Sicherheitsreview" `
+            -BodyFile ".github/recurring-issues/architecture-security-review.md"
+        shell: pwsh

@@ -1,0 +1,38 @@
+name: Yearly Compliance Review
+
+# Creates the yearly compliance/copyright review issue. The label is the stable
+# duplicate key: as long as an open issue carries it, no new issue is created.
+# Scheduled runs only execute once this workflow exists on the default branch.
+"on":
+  schedule:
+    - cron: '0 7 1 1 *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: yearly-compliance-review
+  cancel-in-progress: false
+
+jobs:
+  create-review-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Create review issue if none is open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          & ./scripts/New-RecurringIssue.ps1 `
+            -Repository "${{ github.repository }}" `
+            -Label "automated-review-compliance" `
+            -LabelColor "5319E7" `
+            -LabelDescription "Automated yearly compliance and copyright review" `
+            -Title "Jährliches Compliance- und Copyright-Review" `
+            -BodyFile ".github/recurring-issues/compliance-review.md"
+        shell: pwsh

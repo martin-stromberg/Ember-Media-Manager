@@ -6,6 +6,7 @@ The repository ships a two-layer quality-and-release system: local Git hooks tha
 
 - [Description](beschreibung.md)
 - [Technical flow](ablauf-technisch.md)
+- [Recurring review issues](recurring-reviews.md)
 - [API](api.md)
 - [Installation & Configuration](installation.md)
 - [Architecture](architektur.md)
