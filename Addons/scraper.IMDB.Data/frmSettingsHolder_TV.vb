@@ -101,6 +101,23 @@ Public Class frmSettingsHolder_TV
         End If
     End Sub
 
+    Private Sub btnUnlockAPI_Click(sender As Object, e As EventArgs) Handles btnUnlockAPI.Click
+        If btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key") Then
+            btnUnlockAPI.Text = Master.eLang.GetString(443, "Use embedded API Key")
+            lblEMMAPI.Visible = False
+            txtApiKey.Enabled = True
+        Else
+            btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
+            lblEMMAPI.Visible = True
+            txtApiKey.Enabled = False
+            txtApiKey.Text = String.Empty
+        End If
+    End Sub
+
+    Private Sub pbTMDBApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbTMDBApiKeyInfo.Click
+        Functions.Launch(My.Resources.urlAPIKey)
+    End Sub
+
     Private Sub cbEnabled_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkEnabled.CheckedChanged
         RaiseEvent SetupScraperChanged(chkEnabled.Checked, 0)
     End Sub
@@ -196,6 +213,10 @@ Public Class frmSettingsHolder_TV
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
+    Private Sub txtApiKey_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtApiKey.TextChanged
+        RaiseEvent ModuleSettingsChanged()
+    End Sub
+
     Sub orderChanged()
         Dim order As Integer = ModulesManager.Instance.externalScrapersModules_Data_TV.FirstOrDefault(Function(p) p.AssemblyName = IMDB_Data._AssemblyName).ModuleOrder
         If ModulesManager.Instance.externalScrapersModules_Data_TV.Count > 1 Then
@@ -208,6 +229,7 @@ Public Class frmSettingsHolder_TV
     End Sub
 
     Private Sub SetUp()
+        btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
         chkEnabled.Text = Master.eLang.GetString(774, "Enabled")
         chkFallBackworldwide.Text = Master.eLang.GetString(984, "Worldwide title as fallback")
         chkScraperEpActors.Text = Master.eLang.GetString(231, "Actors")
@@ -230,6 +252,8 @@ Public Class frmSettingsHolder_TV
         chkScraperShowTitle.Text = Master.eLang.GetString(21, "Title")
         gbScraperFieldsOpts.Text = Master.eLang.GetString(791, "Scraper Fields - Scraper specific")
         gbScraperOpts.Text = Master.eLang.GetString(1186, "Scraper Options")
+        lblApiKey.Text = String.Concat(Master.eLang.GetString(1498, "TMDB API Key (used for title search)"), ":")
+        lblEMMAPI.Text = Master.eLang.GetString(1189, "Ember Media Manager Embedded API Key")
         lblForceTitleLanguage.Text = Master.eLang.GetString(710, "Force Title Language:")
         lblInfoBottom.Text = String.Format(Master.eLang.GetString(790, "These settings are specific to this module.{0}Please refer to the global settings for more options."), Environment.NewLine)
         lblScraperOrder.Text = Master.eLang.GetString(168, "Scrape Order")

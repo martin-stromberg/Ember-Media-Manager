@@ -16,3 +16,5 @@ msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
 ```
 
 The finished build output then resides under `EmberMM - Release - x64\`.
+
+> **Note:** Locally built executables show "Version 0.0.0" — the checked-in `AssemblyInfo.vb` files carry the placeholder `0.0.0.0`. Only CI release builds stamp the actual release version into the assemblies (see [CI/CD & Git Hooks](../ci-cd/index.md)).

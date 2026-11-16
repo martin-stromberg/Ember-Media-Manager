@@ -30,6 +30,56 @@ runs:
       run: .\.nuget\NuGet.exe restore "Ember Media Manager.sln"
       shell: pwsh
 
+    - name: Stamp assembly version
+      # Stamps the resolved release version into the AssemblyInfo.vb attributes of the
+      # working copy before MSBuild runs. Legacy (non-SDK) vbproj ignores /p:Version=,
+      # so the version attributes only exist in AssemblyInfo.vb. SemVer X.Y.Z maps to
+      # assembly version X.Y.Z.0, X.Y.Z-rc.N to X.Y.Z.N; the full SemVer string goes to
+      # AssemblyInformationalVersion. The change stays in the CI working copy - it is
+      # deliberately not committed back to the repository. The derived values are also
+      # exported as step outputs so "Verify publish output" reuses this single
+      # SemVer->assembly-version derivation instead of reimplementing it.
+      id: stamp-version
+      env:
+        RELEASE_VERSION: ${{ inputs.release-version }}
+      run: |
+        $version = $env:RELEASE_VERSION
+        if (-not $version) {
+          Write-Host 'no release version - skipping stamp'
+          exit 0
+        }
+        $version = $version -replace '^v', ''
+        if ($version -notmatch '^(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?$') {
+          throw "release-version '$version' does not match the accepted format X.Y.Z or X.Y.Z-rc.N."
+        }
+        $revision = '0'
+        if ($Matches[4]) { $revision = $Matches[4] }
+        # Assembly version components max out at 65534 - check here so an out-of-range
+        # tag fails with a clear message instead of a cryptic VB compiler error later.
+        foreach ($component in @($Matches[1], $Matches[2], $Matches[3], $revision)) {
+          if ($component.Length -gt 5 -or [int]$component -gt 65534) {
+            throw "release-version '$version' contains the component '$component', which is outside the allowed assembly version range 0-65534."
+          }
+        }
+        $assemblyVersion = "$($Matches[1]).$($Matches[2]).$($Matches[3]).$revision"
+        "assembly_version=$assemblyVersion" | Add-Content -Path $env:GITHUB_OUTPUT
+        "product_version=$version" | Add-Content -Path $env:GITHUB_OUTPUT
+
+        $assemblyInfoFiles = @(
+          'EmberMediaManager/My Project/AssemblyInfo.vb',
+          'EmberAPI/My Project/AssemblyInfo.vb'
+        )
+        foreach ($file in $assemblyInfoFiles) {
+          $path = (Resolve-Path $file).Path
+          $content = [IO.File]::ReadAllText($path)
+          $content = $content -replace '(?m)^<Assembly: AssemblyVersion\("[^"]*"\)', "<Assembly: AssemblyVersion(`"$assemblyVersion`")"
+          $content = $content -replace '(?m)^<Assembly: AssemblyFileVersion\("[^"]*"\)', "<Assembly: AssemblyFileVersion(`"$assemblyVersion`")"
+          $content = $content -replace '(?m)^<Assembly: AssemblyInformationalVersion\("[^"]*"\)', "<Assembly: AssemblyInformationalVersion(`"$version`")"
+          [IO.File]::WriteAllText($path, $content, [Text.UTF8Encoding]::new($true))
+          Write-Host "Stamped ${file}: AssemblyVersion=$assemblyVersion, AssemblyFileVersion=$assemblyVersion, AssemblyInformationalVersion=$version"
+        }
+      shell: pwsh
+
     - name: Build (Release x64)
       run: msbuild "Ember Media Manager.sln" -p:Configuration=Release -p:Platform=x64
       shell: pwsh
@@ -46,6 +96,9 @@ runs:
         if (Test-Path 'publish' -PathType Leaf) { Remove-Item 'publish' -Force }
         New-Item -ItemType Directory -Path 'publish' -Force | Out-Null
         Copy-Item -Path 'EmberMM - Release - x64\*' -Destination 'publish' -Recurse -Force
+        # Helper for end users: removes the Mark-of-the-Web block from the
+        # extracted release files (Get-ChildItem -Recurse | Unblock-File).
+        Copy-Item -Path 'scripts/Unblock-ReleaseFiles.ps1' -Destination 'publish' -Force
       shell: pwsh
 
     - name: Write version manifest
@@ -72,12 +125,56 @@ runs:
       shell: pwsh
 
     - name: Verify publish output
+      env:
+        RELEASE_VERSION: ${{ inputs.release-version }}
+        EXPECTED_ASSEMBLY_VERSION: ${{ steps.stamp-version.outputs.assembly_version }}
+        EXPECTED_PRODUCT_VERSION: ${{ steps.stamp-version.outputs.product_version }}
       run: |
         if (-not (Test-Path 'publish/Ember Media Manager.exe')) {
           throw "publish/ is incomplete: Ember Media Manager.exe is missing."
         }
         if (-not (Test-Path 'publish/version.json')) {
           throw "publish/ is incomplete: version.json is missing."
+        }
+        if (-not (Test-Path 'publish/Unblock-ReleaseFiles.ps1')) {
+          throw "publish/ is incomplete: Unblock-ReleaseFiles.ps1 is missing."
+        }
+        if ($env:RELEASE_VERSION) {
+          # A silent non-matching -replace in "Stamp assembly version" must not ship an
+          # unstamped artifact: AssemblyVersion drives the displayed version
+          # (My.Application.Info.Version -> Master.Version), FileVersion is what
+          # Functions.EmberAPIVersion() reads for the EmberAPI entry in dlgVersions.
+          # The expected values come from the stamp step's outputs so the
+          # SemVer->assembly-version derivation exists in exactly one place.
+          $expectedAssemblyVersion = $env:EXPECTED_ASSEMBLY_VERSION
+          $expectedProductVersion = $env:EXPECTED_PRODUCT_VERSION
+          if (-not $expectedAssemblyVersion -or -not $expectedProductVersion) {
+            throw "release-version '$env:RELEASE_VERSION' is set, but 'Stamp assembly version' exported no assembly_version/product_version outputs."
+          }
+
+          $exePath = (Resolve-Path 'publish/Ember Media Manager.exe').Path
+          $exeInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)
+          $exeAssemblyVersion = [Reflection.AssemblyName]::GetAssemblyName($exePath).Version
+          if ($exeInfo.FileVersion -ne $expectedAssemblyVersion) {
+            throw "Ember Media Manager.exe FileVersion '$($exeInfo.FileVersion)' does not match expected '$expectedAssemblyVersion'."
+          }
+          if ($exeAssemblyVersion -ne [version]$expectedAssemblyVersion) {
+            throw "Ember Media Manager.exe AssemblyVersion '$exeAssemblyVersion' does not match expected '$expectedAssemblyVersion'."
+          }
+          if ($exeInfo.ProductVersion -ne $expectedProductVersion) {
+            throw "Ember Media Manager.exe ProductVersion '$($exeInfo.ProductVersion)' does not match expected '$expectedProductVersion'."
+          }
+
+          $dllPath = (Resolve-Path 'publish/EmberAPI.dll').Path
+          $dllInfo = [Diagnostics.FileVersionInfo]::GetVersionInfo($dllPath)
+          $dllAssemblyVersion = [Reflection.AssemblyName]::GetAssemblyName($dllPath).Version
+          if ($dllInfo.FileVersion -ne $expectedAssemblyVersion) {
+            throw "EmberAPI.dll FileVersion '$($dllInfo.FileVersion)' does not match expected '$expectedAssemblyVersion'."
+          }
+          if ($dllAssemblyVersion -ne [version]$expectedAssemblyVersion) {
+            throw "EmberAPI.dll AssemblyVersion '$dllAssemblyVersion' does not match expected '$expectedAssemblyVersion'."
+          }
+          Write-Host "Verified stamped versions: AssemblyVersion/FileVersion=$expectedAssemblyVersion, ProductVersion=$expectedProductVersion"
         }
       shell: pwsh
 

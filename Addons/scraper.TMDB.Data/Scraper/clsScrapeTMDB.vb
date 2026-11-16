@@ -155,6 +155,8 @@ Public Class Scraper
     Public Event SearchResultsDownloaded_MovieSet(ByVal mResults As SearchResults_MovieSet)
     Public Event SearchResultsDownloaded_TVShow(ByVal mResults As SearchResults_TVShow)
 
+    Public Event Exception(ByVal ex As Exception)
+
 #End Region 'Events
 
 #Region "Methods"
@@ -225,6 +227,26 @@ Public Class Scraper
     End Sub
 
     Private Sub bwTMDB_RunWorkerCompleted(ByVal sender As Object, ByVal e As System.ComponentModel.RunWorkerCompletedEventArgs) Handles bwTMDB.RunWorkerCompleted
+        If e.Cancelled Then
+            Return
+        End If
+
+        If e.Error IsNot Nothing Then
+            'unwrap AggregateException from Task-based calls so the dialogs get the real error message
+            Dim err As Exception = e.Error
+            Dim agg As AggregateException = TryCast(err, AggregateException)
+            If agg IsNot Nothing AndAlso agg.InnerException IsNot Nothing Then
+                err = agg.InnerException
+            End If
+            _Logger.Error(err, New StackFrame().GetMethod().Name)
+            RaiseEvent Exception(err)
+            Return
+        End If
+
+        If e.Result Is Nothing Then
+            Return
+        End If
+
         Dim Res As Results = DirectCast(e.Result, Results)
 
         Select Case Res.ResultType
@@ -1148,96 +1170,174 @@ Public Class Scraper
     End Function
 
     Public Function GetSearchMovieInfo(ByVal strMovieName As String, ByRef oDBMovie As Database.DBElement, ByVal eType As Enums.ScrapeType, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movie
-        Dim r As SearchResults_Movie = SearchMovie(strMovieName, CInt(If(Not String.IsNullOrEmpty(oDBMovie.Movie.Year), oDBMovie.Movie.Year, Nothing)))
+        Try
+            Dim r As SearchResults_Movie = Nothing
+            Try
+                r = SearchMovie(strMovieName, CInt(If(Not String.IsNullOrEmpty(oDBMovie.Movie.Year), oDBMovie.Movie.Year, Nothing)))
+            Catch ex As Exception
+                _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
 
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgTMDBSearchResults_Movie(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, strMovieName, oDBMovie.Filename) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+            If r Is Nothing Then
+                'the search itself failed (source/API error): in Ask mode open the search dialog so the user
+                'sees the failure (error node via the async search) and can retry or enter an id manually
+                Select Case eType
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        Using dlgSearch As New dlgTMDBSearchResults_Movie(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(strMovieName, oDBMovie.Filename, FilteredOptions, oDBMovie.Movie.Year) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                                End If
                             End If
-                        End If
-                    End Using
-                End If
+                        End Using
+                End Select
+                Return Nothing
+            End If
 
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
-                End If
+            Select Case eType
+                Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    Else
+                        Using dlgSearch As New dlgTMDBSearchResults_Movie(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(r, strMovieName, oDBMovie.Filename) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_Movie(dlgSearch.Result.UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                                End If
+                            End If
+                        End Using
+                    End If
 
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
-                End If
-        End Select
+                Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    End If
 
-        Return Nothing
+                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+                    If r.Matches.Count > 0 Then
+                        Return GetInfo_Movie(r.Matches.Item(0).UniqueIDs.TMDbId.ToString, FilteredOptions, False)
+                    End If
+            End Select
+
+            Return Nothing
+        Catch ex As Exception
+            _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            Return Nothing
+        End Try
     End Function
 
     Public Function GetSearchMovieSetInfo(ByVal title As String, ByRef oDBMovieSet As Database.DBElement, ByVal eType As Enums.ScrapeType, ByVal FilteredOptions As Structures.ScrapeOptions) As MediaContainers.Movieset
-        Dim r As SearchResults_MovieSet = SearchMovieSet(title)
+        Try
+            Dim r As SearchResults_MovieSet = Nothing
+            Try
+                r = SearchMovieSet(title)
+            Catch ex As Exception
+                _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
 
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgTMDBSearchResults_MovieSet(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, title) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.TMDbId, FilteredOptions, False)
+            If r Is Nothing Then
+                'the search itself failed (source/API error): in Ask mode open the search dialog so the user
+                'sees the failure (error node via the async search) and can retry or enter an id manually
+                Select Case eType
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        Using dlgSearch As New dlgTMDBSearchResults_MovieSet(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(title, FilteredOptions) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.TMDbId, FilteredOptions, False)
+                                End If
                             End If
-                        End If
-                    End Using
-                End If
+                        End Using
+                End Select
+                Return Nothing
+            End If
 
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
-                End If
+            Select Case eType
+                Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    Else
+                        Using dlgSearch As New dlgTMDBSearchResults_MovieSet(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(r, title) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_Movieset(dlgSearch.Result.UniqueIDs.TMDbId, FilteredOptions, False)
+                                End If
+                            End If
+                        End Using
+                    End If
 
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
-                End If
-        End Select
+                Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    End If
 
-        Return Nothing
+                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+                    If r.Matches.Count > 0 Then
+                        Return GetInfo_Movieset(r.Matches.Item(0).UniqueIDs.TMDbId, FilteredOptions, False)
+                    End If
+            End Select
+
+            Return Nothing
+        Catch ex As Exception
+            _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            Return Nothing
+        End Try
     End Function
 
     Public Function GetSearchTVShowInfo(ByVal strShowName As String, ByRef oDBTV As Database.DBElement, ByVal eType As Enums.ScrapeType, ByRef ScrapeModifiers As Structures.ScrapeModifiers, ByRef FilteredOptions As Structures.ScrapeOptions) As MediaContainers.TVShow
-        Dim r As SearchResults_TVShow = SearchTVShow(strShowName)
+        Try
+            Dim r As SearchResults_TVShow = Nothing
+            Try
+                r = SearchTVShow(strShowName)
+            Catch ex As Exception
+                _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            End Try
 
-        Select Case eType
-            Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
-                Else
-                    Using dlgSearch As New dlgTMDBSearchResults_TV(_addonSettings, Me)
-                        If dlgSearch.ShowDialog(r, strShowName, oDBTV.ShowPath) = DialogResult.OK Then
-                            If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
-                                Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+            If r Is Nothing Then
+                'the search itself failed (source/API error): in Ask mode open the search dialog so the user
+                'sees the failure (error node via the async search) and can retry or enter an id manually
+                Select Case eType
+                    Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                        Using dlgSearch As New dlgTMDBSearchResults_TV(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(strShowName, oDBTV.ShowPath, FilteredOptions) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                                End If
                             End If
-                        End If
-                    End Using
-                End If
+                        End Using
+                End Select
+                Return Nothing
+            End If
 
-            Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
-                If r.Matches.Count = 1 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
-                End If
+            Select Case eType
+                Case Enums.ScrapeType.AllAsk, Enums.ScrapeType.FilterAsk, Enums.ScrapeType.MarkedAsk, Enums.ScrapeType.MissingAsk, Enums.ScrapeType.NewAsk, Enums.ScrapeType.SelectedAsk, Enums.ScrapeType.SingleField
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    Else
+                        Using dlgSearch As New dlgTMDBSearchResults_TV(_addonSettings, Me)
+                            If dlgSearch.ShowDialog(r, strShowName, oDBTV.ShowPath) = DialogResult.OK Then
+                                If dlgSearch.Result.UniqueIDs.TMDbIdSpecified Then
+                                    Return GetInfo_TVShow(dlgSearch.Result.UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                                End If
+                            End If
+                        End Using
+                    End If
 
-            Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
-                If r.Matches.Count > 0 Then
-                    Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
-                End If
-        End Select
+                Case Enums.ScrapeType.AllSkip, Enums.ScrapeType.FilterSkip, Enums.ScrapeType.MarkedSkip, Enums.ScrapeType.MissingSkip, Enums.ScrapeType.NewSkip, Enums.ScrapeType.SelectedSkip
+                    If r.Matches.Count = 1 Then
+                        Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    End If
 
-        Return Nothing
+                Case Enums.ScrapeType.AllAuto, Enums.ScrapeType.FilterAuto, Enums.ScrapeType.MarkedAuto, Enums.ScrapeType.MissingAuto, Enums.ScrapeType.NewAuto, Enums.ScrapeType.SelectedAuto, Enums.ScrapeType.SingleScrape
+                    If r.Matches.Count > 0 Then
+                        Return GetInfo_TVShow(r.Matches.Item(0).UniqueIDs.TMDbId, ScrapeModifiers, FilteredOptions, False)
+                    End If
+            End Select
+
+            Return Nothing
+        Catch ex As Exception
+            _Logger.Error(ex, New StackFrame().GetMethod().Name)
+            Return Nothing
+        End Try
     End Function
 
     Public Sub GetSearchMovieInfoAsync(ByVal tmdbID As String, ByRef FilteredOptions As Structures.ScrapeOptions)
@@ -1359,6 +1459,9 @@ Public Class Scraper
         End If
     End Sub
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchMovie(ByVal strMovie As String, Optional ByVal iYear As Integer = 0) As SearchResults_Movie
         If String.IsNullOrEmpty(strMovie) Then Return New SearchResults_Movie
 
@@ -1371,42 +1474,42 @@ Public Class Scraper
         Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchMovie))
         APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
 
-        Movies = APIResult.Result
+        Movies = APIResult.GetAwaiter().GetResult()
 
-        If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
+        If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
             APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-            Movies = APIResult.Result
+            Movies = APIResult.GetAwaiter().GetResult()
             aE = True
         End If
 
         'try -1 year if no search result was found
-        If Movies.TotalResults = 0 AndAlso iYear > 0 AndAlso _addonSettings.SearchDeviant Then
+        If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso iYear > 0 AndAlso _addonSettings.SearchDeviant Then
             APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
-            Movies = APIResult.Result
+            Movies = APIResult.GetAwaiter().GetResult()
 
-            If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
+            If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
                 APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear - 1))
-                Movies = APIResult.Result
+                Movies = APIResult.GetAwaiter().GetResult()
                 aE = True
             End If
 
             'still no search result, try +1 year
-            If Movies.TotalResults = 0 Then
+            If Movies Is Nothing OrElse Movies.TotalResults = 0 Then
                 APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
-                Movies = APIResult.Result
+                Movies = APIResult.GetAwaiter().GetResult()
 
-                If Movies.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
+                If (Movies Is Nothing OrElse Movies.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
                     APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear + 1))
-                    Movies = APIResult.Result
+                    Movies = APIResult.GetAwaiter().GetResult()
                     aE = True
                 End If
             End If
         End If
 
-        If Movies.TotalResults > 0 Then
+        If Movies IsNot Nothing AndAlso Movies.TotalResults > 0 Then
             TotP = Movies.TotalPages
             While Page <= TotP AndAlso Page <= 3
-                If Movies.Results IsNot Nothing Then
+                If Movies IsNot Nothing AndAlso Movies.Results IsNot Nothing Then
                     For Each aMovie In Movies.Results
                         Dim tOriginalTitle As String = String.Empty
                         Dim tPlot As String = String.Empty
@@ -1435,12 +1538,14 @@ Public Class Scraper
                     Next
                 End If
                 Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                    Movies = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
-                    Movies = APIResult.Result
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+                        Movies = APIResult.GetAwaiter().GetResult()
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchMovieAsync(strMovie, Page, _addonSettings.GetAdultItems, iYear))
+                        Movies = APIResult.GetAwaiter().GetResult()
+                    End If
                 End If
             End While
         End If
@@ -1448,6 +1553,9 @@ Public Class Scraper
         Return R
     End Function
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchMovieSet(ByVal strMovieSet As String) As SearchResults_MovieSet
         If String.IsNullOrEmpty(strMovieSet) Then Return New SearchResults_MovieSet
 
@@ -1460,27 +1568,24 @@ Public Class Scraper
         Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchCollection))
         APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
 
-        MovieSets = APIResult.Result
+        MovieSets = APIResult.GetAwaiter().GetResult()
 
-        If MovieSets.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
+        If (MovieSets Is Nothing OrElse MovieSets.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
             APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-            MovieSets = APIResult.Result
+            MovieSets = APIResult.GetAwaiter().GetResult()
             aE = True
         End If
 
-        If MovieSets.TotalResults > 0 Then
-            Dim strTitle As String = String.Empty
-            Dim strPlot As String = String.Empty
+        If MovieSets IsNot Nothing AndAlso MovieSets.TotalResults > 0 Then
             TotP = MovieSets.TotalPages
             While Page <= TotP AndAlso Page <= 3
-                If MovieSets.Results IsNot Nothing Then
+                If MovieSets IsNot Nothing AndAlso MovieSets.Results IsNot Nothing Then
                     For Each aMovieSet In MovieSets.Results
+                        Dim strTitle As String = String.Empty
+
                         If aMovieSet.Name IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.Name) Then
                             strTitle = aMovieSet.Name
                         End If
-                        'If aMovieSet.overview IsNot Nothing AndAlso Not String.IsNullOrEmpty(aMovieSet.overview) Then
-                        '    strPlot = aMovieSet.overview
-                        'End If
                         R.Matches.Add(New MediaContainers.Movieset With {
                                       .Title = strTitle,
                                       .UniqueIDs = New MediaContainers.UniqueidContainer(Enums.ContentType.MovieSet) With {.TMDbId = aMovieSet.Id}
@@ -1488,12 +1593,14 @@ Public Class Scraper
                     Next
                 End If
                 Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
-                    MovieSets = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
-                    MovieSets = APIResult.Result
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchCollectionAsync(strMovieSet, Page))
+                        MovieSets = APIResult.GetAwaiter().GetResult()
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchCollectionAsync(strMovieSet, Page))
+                        MovieSets = APIResult.GetAwaiter().GetResult()
+                    End If
                 End If
             End While
         End If
@@ -1501,6 +1608,9 @@ Public Class Scraper
         Return R
     End Function
 
+    'GetAwaiter().GetResult() unwraps faulted tasks (real exception instead of AggregateException);
+    'errors are rethrown and logged once by the caller's error path
+    '(e.Error -> Exception event in the async dialog flow, Try/Catch in the synchronous flow)
     Private Function SearchTVShow(ByVal showName As String) As SearchResults_TVShow
         If String.IsNullOrEmpty(showName) Then Return New SearchResults_TVShow
 
@@ -1513,21 +1623,22 @@ Public Class Scraper
         Dim APIResult As Task(Of TMDbLib.Objects.General.SearchContainer(Of TMDbLib.Objects.Search.SearchTv))
         APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
 
-        Shows = APIResult.Result
+        Shows = APIResult.GetAwaiter().GetResult()
 
-        If Shows.TotalResults = 0 AndAlso _addonSettings.FallBackEng Then
+        If (Shows Is Nothing OrElse Shows.TotalResults = 0) AndAlso _addonSettings.FallBackEng Then
             APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-            Shows = APIResult.Result
+            Shows = APIResult.GetAwaiter().GetResult()
             aE = True
         End If
 
-        If Shows.TotalResults > 0 Then
-            Dim strTitle As String = String.Empty
-            Dim strYear As String = String.Empty
+        If Shows IsNot Nothing AndAlso Shows.TotalResults > 0 Then
             TotP = Shows.TotalPages
             While Page <= TotP AndAlso Page <= 3
-                If Shows.Results IsNot Nothing Then
+                If Shows IsNot Nothing AndAlso Shows.Results IsNot Nothing Then
                     For Each aShow In Shows.Results
+                        Dim strTitle As String = String.Empty
+                        Dim strYear As String = String.Empty
+
                         If aShow.Name Is Nothing OrElse (aShow.Name IsNot Nothing AndAlso String.IsNullOrEmpty(aShow.Name)) Then
                             If aShow.OriginalName IsNot Nothing AndAlso Not String.IsNullOrEmpty(aShow.OriginalName) Then
                                 strTitle = aShow.OriginalName
@@ -1546,12 +1657,14 @@ Public Class Scraper
                     Next
                 End If
                 Page = Page + 1
-                If aE Then
-                    APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
-                    Shows = APIResult.Result
-                Else
-                    APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
-                    Shows = APIResult.Result
+                If Page <= TotP AndAlso Page <= 3 Then
+                    If aE Then
+                        APIResult = Task.Run(Function() _clientE.SearchTvShowAsync(showName, Page))
+                        Shows = APIResult.GetAwaiter().GetResult()
+                    Else
+                        APIResult = Task.Run(Function() _client.SearchTvShowAsync(showName, Page))
+                        Shows = APIResult.GetAwaiter().GetResult()
+                    End If
                 End If
             End While
         End If

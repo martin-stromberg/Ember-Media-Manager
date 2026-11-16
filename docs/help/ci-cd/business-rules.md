@@ -76,11 +76,45 @@
 
 **Implementation:** `staging-ci.yml` jobs `version`/`prerelease`; `release.config.js` (`branches`, `tagFormat: "v${version}"`, dry-run plugin switch via `RESOLVE_DRY_RUN`).
 
+## Assembly version stamping
+
+**Description:** The published executable must display the same version as its GitHub release. Because the legacy non-SDK `.vbproj` files ignore MSBuild version properties, the release version is regex-stamped into the `AssemblyInfo.vb` attributes of the CI working copy during the build — it is deliberately not committed back (the release tag points at the already-merged commit).
+
+**Conditions:**
+- Only applies when the `build-and-package` input `release-version` is set; empty input → step skipped, files untouched.
+- `release-version` must match `X.Y.Z` or `X.Y.Z-rc.N` after stripping a leading `v` — stricter than the SemVer pattern used at tag resolution, because only those two shapes map onto a four-part numeric assembly version.
+- Each version component must be ≤ 65534 (assembly version component limit).
+
+**Behavior:**
+- `X.Y.Z` → `AssemblyVersion`/`AssemblyFileVersion` = `X.Y.Z.0`; `X.Y.Z-rc.N` → `X.Y.Z.N` (RC number as the revision component).
+- `AssemblyInformationalVersion` always receives the full SemVer string (`X.Y.Z` / `X.Y.Z-rc.N`), visible via `FileVersionInfo.ProductVersion`.
+- Stamped files: `EmberMediaManager` and `EmberAPI` — the ~30 add-on assemblies keep their own `ModuleVersion` and are not stamped.
+- Checked-in placeholder is `0.0.0.0` (plus empty `AssemblyInformationalVersion`), so unstamped builds are recognizable instead of faking a concrete release version.
+- "Verify publish output" compares the built artifacts' attributes against the stamp step's outputs and fails the build on any mismatch — a silently non-matching regex replace must never ship an unstamped artifact.
+- Asset repair (`release_action == 'upload-existing'`): `build-and-package` is loaded from the tagged commit — tags created before this change produce assets with the version checked in at that tag (consistent with the already published release); newer tags are stamped automatically.
+
+**Implementation:** step "Stamp assembly version" (`id: stamp-version`) and "Verify publish output" in `.github/actions/build-and-package/action.yml`; early tag validation via `STAMPABLE_VERSION_PATTERN`/`MAX_ASSEMBLY_VERSION_COMPONENT` in `scripts/resolve-release-version.mjs`; placeholders in `EmberMediaManager/My Project/AssemblyInfo.vb` and `EmberAPI/My Project/AssemblyInfo.vb`.
+
 ## Merge-commit requirement for back-merge PRs
 
 **Description:** The automated `master → staging` PR must be merged with "Create a merge commit", never rebase/squash — otherwise the release tag is unreachable from `staging` and the next version calculation breaks.
 
 **Implementation:** enforced socially via the PR body text in `sync-staging-with-main.yml`; detection relies on merge-parent checks in `detect-backmerge`.
+
+## Recurring issue de-duplication
+
+**Description:** Recurring review automations must create at most one open assignment issue per review type; a closed previous-cycle issue must not block the next cycle.
+
+**Conditions:**
+- One of the three recurring review workflows runs on schedule or via `workflow_dispatch`.
+- The workflow-specific label exists (it is created with `gh label create --force` if missing).
+
+**Behavior:**
+- `gh issue list --state open --label <label> --limit 1` finds an issue → the run logs the existing issue and exits successfully without `gh issue create`.
+- No open issue carries the label → the workflow creates a new issue with the configured title, label and Markdown body template.
+- `cancel-in-progress: false` serializes concurrent runs of the same workflow so the duplicate check is evaluated one run at a time.
+
+**Implementation:** `scripts/New-RecurringIssue.ps1`, invoked by `monthly-architecture-security-review.yml`, `weekly-nuget-review.yml` and `yearly-compliance-review.yml`.
 
 ## Dropped reference gates
 

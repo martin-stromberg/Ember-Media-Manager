@@ -51,6 +51,23 @@ Public Class frmSettingsHolder_Movie
         End If
     End Sub
 
+    Private Sub btnUnlockAPI_Click(sender As Object, e As EventArgs) Handles btnUnlockAPI.Click
+        If btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key") Then
+            btnUnlockAPI.Text = Master.eLang.GetString(443, "Use embedded API Key")
+            lblEMMAPI.Visible = False
+            txtApiKey.Enabled = True
+        Else
+            btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
+            lblEMMAPI.Visible = True
+            txtApiKey.Enabled = False
+            txtApiKey.Text = String.Empty
+        End If
+    End Sub
+
+    Private Sub pbTMDBApiKeyInfo_Click(sender As Object, e As EventArgs) Handles pbTMDBApiKeyInfo.Click
+        Functions.Launch(My.Resources.urlAPIKey)
+    End Sub
+
     Private Sub cbEnabled_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkEnabled.CheckedChanged
         RaiseEvent SetupScraperChanged(chkEnabled.Checked, 0)
     End Sub
@@ -93,15 +110,7 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkPartialTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPartialTitles.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
     Private Sub chkPlot_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPlot.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
-    Private Sub chkPopularTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkPopularTitles.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -147,19 +156,11 @@ Public Class frmSettingsHolder_Movie
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkTvTiles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkTvTitles.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
     Private Sub chkCountry_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkCountries.CheckedChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
-    Private Sub chkVideoTitles_CheckedChanged(ByVal sender As Object, ByVal e As EventArgs) Handles chkVideoTitles.CheckedChanged
-        RaiseEvent ModuleSettingsChanged()
-    End Sub
-
-    Private Sub chkShortTitles_CheckedChanged(sender As Object, e As EventArgs) Handles chkShortTitles.CheckedChanged
+    Private Sub txtApiKey_TextChanged(ByVal sender As Object, ByVal e As EventArgs) Handles txtApiKey.TextChanged
         RaiseEvent ModuleSettingsChanged()
     End Sub
 
@@ -195,6 +196,7 @@ Public Class frmSettingsHolder_Movie
     End Sub
 
     Private Sub Setup()
+        btnUnlockAPI.Text = Master.eLang.GetString(1188, "Use my own API key")
         chkActors.Text = Master.eLang.GetString(231, "Actors")
         chkCertifications.Text = Master.eLang.GetString(56, "Certifications")
         chkCountries.Text = Master.eLang.GetString(237, "Countries")
@@ -207,21 +209,18 @@ Public Class frmSettingsHolder_Movie
         chkOriginalTitle.Text = Master.eLang.GetString(302, "Original Title")
         chkOutline.Text = Master.eLang.GetString(64, "Plot Outline")
         chkPlot.Text = Master.eLang.GetString(65, "Plot")
-        chkPartialTitles.Text = Master.eLang.GetString(1183, "Partial Titles")
-        chkPopularTitles.Text = Master.eLang.GetString(1182, "Popular Titles")
         chkPremiered.Text = Master.eLang.GetString(724, "Premiered")
         chkRating.Text = Master.eLang.GetString(400, "Rating")
         chkRuntime.Text = Master.eLang.GetString(238, "Runtime")
-        chkShortTitles.Text = Master.eLang.GetString(837, "Short Titles")
         chkStudios.Text = Master.eLang.GetString(226, "Studios")
         chkTagline.Text = Master.eLang.GetString(397, "Tagline")
         chkTitle.Text = Master.eLang.GetString(21, "Title")
         chkTop250.Text = Master.eLang.GetString(591, "Top250")
-        chkTvTitles.Text = Master.eLang.GetString(1184, "TV Movie Titles")
-        chkVideoTitles.Text = Master.eLang.GetString(1185, "Video Titles")
         chkWriters.Text = Master.eLang.GetString(394, "Writers")
         gbScraperFieldsOpts.Text = Master.eLang.GetString(791, "Scraper Fields - Scraper specific")
         gbScraperOpts.Text = Master.eLang.GetString(1186, "Scraper Options")
+        lblApiKey.Text = String.Concat(Master.eLang.GetString(1498, "TMDB API Key (used for title search)"), ":")
+        lblEMMAPI.Text = Master.eLang.GetString(1189, "Ember Media Manager Embedded API Key")
         lblForceTitleLanguage.Text = Master.eLang.GetString(710, "Force Title Language:")
         lblInfoBottom.Text = String.Format(Master.eLang.GetString(790, "These settings are specific to this module.{0}Please refer to the global settings for more options."), Environment.NewLine)
         lblInfoParsing.Text = String.Format("* {0}", Master.eLang.GetString(1380, "additional page(s) to parse, needs longer to scrape"))

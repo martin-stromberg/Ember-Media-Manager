@@ -4,7 +4,7 @@
 
 ## Overview
 
-The pipeline is implemented entirely as repository files: shell/Python hooks under `.githooks/` (activated via `core.hooksPath`), seven GitHub Actions workflows under `.github/workflows/`, two shared composite actions under `.github/actions/`, and a semantic-release toolchain (`package.json`, `release.config.js`, `scripts/resolve-release-version.mjs`). All workflows build with the repo-pinned `.nuget\NuGet.exe` plus MSBuild on `windows-latest`; there is no `dotnet` CLI usage because the solution uses the legacy `packages.config` project format.
+The pipeline is implemented entirely as repository files: shell/Python hooks under `.githooks/` (activated via `core.hooksPath`), ten GitHub Actions workflows under `.github/workflows/`, two shared composite actions under `.github/actions/`, the recurring-issue helper `scripts/New-RecurringIssue.ps1` plus body templates under `.github/recurring-issues/`, and a semantic-release toolchain (`package.json`, `release.config.js`, `scripts/resolve-release-version.mjs`). All build/release workflows build with the repo-pinned `.nuget\NuGet.exe` plus MSBuild on `windows-latest`; there is no `dotnet` CLI usage because the solution uses the legacy `packages.config` project format.
 
 ## Local hooks
 
@@ -42,7 +42,7 @@ Triggers on `pull_request` (`opened`/`synchronize`/`reopened`) targeting `stagin
 Triggers on `push` to `staging`. Runs the same `detect-backmerge`, `static-checks` (artifact `vulnerable-packages-staging`) and `build-and-test` (artifact `build-log-staging`) jobs, then additionally:
 
 - Job `version` (ubuntu, needs all gates, skipped on back-merge): Node 24 via `actions/setup-node@v7`, `npm ci`, then `npx semantic-release --dry-run --no-ci --branches staging` (the `--branches` override is deliberate — `release.config.js` only lists `master`). Parses "The next release version is X.Y.Z" → outputs `changed`, `version`; the RC number is `count(git tag --list "v<version>-rc.*") + 1` → outputs `rc_tag` (`vX.Y.Z-rc.N`) and `rc_version` (`X.Y.Z-rc.N`).
-- Job `prerelease` (windows, only when `changed == 'true'`): composite action `./.github/actions/build-and-package` with `release-version`/`release-tag` → `gh release create <rc_tag> release.zip update.json --prerelease --generate-notes`.
+- Job `prerelease` (windows, only when `changed == 'true'`): composite action `./.github/actions/build-and-package` with `release-version`/`release-tag` — stamps `X.Y.Z-rc.N` into the assembly attributes (see "Version stamping" below) → `gh release create <rc_tag> release.zip update.json --prerelease --generate-notes`.
 
 ### `verify-pr-source.yml` — "Verify PR Source"
 
@@ -60,6 +60,16 @@ Triggers on `workflow_run` of the workflow **display name** `"Pre-Release"` (`ty
 
 Triggers on `schedule: '0 4 * * 1'` (Mondays 04:00 UTC) and `workflow_dispatch`; `permissions: contents: read`. Single job on windows: checkout → composite action `./.github/actions/security-scan` (`fail-on-vulnerabilities: 'true'`, artifact `vulnerable-packages-scan`).
 
+### Recurring review issue workflows
+
+Three separate workflows create review issues for `@softwarewerkstatt`; all run on `ubuntu-latest`, use `workflow_dispatch` as an additional manual trigger and serialize runs with `cancel-in-progress: false`:
+
+- `monthly-architecture-security-review.yml` — `schedule: '0 6 1 * *'` (first day of every month 06:00 UTC), label `automated-review-architecture-security`, title `Monatliches Architektur- und Sicherheitsreview`, template `.github/recurring-issues/architecture-security-review.md`.
+- `weekly-nuget-review.yml` — `schedule: '0 5 * * 1'` (Mondays 05:00 UTC), label `automated-review-nuget`, title `Wöchentliche NuGet-Paketprüfung`, template `.github/recurring-issues/nuget-review.md`.
+- `yearly-compliance-review.yml` — `schedule: '0 7 1 1 *'` (January 1, 07:00 UTC), label `automated-review-compliance`, title `Jährliches Compliance- und Copyright-Review`, template `.github/recurring-issues/compliance-review.md`.
+
+Each job checks out the repository (`contents: read`) and invokes `scripts/New-RecurringIssue.ps1` with `GH_TOKEN: ${{ github.token }}` (`issues: write`). The script creates the type label if needed, checks `gh issue list --state open --label <label> --limit 1`, skips creation when an open issue exists, and otherwise creates the issue from the template with `gh issue create`. Scheduled runs only start once the workflow file is present on `master`.
+
 ### `release.yml` — "Release"
 
 Triggers on `push` to `master` and on tags `v*.*.*`; serialized via `concurrency: release` (`cancel-in-progress: false`); single job on windows (30 min):
@@ -68,8 +78,18 @@ Triggers on `push` to `master` and on tags `v*.*.*`; serialized via `concurrency
 2. `node scripts/resolve-release-version.mjs` classifies the ref — `automatic` (branch push, version via semantic-release dry-run), `manual` (pushed `vX.Y.Z` tag) — then checks the GitHub release for the resolved tag and whether all expected assets (`release.zip`, `update.json`) are uploaded → outputs `released`, `release_kind`, `release_action` (`create`/`upload-existing`), `version`, `tag`.
 3. For `upload-existing`: checks out the release tag detached so rebuilt assets match the tagged commit.
 4. For `create`: `nuget restore` + `msbuild Debug|x86` as the release gate (replaces the reference's test gates; guards against races between staging validation and merge/tag) + `build-log-release` artifact.
-5. For `released == 'true'`: composite action `./.github/actions/build-and-package` → `release.zip` + `update.json`.
-6. Publish: `automatic` → `npm run release` (semantic-release creates tag, GitHub release and uploads assets per `release.config.js`); `manual` → `gh release create $tag release.zip update.json --generate-notes`; `upload-existing` → `gh release upload $tag --clobber`.
+5. For `released == 'true'`: composite action `./.github/actions/build-and-package` — stamps the resolved version into the assembly attributes (see "Version stamping" below) → `release.zip` + `update.json`.
+6. Publish: `automatic` → `npm run release` (semantic-release creates tag, GitHub release and uploads assets per `release.config.js`); `manual` → `gh release create $tag release.zip update.json --generate-notes`; `upload-existing` → `gh release upload $tag --clobber`. Note for the repair path: `build-and-package` is loaded from the **tagged** commit, so stamps/verifies only run for tags created after the stamping change was introduced; repaired assets for older tags keep the version checked in at that tag.
+
+### `build-and-package` — version stamping and verification
+
+The composite action `.github/actions/build-and-package/action.yml` stamps the release version into the assemblies before compiling, because the legacy non-SDK `.vbproj` files ignore MSBuild version properties — the version attributes exist only in `AssemblyInfo.vb`:
+
+- Step "Stamp assembly version" (between "Restore dependencies" and "Build (Release x64)", `id: stamp-version`): reads `inputs.release-version`; an empty value logs "no release version - skipping stamp" and exits successfully. Otherwise a leading `v` is stripped and the value must match `X.Y.Z` or `X.Y.Z-rc.N` (stricter than `VERSION_PATTERN` in `resolve-release-version.mjs`, which accepts arbitrary SemVer prerelease identifiers), with each component capped at 65534. SemVer `X.Y.Z` maps to assembly version `X.Y.Z.0`, `X.Y.Z-rc.N` to `X.Y.Z.N`. The step then regex-replaces `AssemblyVersion`, `AssemblyFileVersion` and `AssemblyInformationalVersion` in `EmberMediaManager/My Project/AssemblyInfo.vb` and `EmberAPI/My Project/AssemblyInfo.vb` (written back as UTF-8 with BOM) and exports the derived values as step outputs `assembly_version`/`product_version`. The stamped files stay in the CI working copy — no commit back to the repository.
+- Step "Verify publish output": when `release-version` is set, it compares `FileVersionInfo.FileVersion`, `[Reflection.AssemblyName]::GetAssemblyName(...).Version` and `FileVersionInfo.ProductVersion` of `publish/Ember Media Manager.exe` — plus `FileVersion`/`AssemblyVersion` of `publish/EmberAPI.dll` — against the stamp step's outputs. This catches a silently non-matching `-replace` (e.g. a changed attribute line format in `AssemblyInfo.vb`): `AssemblyVersion` drives the version displayed in the program, so an unverified stamp could ship an executable showing "Version 0.0.0" with a green build.
+- The checked-in `AssemblyInfo.vb` files carry the placeholder `0.0.0.0` and an empty `AssemblyInformationalVersion`, so local/non-release builds are recognizable as unstamped artifacts. The ~30 add-on assemblies keep their own `ModuleVersion` and are not stamped.
+
+Runtime effect: `My.Application.Info.Version` (→ `Master.Version` in `EmberAPI/clsAPIMaster.vb`) of a released build shows the release version — displayed in `dlgAbout`, `frmSplash`, the `mnuVersion` menu entry, the start log and as "Ember Application" in `dlgVersions`; `Functions.EmberAPIVersion()` reports the stamped `EmberAPI` file version as "Ember API".
 
 ## Diagram
 
@@ -91,6 +111,8 @@ flowchart TD
 
 - `nuget restore` failures fail the calling step/job immediately (hooks: exit 1; action: `::error` + exit code).
 - `NU190[1-4]` findings fail `security-scan` when `fail-on-vulnerabilities: 'true'` (default at all call sites), otherwise degrade to `::warning`.
-- `resolve-release-version.mjs` throws on non-`vX.Y.Z` tags and on branch refs outside `AUTOMATIC_RELEASE_BRANCHES`, failing the release job before anything is published.
-- `build-and-package` aborts if `publish/Ember Media Manager.exe` or `publish/version.json` is missing after the copy step.
+- `resolve-release-version.mjs` throws on non-`vX.Y.Z` tags and on branch refs outside `AUTOMATIC_RELEASE_BRANCHES`, failing the release job before anything is published. Manual tags are additionally validated against the stampable subset: only `vX.Y.Z` and `vX.Y.Z-rc.N` are accepted, with each component capped at 65534 — a tag like `v1.2.3-beta.1` (valid SemVer, but not mappable to a four-part assembly version) fails in "Resolve release version" instead of mid-run in the stamp step.
+- `build-and-package` "Stamp assembly version" fails the build when `release-version` is set but does not match `X.Y.Z`/`X.Y.Z-rc.N` or contains a component > 65534.
+- `build-and-package` aborts if `publish/Ember Media Manager.exe`, `publish/version.json` or `publish/Unblock-ReleaseFiles.ps1` is missing after the copy step; with `release-version` set, "Verify publish output" additionally fails on any mismatch of `FileVersion`/`AssemblyVersion`/`ProductVersion` between the built artifacts and the stamped values.
 - The `verify-pr-source` workflow runs with empty permissions; a non-staging head ref produces an `::error` annotation and fails the required check.
+- `New-RecurringIssue.ps1` validates the body template and checks `gh` plus every `gh` call's exit code; label/search/create failures fail the workflow visibly instead of silently skipping the cycle.
