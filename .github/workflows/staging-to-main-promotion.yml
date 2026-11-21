@@ -1,22 +1,22 @@
 name: Promote staging to master
 
-# After a successful "Pre-Release" run on staging, this workflow checks whether master is
-# behind staging. If so, it creates a draft PR staging -> master. The final merge must be
-# approved and completed manually by a maintainer.
+# On every push to staging this workflow immediately creates the draft PR staging -> master
+# (label: automated-promotion), so the pre-release checks run in the context of that PR and
+# release progress is observable there. The draft state prevents accidental merging; the
+# "only on successful pre-release" guarantee is preserved via master's required checks,
+# which the PR has to pass anyway. The final merge must be approved and completed manually
+# by a maintainer.
+#
+# A pure back-merge from master produces no PR: the "master is behind staging" check
+# below treats a tree identical to master as commits_ahead=0. An already open
+# staging -> master PR is never duplicated.
 #
 # Filename and concurrency group deliberately keep the reference's "main" naming
 # (reference proximity - they carry no branch-name coupling); the target branch here
 # is "master".
-#
-# Critical: this workflow_run trigger references the *display name* of staging-ci.yml, not
-# its filename. If staging-ci.yml's `name:` field ever changes again, this array must be
-# updated in the same commit - otherwise the promotion silently stops firing (no error, it
-# just never runs).
 
 "on":
-  workflow_run:
-    workflows: ["Pre-Release"]
-    types: [completed]
+  push:
     branches: [staging]
 
 permissions:
@@ -30,7 +30,6 @@ concurrency:
 
 jobs:
   promote:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -39,7 +38,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Fetch master
         run: git fetch origin master
@@ -76,7 +75,7 @@ jobs:
               --base master `
               --head staging `
               --title "Automated promotion from staging to master" `
-              --body "Automated promotion from staging to master. Contains all changes that have been integrated and successfully validated on staging. Requires manual review and merge by a maintainer." `
+              --body "Automated promotion from staging to master. Contains all changes integrated on staging; the pre-release checks run in the context of this PR. Requires manual review and merge by a maintainer." `
               --draft `
               --label "automated-promotion"
           } else {

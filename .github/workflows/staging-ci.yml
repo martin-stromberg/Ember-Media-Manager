@@ -1,9 +1,6 @@
 name: Pre-Release
 
-# Filename stays staging-ci.yml (only the display name is "Pre-Release").
-# staging-to-main-promotion.yml's workflow_run trigger references this display name, not
-# the filename; both must be updated together so the promotion chain never briefly points
-# at a name that no longer exists.
+# Filename stays staging-ci.yml even though the display name is "Pre-Release".
 
 on:
   push:
